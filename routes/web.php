@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\SliderController;
 use App\Http\Controllers\AdjustmentController;
 use App\Http\Controllers\BerandaController;
@@ -47,6 +48,8 @@ Route::get('/home', [HomeController::class, 'index'])->name('home');
 
 Route::middleware([HtmlMinifier::class])->group(function () {
     Route::group(['middleware' => ['auth']], function () {
+        Route::resource('gallery', GalleryController::class);
+
 
 
         Route::resource('testimonial', TestimonyController::class);

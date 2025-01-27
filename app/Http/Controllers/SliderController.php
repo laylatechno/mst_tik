@@ -68,9 +68,6 @@ class SliderController extends Controller
     {
         $title = "Halaman Tambah Slider";
         $subtitle = "Menu Tambah Slider";
-
-
-        // Kirim data ke view
         return view('slider.create', compact('title', 'subtitle'));
     }
 
@@ -81,11 +78,9 @@ class SliderController extends Controller
 
         $request->validate([
             'name' => 'required',
-
             'image' => 'nullable|image|mimes:jpeg,jpg,png|max:4096',
         ], [
             'name.required' => 'Nama wajib diisi.',
-
             'image.image' => 'Gambar harus dalam format jpeg, jpg, atau png',
             'image.mimes' => 'Format gambar harus jpeg, jpg, atau png',
             'image.max' => 'Ukuran gambar tidak boleh lebih dari 4 MB',

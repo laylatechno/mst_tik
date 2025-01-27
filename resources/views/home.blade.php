@@ -75,7 +75,7 @@
                 </div>
             </a>
         </div>
-        
+
         <div class="item">
             <a href="/pelanggan" class="text-decoration-none">
                 <div class="card border-0 zoom-in shadow-sm" style="background-color: #d1e7dd; border-radius: 10px;">
@@ -420,7 +420,7 @@
                             <h5 class="card-title fw-semibold">Produk Terlaris</h5>
                             <p class="card-subtitle mb-0">Pada Bulan {{ $currentMonthName }}</p>
                         </div>
-                        
+
                     </div>
                     <div class="table-responsive">
                         <table class="table align-middle text-nowrap mb-0">
@@ -474,6 +474,7 @@
     </div>
 </div>
 
+
 @endsection
 
 @push('script')
@@ -489,57 +490,60 @@
 <!--  current page js files -->
 <script src="{{ asset('template/back') }}/dist/libs/owl.carousel/dist/owl.carousel.min.js"></script>
 <script src="{{ asset('template/back') }}/dist/libs/apexcharts/dist/apexcharts.min.js"></script>
-<script src="{{ asset('template/back') }}/dist/js/dashboard.js"></script>
+<script src="{{ asset('template/back') }}/dist/js/dashboard.js"></script>   
 
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 
 <script>
-    // Data yang diterima dari controller (sesuai dengan filter yang diterapkan)
-    const purchaseData = @json($purchases-> pluck('total'));
-    const purchaseLabels = @json($purchases-> pluck('date'));
-    const orderData = @json($orders-> pluck('total'));
-    const orderLabels = @json($orders-> pluck('date'));
+    document.addEventListener("DOMContentLoaded", function() {
+        // Data yang diterima dari controller (sesuai dengan filter yang diterapkan)
+        const purchaseData = @json($purchases -> pluck('total'));
+        const purchaseLabels = @json($purchases -> pluck('date'));
+        const orderData = @json($orders -> pluck('total'));
+        const orderLabels = @json($orders -> pluck('date'));
 
-    // Grafik Purchases (berdasarkan filter)
-    const ctx1 = document.getElementById('lineChart1').getContext('2d');
-    new Chart(ctx1, {
-        type: 'line',
-        data: {
-            labels: purchaseLabels, // Label berdasarkan tanggal transaksi
-            datasets: [{
-                label: 'Purchases',
-                data: purchaseData,
-                borderColor: 'rgba(75, 192, 192, 1)',
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                borderWidth: 2,
-                fill: true,
-            }],
-        },
-        options: {
-            responsive: true
-        },
-    });
+        // Grafik Purchases (berdasarkan filter)
+        const ctx1 = document.getElementById('lineChart1').getContext('2d');
+        new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: purchaseLabels, // Label berdasarkan tanggal transaksi
+                datasets: [{
+                    label: 'Purchases',
+                    data: purchaseData,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderWidth: 2,
+                    fill: true,
+                }],
+            },
+            options: {
+                responsive: true
+            },
+        });
 
-    // Grafik Orders (berdasarkan filter)
-    const ctx2 = document.getElementById('lineChart2').getContext('2d');
-    new Chart(ctx2, {
-        type: 'line',
-        data: {
-            labels: orderLabels, // Label berdasarkan tanggal transaksi
-            datasets: [{
-                label: 'Orders',
-                data: orderData,
-                borderColor: 'rgba(255, 99, 132, 1)',
-                backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                borderWidth: 2,
-                fill: true,
-            }],
-        },
-        options: {
-            responsive: true
-        },
+        // Grafik Orders (berdasarkan filter)
+        const ctx2 = document.getElementById('lineChart2').getContext('2d');
+        new Chart(ctx2, {
+            type: 'line',
+            data: {
+                labels: orderLabels, // Label berdasarkan tanggal transaksi
+                datasets: [{
+                    label: 'Orders',
+                    data: orderData,
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderWidth: 2,
+                    fill: true,
+                }],
+            },
+            options: {
+                responsive: true
+            },
+        });
+
     });
 </script>
 

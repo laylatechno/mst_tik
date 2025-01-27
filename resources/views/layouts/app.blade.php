@@ -592,17 +592,19 @@
 
 
 
-    
-    <script src="{{ asset('template/back') }}/dist/js/vendor.min.js"></script>
+ 
     <!-- Import Js Files -->
     <script src="{{ asset('template/back') }}/dist/libs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ asset('template/back') }}/dist/libs/simplebar/dist/simplebar.min.js"></script>
-    <!-- <script src="{{ asset('template/back') }}/dist/js/theme/app.init.js"></script> -->
-    <script src="{{ asset('template/back') }}/dist/js/theme/theme.js"></script>
+    <script src="{{ asset('template/back') }}/dist/js/vendor.min.js"></script>
     <script src="{{ asset('template/back') }}/dist/js/theme/app.min.js"></script>
+    <script src="{{ asset('template/back') }}/dist/js/theme/theme.js"></script>
+    
+    
+    <!-- <script src="{{ asset('template/back') }}/dist/libs/simplebar/dist/simplebar.min.js"></script> -->
+    <!-- <script src="{{ asset('template/back') }}/dist/js/theme/app.init.js"></script> -->
 
     <!-- solar icons -->
-    <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script> -->
 
     <script>
         $('.sidebar-link.has-arrow').on('click', function() {
@@ -665,6 +667,7 @@
                 });
             </script>
     @stack('script')
+    
 </body>
 
 </html>
