@@ -477,8 +477,20 @@
 @endsection
 
 @push('script')
- 
+<!-- <script src="{{ asset('template/back') }}/dist/libs/jquery/dist/jquery.min.js"></script>
+<script src="{{ asset('template/back') }}/dist/libs/simplebar/dist/simplebar.min.js"></script>
+<script src="{{ asset('template/back') }}/dist/libs/bootstrap/dist/js/bootstrap.bundle.min.js"></script> -->
+<!--  core files -->
+<!-- <script src="{{ asset('template/back') }}/dist/js/app.min.js"></script>
+<script src="{{ asset('template/back') }}/dist/js/app.init.js"></script>
+<script src="{{ asset('template/back') }}/dist/js/app-style-switcher.js"></script>
+<script src="{{ asset('template/back') }}/dist/js/sidebarmenu.js"></script>
+<script src="{{ asset('template/back') }}/dist/js/custom.js"></script> -->
+<!--  current page js files -->
 <script src="{{ asset('template/back') }}/dist/libs/owl.carousel/dist/owl.carousel.min.js"></script>
+<script src="{{ asset('template/back') }}/dist/libs/apexcharts/dist/apexcharts.min.js"></script>
+<script src="{{ asset('template/back') }}/dist/js/dashboard.js"></script>
+
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 

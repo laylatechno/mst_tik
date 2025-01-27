@@ -149,7 +149,8 @@
                                         </td>
 
 
-                                        <td>{{ $p->description ?: 'No Data' }}</td>
+                                        <td>{!!  substr($p->description, 0, 20) ?: 'No Data' !!}</td>
+
                                         <td>Rp {{ number_format($p->purchase_price, 0, ',', '.') }}</td>
                                         <td>Rp {{ number_format($p->cost_price, 0, ',', '.') }}</td>
                                         <td>{{ $p->stock }}</td>

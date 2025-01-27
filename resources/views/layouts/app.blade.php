@@ -6,8 +6,6 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="keywords" content="{{$profil->keyword}}">
-    <meta name="description" content="{{$profil->deskripsi_keyword}}">
 
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -194,8 +192,8 @@
 
                         <div class="d-block d-lg-none py-4">
                             <a href="/upload/profil/{{ $profil->favicon }}" class="text-nowrap logo-img">
-                                <img src="{{ asset('/upload/profil/' . $profil->logo) }}" class="dark-logo" alt="Logo-Dark" />
-                                <img src="{{ asset('/upload/profil/' . $profil->logo_dark) }}" class="light-logo" alt="Logo-light" />
+                                <img src="https://bootstrapdemos.adminmart.com/modernize/dist/assets/images/logos/dark-logo.svg" class="dark-logo" alt="Logo-Dark" />
+                                <img src="https://bootstrapdemos.adminmart.com/modernize/dist/assets/images/logos/light-logo.svg" class="light-logo" alt="Logo-light" />
                             </a>
                         </div>
                         <a class="navbar-toggler nav-icon-hover-bg rounded-circle p-0 mx-0 border-0"
@@ -560,7 +558,7 @@
       
 
         <!--  Search Bar -->
-        <!-- <div class="modal fade" id="exampleModal" tabindex="-1" aria-hidden="true">
+        <div class="modal fade" id="exampleModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-scrollable modal-lg">
                 <div class="modal-content rounded-1">
                     <div class="modal-header border-bottom">
@@ -584,7 +582,7 @@
                     </div>
                 </div>
             </div>
-        </div> -->
+        </div>
 
     </div>
     <div class="dark-transparent sidebartoggler"></div>
@@ -594,11 +592,10 @@
 
     
     <script src="{{ asset('template/back') }}/dist/js/vendor.min.js"></script>
-    
     <!-- Import Js Files -->
     <script src="{{ asset('template/back') }}/dist/libs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ asset('template/back') }}/dist/libs/simplebar/dist/simplebar.min.js"></script>
-    <script src="{{ asset('template/back') }}/dist/js/theme/app.init.js"></script>
+    <!-- <script src="{{ asset('template/back') }}/dist/js/theme/app.init.js"></script> -->
     <script src="{{ asset('template/back') }}/dist/js/theme/theme.js"></script>
     <script src="{{ asset('template/back') }}/dist/js/theme/app.min.js"></script>
 

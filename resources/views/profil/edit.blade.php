@@ -185,22 +185,6 @@
                                                             </div>
                                                         </div>
 
-                                                        <div class="col-12">
-                                                            <div class="">
-                                                                <label for="keyword"
-                                                                    class="form-label fw-semibold">Keyword</label>
-                                                                    <input type="text" class="form-control" id="keyword" name="keyword" value="{{ $profil->keyword }}" placeholder="Masukkan Keyword">
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="col-12">
-                                                            <div class="">
-                                                                <label for="deskripsi_keyword"
-                                                                    class="form-label fw-semibold">Deskripsi Keyword</label>
-                                                                <textarea class="form-control" name="deskripsi_keyword" id="deskripsi_keyword" cols="30" rows="3">{{ $profil->deskripsi_keyword }}</textarea>
-                                                            </div>
-                                                        </div>
-
                                                     </div>
 
                                             </div>
@@ -586,6 +570,56 @@
 @push('scripts')
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
- 
+<!-- 
+<script>
+    $(document).ready(function() {
+        $('#updateProfilForm').on('submit', function(e) {
+            e.preventDefault();
+            let formData = new FormData(this);
+            let id = '{{ $profil->id }}';
+
+            $.ajax({
+                url: '/profil/${id}',
+                type: 'POST', // Ubah sesuai metode yang sesuai
+                data: formData,
+                contentType: false,
+                processData: false,
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: response.message,
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.reload();
+                        }
+                    });
+                },
+                error: function(xhr) {
+                    let errors = xhr.responseJSON.errors;
+                    let errorMessages = '';
+
+                    $.each(errors, function(field, messages) {
+                        errorMessages += messages.join(' ') + '\n';
+                    });
+
+                    Swal.fire({
+                        title: 'Error!',
+                        text: errorMessages || 'Gagal memperbarui profil.',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                },
+                complete: function() {
+                    $('#updateButton').prop('disabled', false).text('Update');
+                }
+            });
+        });
+    });
+</script> -->
 
 @endpush

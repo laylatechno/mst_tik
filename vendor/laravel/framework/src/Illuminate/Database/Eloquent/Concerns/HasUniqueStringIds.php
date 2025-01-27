@@ -38,7 +38,7 @@ trait HasUniqueStringIds
      */
     public function uniqueIds()
     {
-        return $this->usesUniqueIds() ? [$this->getKeyName()] : parent::uniqueIds();
+        return [$this->getKeyName()];
     }
 
     /**
@@ -54,11 +54,11 @@ trait HasUniqueStringIds
     public function resolveRouteBindingQuery($query, $value, $field = null)
     {
         if ($field && in_array($field, $this->uniqueIds()) && ! $this->isValidUniqueId($value)) {
-            $this->handleInvalidUniqueId($value, $field);
+            throw (new ModelNotFoundException)->setModel(get_class($this), $value);
         }
 
         if (! $field && in_array($this->getRouteKeyName(), $this->uniqueIds()) && ! $this->isValidUniqueId($value)) {
-            $this->handleInvalidUniqueId($value, $field);
+            throw (new ModelNotFoundException)->setModel(get_class($this), $value);
         }
 
         return parent::resolveRouteBindingQuery($query, $value, $field);
@@ -75,7 +75,7 @@ trait HasUniqueStringIds
             return 'string';
         }
 
-        return parent::getKeyType();
+        return $this->keyType;
     }
 
     /**
@@ -89,20 +89,6 @@ trait HasUniqueStringIds
             return false;
         }
 
-        return parent::getIncrementing();
-    }
-
-    /**
-     * Throw an exception for the given invalid unique ID.
-     *
-     * @param  mixed  $value
-     * @param  string|null  $field
-     * @return never
-     *
-     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
-     */
-    protected function handleInvalidUniqueId($value, $field)
-    {
-        throw (new ModelNotFoundException)->setModel(get_class($this), $value);
+        return $this->incrementing;
     }
 }

@@ -13,7 +13,6 @@ use Illuminate\Queue\Worker;
 use Illuminate\Queue\WorkerOptions;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\InteractsWithTime;
-use Illuminate\Support\Stringable;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Terminal;
 use Throwable;
@@ -125,7 +124,7 @@ class WorkCommand extends Command
 
         if (! $this->outputUsingJson() && Terminal::hasSttyAvailable()) {
             $this->components->info(
-                sprintf('Processing jobs from the [%s] %s.', $queue, (new Stringable('queue'))->plural(explode(',', $queue)))
+                sprintf('Processing jobs from the [%s] %s.', $queue, str('queue')->plural(explode(',', $queue)))
             );
         }
 

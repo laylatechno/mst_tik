@@ -7,9 +7,7 @@ use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Contracts\View\Factory as ViewFactory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
-use Illuminate\Support\Stringable;
 use Illuminate\Support\Traits\ReflectsClosures;
 use Illuminate\View\Component;
 use InvalidArgumentException;
@@ -222,7 +220,7 @@ class BladeCompiler extends Compiler implements CompilerInterface
      */
     protected function getOpenAndClosingPhpTokens($contents)
     {
-        return (new Collection(token_get_all($contents)))
+        return collect(token_get_all($contents))
             ->pluck(0)
             ->filter(function ($token) {
                 return in_array($token, [T_OPEN_TAG, T_OPEN_TAG_WITH_ECHO, T_CLOSE_TAG]);
@@ -762,7 +760,7 @@ class BladeCompiler extends Compiler implements CompilerInterface
 
         if (is_null($alias)) {
             $alias = str_contains($class, '\\View\\Components\\')
-                            ? (new Collection(explode('\\', Str::after($class, '\\View\\Components\\'))))->map(function ($segment) {
+                            ? collect(explode('\\', Str::after($class, '\\View\\Components\\')))->map(function ($segment) {
                                 return Str::kebab($segment);
                             })->implode(':')
                             : Str::kebab(class_basename($class));
@@ -836,7 +834,7 @@ class BladeCompiler extends Compiler implements CompilerInterface
     {
         $prefix ??= $directory;
 
-        $this->anonymousComponentNamespaces[$prefix] = (new Stringable($directory))
+        $this->anonymousComponentNamespaces[$prefix] = Str::of($directory)
                 ->replace('/', '.')
                 ->trim('. ')
                 ->toString();

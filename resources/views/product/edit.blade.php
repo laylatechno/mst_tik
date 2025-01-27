@@ -1,6 +1,8 @@
 @extends('layouts.app')
 @push('css')
 <link rel="stylesheet" href="{{ asset('template/back') }}/dist/libs/select2/dist/css/select2.min.css">
+<link rel="stylesheet" href="{{ asset('template/back') }}/dist/libs/ckeditor/samples/toolbarconfigurator/lib/codemirror/neo.css">
+<link rel="stylesheet" href="{{ asset('template/back') }}/dist/libs/ckeditor/samples/css/samples.css">
 @endpush
 
 @section('content')
@@ -78,65 +80,65 @@
     </div>
 
     <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        // Ambil status tutorial dari server
-        fetch('/tutorial-status')
-            .then(response => response.json())
-            .then(data => {
-                if (data.tutorialClosed) {
-                    // Jika tutorial sudah ditutup, sembunyikan card dan tampilkan tombol "Munculkan Informasi"
+        document.addEventListener("DOMContentLoaded", function() {
+            // Ambil status tutorial dari server
+            fetch('/tutorial-status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.tutorialClosed) {
+                        // Jika tutorial sudah ditutup, sembunyikan card dan tampilkan tombol "Munculkan Informasi"
+                        document.getElementById('tutorial-section').style.display = 'none';
+                        document.getElementById('showTutorialBtn').style.display = 'block';
+                    } else {
+                        // Jika tutorial masih terbuka, tampilkan card tutorial
+                        document.getElementById('tutorial-section').style.display = 'block';
+                        document.getElementById('showTutorialBtn').style.display = 'none';
+                    }
+                });
+        });
+
+        // Fungsi untuk menutup tutorial dan menyimpan statusnya
+        function closeTutorial() {
+            // Menyimpan status tutorial ke file JSON
+            fetch('/set-tutorial-status', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({
+                        tutorialClosed: true
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Sembunyikan card tutorial dan tampilkan tombol "Munculkan Informasi"
                     document.getElementById('tutorial-section').style.display = 'none';
                     document.getElementById('showTutorialBtn').style.display = 'block';
-                } else {
-                    // Jika tutorial masih terbuka, tampilkan card tutorial
+                });
+        }
+
+        // Fungsi untuk menampilkan tutorial kembali
+        function toggleTutorial() {
+            // Menyimpan status tutorial ke file JSON
+            fetch('/set-tutorial-status', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({
+                        tutorialClosed: false
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Tampilkan card tutorial dan sembunyikan tombol
                     document.getElementById('tutorial-section').style.display = 'block';
                     document.getElementById('showTutorialBtn').style.display = 'none';
-                }
-            });
-    });
-
-    // Fungsi untuk menutup tutorial dan menyimpan statusnya
-    function closeTutorial() {
-        // Menyimpan status tutorial ke file JSON
-        fetch('/set-tutorial-status', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-                body: JSON.stringify({
-                    tutorialClosed: true
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Sembunyikan card tutorial dan tampilkan tombol "Munculkan Informasi"
-                document.getElementById('tutorial-section').style.display = 'none';
-                document.getElementById('showTutorialBtn').style.display = 'block';
-            });
-    }
-
-    // Fungsi untuk menampilkan tutorial kembali
-    function toggleTutorial() {
-        // Menyimpan status tutorial ke file JSON
-        fetch('/set-tutorial-status', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-                body: JSON.stringify({
-                    tutorialClosed: false
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Tampilkan card tutorial dan sembunyikan tombol
-                document.getElementById('tutorial-section').style.display = 'block';
-                document.getElementById('showTutorialBtn').style.display = 'none';
-            });
-    }
-</script>
+                });
+        }
+    </script>
 
 
     <section class="datatables">
@@ -177,7 +179,31 @@
                                         <label for="name">Nama Produk</label>
                                         <span class="text-danger">*</span>
                                         <input type="text" name="name" class="form-control" id="name" value="{{ old('name', $data_product->name) }}" required>
+                                        <input type="hidden" name="slug" class="form-control" id="slug" value="{{ old('slug') }}" required readonly>
                                     </div>
+
+
+                                    <script>
+                                        // Ambil elemen input untuk name dan slug
+                                        const nameInput = document.getElementById('name');
+                                        const slugInput = document.getElementById('slug');
+
+                                        // Fungsi untuk membuat slug
+                                        function generateSlug(value) {
+                                            return value
+                                                .toLowerCase() // Ubah menjadi huruf kecil
+                                                .trim() // Hapus spasi di awal dan akhir
+                                                .replace(/[\s\W-]+/g, '-') // Ganti spasi atau karakter non-alphanumeric dengan "-"
+                                                .replace(/^-+|-+$/g, ''); // Hapus dash di awal atau akhir
+                                        }
+
+                                        // Event listener untuk mengisi slug saat name diinput
+                                        nameInput.addEventListener('input', function() {
+                                            slugInput.value = generateSlug(nameInput.value);
+                                        });
+                                    </script>
+
+
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="form-group mb-3">
@@ -346,6 +372,20 @@
         </div>
     </section>
 </div>
+<script src="{{ asset('template/back') }}/dist/libs/ckeditor/ckeditor.js"></script>
+<script src="{{ asset('template/back') }}/dist/libs/ckeditor/samples/js/sample.js"></script>
+<script>
+    //default
+    initSample();
+</script>
+<script data-sample="1">
+    CKEDITOR.replace("description", {
+        height: 150,
+    });
+</script>
+
+
+
 
 <script>
     function formatPrice(input) {
@@ -418,11 +458,13 @@
 @endsection
 
 @push('scripts')
- 
+
 
 <script src="{{ asset('template/back') }}/dist/libs/select2/dist/js/select2.full.min.js"></script>
 <script src="{{ asset('template/back') }}/dist/libs/select2/dist/js/select2.min.js"></script>
 <script src="{{ asset('template/back') }}/dist/js/forms/select2.init.js"></script>
+
+
 
 <script>
     $(document).ready(function() {
@@ -434,5 +476,5 @@
 
 
 
- 
+
 @endpush

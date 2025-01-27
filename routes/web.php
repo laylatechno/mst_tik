@@ -1,16 +1,9 @@
 <?php
-
-use App\Http\Controllers\BlogCategoryController;
-use App\Http\Controllers\ContactController;
-use App\Http\Controllers\GalleryController;
-use App\Http\Controllers\TravelRouteController;
-use App\Http\Controllers\FleetController;
 use App\Http\Controllers\TestimonialController;
 use App\Http\Controllers\SliderController;
-
+ 
 use App\Http\Controllers\AdjustmentController;
 use App\Http\Controllers\BerandaController;
-use App\Http\Controllers\BlogController;
 use App\Http\Controllers\StockOpnameController;
 use App\Http\Controllers\CashController;
 use App\Http\Controllers\PurchaseController;
@@ -29,6 +22,7 @@ use App\Http\Controllers\ResourceController;
 use App\Http\Controllers\RolesController;
 use App\Http\Controllers\RouteController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\TestimonyController;
 use App\Http\Controllers\TransactionCategoryController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\TutorialController;
@@ -36,40 +30,33 @@ use App\Http\Controllers\UnitController;
 use App\Http\Controllers\UsersController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use App\Http\Middleware\HtmlMinifier;
 
 
 
 Auth::routes();
 
+ 
 
+Route::get('/', [BerandaController::class, 'index'])->name('beranda');
+Route::get('/katalog/{slug}', [BerandaController::class, 'katalog_detail'])->name('katalog.katalog_detail');
 
-
-Route::middleware([HtmlMinifier::class])->group(function () {
-    Route::get('/', [BerandaController::class, 'index'])->name('beranda');
-    Route::get('/home', [HomeController::class, 'index'])->name('home');
-    Route::get('/blog', [BerandaController::class, 'blog'])->name('blog');
-    Route::get('/blog/{slug}', [BerandaController::class, 'blog_detail'])->name('blog.blog_detail');
-    Route::get('/kontak', [BerandaController::class, 'kontak'])->name('kontak');
-    Route::post('/kirim_kontak', [BerandaController::class, 'storeContact'])->name('kirim_kontak');
-});
-
+Route::get('/testimoni', [BerandaController::class, 'testimoni'])->name('testimoni');
+Route::get('/katalog', [BerandaController::class, 'katalog'])->name('katalog');
+Route::get('/detail_katalog', [BerandaController::class, 'detail_katalog'])->name('detail_katalog');
+Route::get('/home', [HomeController::class, 'index'])->name('home');
 
 Route::group(['middleware' => ['auth']], function () {
-    Route::resource('blog_categories', BlogCategoryController::class);
-    Route::resource('blogs', BlogController::class);
 
-    Route::resource('contacts', ContactController::class);
 
-    Route::resource('galleries', GalleryController::class);
-
-    Route::resource('travel_routes', TravelRouteController::class);
-
-    Route::resource('fleets', FleetController::class);
-
-    Route::resource('testimonials', TestimonialController::class);
-
+    Route::resource('testimonial', TestimonyController::class);
     Route::resource('sliders', SliderController::class);
+
+   
+
+    
+
+
+  
 
 
     Route::get('/tutorial-status', [TutorialController::class, 'getTutorialStatus']);
@@ -111,7 +98,7 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('/report/profit-reports/preview-pdf', [ReportController::class, 'previewPdfProfit'])->name('report.profit_reports.preview_pdf');
 
 
-
+    
 
     Route::get('/report/top_product_reports', [ReportController::class, 'top_product_report'])->name('report.top_product_reports');
     Route::get('/report/top_product-reports/export', [ReportController::class, 'exportExcelTopProduct'])->name('report.top_product_reports.export');

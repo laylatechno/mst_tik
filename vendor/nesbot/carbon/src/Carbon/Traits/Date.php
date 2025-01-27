@@ -2965,7 +2965,7 @@ trait Date
     private function mutateIfMutable(CarbonInterface $date): CarbonInterface
     {
         return $this instanceof DateTimeImmutable
-            ? $date
+            ? $this
             : $this->modify('@'.$date->rawFormat('U.u'))->setTimezone($date->getTimezone());
     }
 }

@@ -1,6 +1,8 @@
 @extends('layouts.app')
 @push('css')
 <link rel="stylesheet" href="{{ asset('template/back') }}/dist/libs/select2/dist/css/select2.min.css">
+<link rel="stylesheet" href="{{ asset('template/back') }}/dist/libs/ckeditor/samples/toolbarconfigurator/lib/codemirror/neo.css">
+<link rel="stylesheet" href="{{ asset('template/back') }}/dist/libs/ckeditor/samples/css/samples.css">
 @endpush
 
 @section('content')
@@ -115,7 +117,33 @@
                                         <label for="name">Nama Produk</label>
                                         <span class="text-danger">*</span>
                                         <input type="text" name="name" class="form-control" id="name" value="{{ old('name') }}" required>
+                                        <input type="hidden" name="slug" class="form-control" id="slug" value="{{ old('slug') }}" required readonly>
                                     </div>
+
+
+                                   
+
+                                    <script>
+                                        // Ambil elemen input untuk name dan slug
+                                        const nameInput = document.getElementById('name');
+                                        const slugInput = document.getElementById('slug');
+
+                                        // Fungsi untuk membuat slug
+                                        function generateSlug(value) {
+                                            return value
+                                                .toLowerCase() // Ubah menjadi huruf kecil
+                                                .trim() // Hapus spasi di awal dan akhir
+                                                .replace(/[\s\W-]+/g, '-') // Ganti spasi atau karakter non-alphanumeric dengan "-"
+                                                .replace(/^-+|-+$/g, ''); // Hapus dash di awal atau akhir
+                                        }
+
+                                        // Event listener untuk mengisi slug saat name diinput
+                                        nameInput.addEventListener('input', function() {
+                                            slugInput.value = generateSlug(nameInput.value);
+                                        });
+                                    </script>
+
+
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="form-group mb-3">
@@ -326,10 +354,26 @@
 </div>
 @endsection
 
+
 @push('script')
 <script src="{{ asset('template/back') }}/dist/libs/select2/dist/js/select2.full.min.js"></script>
 <script src="{{ asset('template/back') }}/dist/libs/select2/dist/js/select2.min.js"></script>
 <script src="{{ asset('template/back') }}/dist/js/forms/select2.init.js"></script>
+
+<script src="{{ asset('template/back') }}/dist/libs/ckeditor/ckeditor.js"></script>
+<script src="{{ asset('template/back') }}/dist/libs/ckeditor/samples/js/sample.js"></script>
+<script>
+    //default
+    initSample();
+</script>
+<script data-sample="1">
+    CKEDITOR.replace("description", {
+        height: 150,
+    });
+</script>
+
+
+
 
 <script>
     $(document).ready(function() {

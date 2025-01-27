@@ -5,13 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\LogHistori;
 use App\Models\Slider;
 
- 
+use App\Models\Profit;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
- 
+use Illuminate\Support\Facades\Validator;
 
 class SliderController extends Controller
 {
