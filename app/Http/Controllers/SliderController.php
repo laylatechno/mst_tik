@@ -51,12 +51,7 @@ class SliderController extends Controller
     {
         $title = "Halaman Slider";
         $subtitle = "Menu Slider";
-
-        // Ambil data untuk dropdown select
         $data_sliders = Slider::all();
-
-
-        // Kirim semua data ke view
         return view('slider.index', compact('data_sliders', 'title', 'subtitle'));
     }
 
