@@ -213,12 +213,14 @@
                                     <!-- ------------------------------- -->
                                     <!-- start language Dropdown -->
                                     <!-- ------------------------------- -->
+                                    @can('purchase-create')
                                     <li class="nav-item nav-icon-hover-bg rounded-circle" title="Menu Penjualan">
                                         <a class="nav-link" href="{{ route('orders.create') }}">
                                             <i class="fas fa-cart-plus"></i>
                                         </a>
                                        
                                     </li>
+                                    @endcan
 
 
                                     <!-- ------------------------------- -->
