@@ -33,20 +33,20 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\HtmlMinifier;
 
 
-
-Auth::routes();
-
-
-
-Route::get('/', [BerandaController::class, 'index'])->name('beranda');
-Route::get('/katalog/{slug}', [BerandaController::class, 'katalog_detail'])->name('katalog.katalog_detail');
-
-Route::get('/testimoni', [BerandaController::class, 'testimoni'])->name('testimoni');
-Route::get('/katalog', [BerandaController::class, 'katalog'])->name('katalog');
-Route::get('/detail_katalog', [BerandaController::class, 'detail_katalog'])->name('detail_katalog');
-Route::get('/home', [HomeController::class, 'index'])->name('home');
-
 Route::middleware([HtmlMinifier::class])->group(function () {
+    Auth::routes();
+
+
+
+    Route::get('/', [BerandaController::class, 'index'])->name('beranda');
+    Route::get('/katalog/{slug}', [BerandaController::class, 'katalog_detail'])->name('katalog.katalog_detail');
+
+    Route::get('/testimoni', [BerandaController::class, 'testimoni'])->name('testimoni');
+    Route::get('/katalog', [BerandaController::class, 'katalog'])->name('katalog');
+    Route::get('/detail_katalog', [BerandaController::class, 'detail_katalog'])->name('detail_katalog');
+    Route::get('/home', [HomeController::class, 'index'])->name('home');
+
+
     Route::group(['middleware' => ['auth']], function () {
         Route::resource('gallery', GalleryController::class);
 

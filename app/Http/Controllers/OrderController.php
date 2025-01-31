@@ -15,16 +15,19 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Services\ImageService;
 
 
 class OrderController extends Controller
 {
-    function __construct()
+    protected $imageService;
+    function __construct(ImageService $imageService)
     {
         $this->middleware('permission:order-list|order-create|order-edit|order-delete', ['only' => ['index', 'show']]);
         $this->middleware('permission:order-create', ['only' => ['create', 'store']]);
         $this->middleware('permission:order-edit', ['only' => ['edit', 'update']]);
         $this->middleware('permission:order-delete', ['only' => ['destroy']]);
+        $this->imageService = $imageService;
     }
 
     private function simpanLogHistori($aksi, $tabelAsal, $idEntitas, $pengguna, $dataLama, $dataBaru)
@@ -140,50 +143,17 @@ class OrderController extends Controller
         ]);
 
         // Menangani gambar (jika ada)
-        if ($image = $request->file('image')) {
-            $destinationPath = 'upload/orders/';
-            $originalFileName = $image->getClientOriginalName();
-            $imageMimeType = $image->getMimeType();
-
-            // Memastikan file adalah gambar
-            if (strpos($imageMimeType, 'image/') === 0) {
-                $imageName = date('YmdHis') . '_' . str_replace(' ', '_', $originalFileName);
-                $image->move($destinationPath, $imageName);
-
-                $sourceImagePath = public_path($destinationPath . $imageName);
-                $webpImagePath = $destinationPath . pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
-
-                // Mengubah gambar ke format webp
-                switch ($imageMimeType) {
-                    case 'image/jpeg':
-                        $sourceImage = @imagecreatefromjpeg($sourceImagePath);
-                        break;
-                    case 'image/png':
-                        $sourceImage = @imagecreatefrompng($sourceImagePath);
-                        break;
-                    default:
-                        throw new \Exception('Tipe MIME tidak didukung.');
-                }
-
-                // Jika gambar berhasil dibaca, konversi ke WebP dan hapus gambar asli
-                if ($sourceImage !== false) {
-                    imagewebp($sourceImage, $webpImagePath);
-                    imagedestroy($sourceImage);
-                    @unlink($sourceImagePath); // Menghapus file gambar asli
-                    $data['image'] = pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
-                } else {
-                    throw new \Exception('Gagal membaca gambar asli.');
-                }
-            } else {
-                throw new \Exception('Tipe MIME gambar tidak didukung.');
-            }
-        } else {
-            $data['image'] = ''; // Jika tidak ada image yang diupload
+        $imageName = null;
+        if ($request->hasFile('image')) {
+            $imageName = $this->imageService->handleImageUpload(
+                $request->file('image'),
+                'upload/orders'
+            );
         }
 
         // Simpan data pembelian ke dalam database
         $order = new Order();
-        $order->image = $data['image'];  // Perbaikan disini, bukan $request->image
+        $order->image = $imageName ?? ''; // Perbaikan disini, bukan $request->image
         $order->type_payment = $request->type_payment;
         $order->order_date = $request->order_date;
         $order->no_order = $request->no_order;
@@ -334,40 +304,12 @@ class OrderController extends Controller
         $oldData = $order->toArray();
 
         // Proses upload gambar
-        if ($image = $request->file('image')) {
-            $destinationPath = 'upload/orders/';
-            $originalFileName = $image->getClientOriginalName();
-            $imageMimeType = $image->getMimeType();
-
-            if ($order->image && file_exists(public_path($destinationPath . $order->image))) {
-                @unlink(public_path($destinationPath . $order->image));
-            }
-
-            $imageName = date('YmdHis') . '_' . str_replace(' ', '_', $originalFileName);
-            $image->move(public_path($destinationPath), $imageName);
-
-            $sourceImagePath = public_path($destinationPath . $imageName);
-            $webpImagePath = $destinationPath . pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
-
-            switch ($imageMimeType) {
-                case 'image/jpeg':
-                    $sourceImage = @imagecreatefromjpeg($sourceImagePath);
-                    break;
-                case 'image/png':
-                    $sourceImage = @imagecreatefrompng($sourceImagePath);
-                    break;
-                default:
-                    throw new \Exception('Tipe MIME tidak didukung.');
-            }
-
-            if ($sourceImage !== false) {
-                imagewebp($sourceImage, public_path($webpImagePath));
-                imagedestroy($sourceImage);
-                @unlink($sourceImagePath);
-                $order->image = pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
-            } else {
-                throw new \Exception('Gagal membaca gambar asli.');
-            }
+        if ($request->hasFile('image')) {
+            $order->image = $this->imageService->handleImageUpload(
+                $request->file('image'),
+                'upload/orders',
+                $order->image // Pass old image for deletion
+            );
         }
 
         $order->update([

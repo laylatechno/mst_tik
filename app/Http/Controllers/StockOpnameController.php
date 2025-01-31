@@ -15,7 +15,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-
+use App\Services\ImageService;
 
 
 class StockOpnameController extends Controller
@@ -25,12 +25,14 @@ class StockOpnameController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    function __construct()
+    protected $imageService;
+    function __construct(ImageService $imageService)
     {
         $this->middleware('permission:stockopname-list|stockopname-create|stockopname-edit|stockopname-delete', ['only' => ['index', 'show']]);
         $this->middleware('permission:stockopname-create', ['only' => ['create', 'store']]);
         $this->middleware('permission:stockopname-edit', ['only' => ['edit', 'update']]);
         $this->middleware('permission:stockopname-delete', ['only' => ['destroy']]);
+        $this->imageService = $imageService;
     }
 
     private function simpanLogHistori($aksi, $tabelAsal, $idEntitas, $pengguna, $dataLama, $dataBaru)
@@ -144,41 +146,13 @@ class StockOpnameController extends Controller
         $data = $request->only(['opname_date', 'description']);
 
         // Menangani gambar (jika ada)
-        if ($image = $request->file('image')) {
-            $destinationPath = 'upload/stock_opname/';
-            $originalFileName = $image->getClientOriginalName();
-            $imageMimeType = $image->getMimeType();
-
-            // Pastikan file adalah gambar
-            if (strpos($imageMimeType, 'image/') === 0) {
-                $imageName = date('YmdHis') . '_' . str_replace(' ', '_', $originalFileName);
-                $image->move($destinationPath, $imageName);
-
-                $sourceImagePath = public_path($destinationPath . $imageName);
-                $webpImagePath = $destinationPath . pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
-
-                // Konversi ke format WebP
-                switch ($imageMimeType) {
-                    case 'image/jpeg':
-                        $sourceImage = imagecreatefromjpeg($sourceImagePath);
-                        break;
-                    case 'image/png':
-                        $sourceImage = imagecreatefrompng($sourceImagePath);
-                        break;
-                    default:
-                        throw new \Exception('Tipe MIME gambar tidak didukung.');
-                }
-
-                // Konversi ke WebP dan hapus gambar asli
-                if ($sourceImage !== false) {
-                    imagewebp($sourceImage, $webpImagePath);
-                    imagedestroy($sourceImage);
-                    @unlink($sourceImagePath); // Hapus gambar asli
-                    $data['image'] = pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
-                } else {
-                    throw new \Exception('Gagal membaca gambar asli.');
-                }
-            }
+        if ($request->hasFile('image')) {
+            $data['image'] = $this->imageService->handleImageUpload(
+                $request->file('image'),
+                'upload/stock_opname'
+            );
+        } else {
+            $data['image'] = '';
         }
 
         // Buat Stock Opname
@@ -294,15 +268,14 @@ class StockOpnameController extends Controller
     {
         // Validasi input
         $request->validate([
-            'opname_date' => 'required|date', // Tanggal opname wajib diisi dan harus berupa format tanggal yang valid
-            'description' => 'nullable|string', // Deskripsi bersifat opsional dan jika diisi, harus berupa string
-            'products' => 'required|array', // Produk wajib diisi dalam bentuk array
-            'products.*.product_id' => 'required|exists:products,id', // Setiap produk harus memiliki product_id yang valid dan ada di tabel products
-            'products.*.system_stock' => 'required|integer|min:0', // Setiap produk harus memiliki system_stock yang valid, berupa angka bulat dan minimal 0
-            'products.*.physical_stock' => 'required|integer|min:0', // Setiap produk harus memiliki physical_stock yang valid, berupa angka bulat dan minimal 0
-            'image' => 'nullable|mimes:jpg,jpeg,png,gif|max:4048', // Gambar bersifat opsional, jika diunggah harus memiliki ekstensi JPG, JPEG, PNG, atau GIF, dan ukuran maksimal 4 MB
+            'opname_date' => 'required|date',
+            'description' => 'nullable|string',
+            'products' => 'required|array',
+            'products.*.product_id' => 'required|exists:products,id',
+            'products.*.system_stock' => 'required|integer|min:0',
+            'products.*.physical_stock' => 'required|integer|min:0',
+            'image' => 'nullable|mimes:jpg,jpeg,png,gif|max:4048',
         ], [
-            // Pesan error kustom
             'opname_date.required' => 'Tanggal opname wajib diisi.',
             'opname_date.date' => 'Tanggal opname harus berupa format tanggal yang valid.',
             'description.string' => 'Deskripsi harus berupa teks.',
@@ -320,53 +293,30 @@ class StockOpnameController extends Controller
             'image.max' => 'Ukuran gambar tidak boleh lebih dari 4 MB.',
         ]);
 
-        // Temukan data stock opname berdasarkan ID
+        // Temukan data stock opname
         $data_stock_opname = StockOpname::findOrFail($id);
 
-        // Update data stock opname
+        // Update data utama
         $data = $request->only(['opname_date', 'description']);
         $data_stock_opname->update($data);
 
-        // Menangani gambar (jika ada)
-        if ($image = $request->file('image')) {
-            $destinationPath = 'upload/stock_opname/';
-            $originalFileName = $image->getClientOriginalName();
-            $imageMimeType = $image->getMimeType();
-
-            // Pastikan file adalah gambar
-            if (strpos($imageMimeType, 'image/') === 0) {
-                $imageName = date('YmdHis') . '_' . str_replace(' ', '_', $originalFileName);
-                $image->move($destinationPath, $imageName);
-
-                $sourceImagePath = public_path($destinationPath . $imageName);
-                $webpImagePath = $destinationPath . pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
-
-                // Konversi ke format WebP
-                switch ($imageMimeType) {
-                    case 'image/jpeg':
-                        $sourceImage = imagecreatefromjpeg($sourceImagePath);
-                        break;
-                    case 'image/png':
-                        $sourceImage = imagecreatefrompng($sourceImagePath);
-                        break;
-                    default:
-                        throw new \Exception('Tipe MIME gambar tidak didukung.');
-                }
-
-                // Konversi ke WebP dan hapus file asli
-                imagewebp($sourceImage, public_path($webpImagePath));
-                imagedestroy($sourceImage);
-                unlink($sourceImagePath); // Hapus gambar asli jika sudah diubah
-
-                // Simpan nama gambar WebP di database
-                $data_stock_opname->image = pathinfo($webpImagePath, PATHINFO_FILENAME) . '.webp';
+        // Handle image upload menggunakan ImageService
+        if ($request->hasFile('image')) {
+            try {
+                $data_stock_opname->image = $this->imageService->handleImageUpload(
+                    $request->file('image'),
+                    'upload/stock_opname',
+                    $data_stock_opname->image // Pass gambar lama untuk dihapus
+                );
                 $data_stock_opname->save();
+            } catch (\Exception $e) {
+                return redirect()->back()->with('error', 'Gagal mengupload gambar: ' . $e->getMessage());
             }
         }
 
-        // Menangani produk (update atau insert produk terkait)
+        // Update detail produk
         foreach ($request->input('products') as $productData) {
-            $productDetail = $data_stock_opname->stockOpnameDetails()->updateOrCreate(
+            $data_stock_opname->stockOpnameDetails()->updateOrCreate(
                 ['product_id' => $productData['product_id']],
                 [
                     'system_stock' => $productData['system_stock'],

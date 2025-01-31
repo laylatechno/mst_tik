@@ -14,6 +14,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use App\Services\ImageService;
 
 use Picqer\Barcode\BarcodeGeneratorHTML;
 
@@ -24,12 +25,14 @@ class ProductController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    function __construct()
+    protected $imageService;
+    function __construct(ImageService $imageService)
     {
         $this->middleware('permission:product-list|product-create|product-edit|product-delete', ['only' => ['index', 'show']]);
         $this->middleware('permission:product-create', ['only' => ['create', 'store']]);
         $this->middleware('permission:product-edit', ['only' => ['edit', 'update']]);
         $this->middleware('permission:product-delete', ['only' => ['destroy']]);
+        $this->imageService = $imageService;
     }
 
     private function simpanLogHistori($aksi, $tabelAsal, $idEntitas, $pengguna, $dataLama, $dataBaru)
@@ -51,24 +54,24 @@ class ProductController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-   public function index(Request $request): View
-{
-    $title = "Halaman Produk";
-    $subtitle = "Menu Produk";
+    public function index(Request $request): View
+    {
+        $title = "Halaman Produk";
+        $subtitle = "Menu Produk";
 
-    // Ambil data hanya yang diperlukan untuk dropdown dan tabel
-    $data_units = Unit::select('id', 'name')->get(); // Ambil hanya kolom penting
-    $data_categories = Category::select('id', 'name')->get();
-    $data_customer_categories = CustomerCategory::select('id', 'name')->get();
+        // Ambil data hanya yang diperlukan untuk dropdown dan tabel
+        $data_units = Unit::select('id', 'name')->get(); // Ambil hanya kolom penting
+        $data_categories = Category::select('id', 'name')->get();
+        $data_customer_categories = CustomerCategory::select('id', 'name')->get();
 
-    // Optimasi query produk dengan eager loading
-    $data_products = Product::with(['category:id,name', 'unit:id,name']) // Load relasi hanya kolom yang dibutuhkan
-                            ->select('id', 'name', 'code_product', 'barcode', 'description', 'purchase_price', 'cost_price', 'stock', 'image', 'category_id', 'unit_id') // Pilih kolom spesifik
-                            ->get();
+        // Optimasi query produk dengan eager loading
+        $data_products = Product::with(['category:id,name', 'unit:id,name']) // Load relasi hanya kolom yang dibutuhkan
+            ->select('id', 'name', 'code_product', 'barcode', 'description', 'purchase_price', 'cost_price', 'stock', 'image', 'category_id', 'unit_id') // Pilih kolom spesifik
+            ->get();
 
-    // Kirim data ke view
-    return view('product.index', compact('data_products', 'data_units', 'data_categories', 'data_customer_categories', 'title', 'subtitle'));
-}
+        // Kirim data ke view
+        return view('product.index', compact('data_products', 'data_units', 'data_categories', 'data_customer_categories', 'title', 'subtitle'));
+    }
 
 
     public function getProductPrice(Request $request)
@@ -224,47 +227,57 @@ class ProductController extends Controller
         unset($data['customer_category_id']);
         unset($data['customer_price']);
 
-        // Proses image jika ada file yang diupload
-        if ($image = $request->file('image')) {
-            $destinationPath = 'upload/products/';
-            $originalFileName = $image->getClientOriginalName();
-            $imageMimeType = $image->getMimeType();
-
-            // Memastikan file adalah gambar
-            if (strpos($imageMimeType, 'image/') === 0) {
-                $imageName = date('YmdHis') . '_' . str_replace(' ', '_', $originalFileName);
-                $image->move($destinationPath, $imageName);
-
-                $sourceImagePath = public_path($destinationPath . $imageName);
-                $webpImagePath = $destinationPath . pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
-
-                // Mengubah gambar ke format webp
-                switch ($imageMimeType) {
-                    case 'image/jpeg':
-                        $sourceImage = @imagecreatefromjpeg($sourceImagePath);
-                        break;
-                    case 'image/png':
-                        $sourceImage = @imagecreatefrompng($sourceImagePath);
-                        break;
-                    default:
-                        throw new \Exception('Tipe MIME tidak didukung.');
-                }
-
-                // Jika gambar berhasil dibaca, konversi ke WebP dan hapus gambar asli
-                if ($sourceImage !== false) {
-                    imagewebp($sourceImage, $webpImagePath);
-                    imagedestroy($sourceImage);
-                    @unlink($sourceImagePath); // Menghapus file gambar asli
-                    $data['image'] = pathinfo($imageName, PATHINFO_FILENAME) . '.webp';  // Menggunakan $data, bukan $input
-                } else {
-                    throw new \Exception('Gagal membaca gambar asli.');
-                }
-            } else {
-                throw new \Exception('Tipe MIME gambar tidak didukung.');
-            }
+        // Upload dan konversi gambar menggunakan service
+        if ($request->hasFile('image')) {
+            $data['image'] = $this->imageService->handleImageUpload(
+                $request->file('image'),
+                'upload/products'
+            );
         } else {
-            $data['image'] = ''; // Jika tidak ada image yang diupload
+            $data['image'] = '';
         }
+
+        // Proses image jika ada file yang diupload
+        // if ($image = $request->file('image')) {
+        //     $destinationPath = 'upload/products/';
+        //     $originalFileName = $image->getClientOriginalName();
+        //     $imageMimeType = $image->getMimeType();
+
+        //     // Memastikan file adalah gambar
+        //     if (strpos($imageMimeType, 'image/') === 0) {
+        //         $imageName = date('YmdHis') . '_' . str_replace(' ', '_', $originalFileName);
+        //         $image->move($destinationPath, $imageName);
+
+        //         $sourceImagePath = public_path($destinationPath . $imageName);
+        //         $webpImagePath = $destinationPath . pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
+
+        //         // Mengubah gambar ke format webp
+        //         switch ($imageMimeType) {
+        //             case 'image/jpeg':
+        //                 $sourceImage = @imagecreatefromjpeg($sourceImagePath);
+        //                 break;
+        //             case 'image/png':
+        //                 $sourceImage = @imagecreatefrompng($sourceImagePath);
+        //                 break;
+        //             default:
+        //                 throw new \Exception('Tipe MIME tidak didukung.');
+        //         }
+
+        //         // Jika gambar berhasil dibaca, konversi ke WebP dan hapus gambar asli
+        //         if ($sourceImage !== false) {
+        //             imagewebp($sourceImage, $webpImagePath);
+        //             imagedestroy($sourceImage);
+        //             @unlink($sourceImagePath); // Menghapus file gambar asli
+        //             $data['image'] = pathinfo($imageName, PATHINFO_FILENAME) . '.webp';  // Menggunakan $data, bukan $input
+        //         } else {
+        //             throw new \Exception('Gagal membaca gambar asli.');
+        //         }
+        //     } else {
+        //         throw new \Exception('Tipe MIME gambar tidak didukung.');
+        //     }
+        // } else {
+        //     $data['image'] = ''; // Jika tidak ada image yang diupload
+        // }
 
         // Menyimpan data produk ke database
         $product = Product::create($data);
@@ -426,55 +439,65 @@ class ProductController extends Controller
             return redirect()->route('products.index')->with('error', 'Produk tidak ditemukan.');
         }
 
-        // Proses image jika ada file yang diupload
-        if ($image = $request->file('image')) {
-            $destinationPath = 'upload/products/';
-            $originalFileName = $image->getClientOriginalName();
-            $imageMimeType = $image->getMimeType();
-
-            // Memastikan file adalah gambar
-            if (strpos($imageMimeType, 'image/') === 0) {
-                $imageName = date('YmdHis') . '_' . str_replace(' ', '_', $originalFileName);
-                $image->move($destinationPath, $imageName);
-
-                $sourceImagePath = public_path($destinationPath . $imageName);
-                $webpImagePath = $destinationPath . pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
-
-                // Mengubah gambar ke format webp
-                switch ($imageMimeType) {
-                    case 'image/jpeg':
-                        $sourceImage = @imagecreatefromjpeg($sourceImagePath);
-                        break;
-                    case 'image/png':
-                        $sourceImage = @imagecreatefrompng($sourceImagePath);
-                        break;
-                    default:
-                        throw new \Exception('Tipe MIME tidak didukung.');
-                }
-
-                // Jika gambar berhasil dibaca, konversi ke WebP dan hapus gambar asli
-                if ($sourceImage !== false) {
-                    imagewebp($sourceImage, $webpImagePath);
-                    imagedestroy($sourceImage);
-                    @unlink($sourceImagePath); // Menghapus file gambar asli
-                    $data['image'] = pathinfo($imageName, PATHINFO_FILENAME) . '.webp';  // Menggunakan $data, bukan $input
-                } else {
-                    throw new \Exception('Gagal membaca gambar asli.');
-                }
-
-                // Hapus gambar lama jika ada
-                if ($product->image) {
-                    $oldImagePath = public_path('upload/products/' . $product->image);
-                    if (file_exists($oldImagePath)) {
-                        @unlink($oldImagePath);  // Menghapus gambar lama
-                    }
-                }
-            } else {
-                throw new \Exception('Tipe MIME gambar tidak didukung.');
-            }
+        if ($request->hasFile('image')) {
+            $data['image'] = $this->imageService->handleImageUpload(
+                $request->file('image'),
+                'upload/products',
+                $product->image // Pass old image for deletion
+            );
         } else {
-            $data['image'] = $product->image;  // Jika tidak ada gambar baru, gunakan gambar lama
+            $data['image'] = $product->image; // Gunakan gambar yang sudah ada
         }
+
+        // Proses image jika ada file yang diupload
+        // if ($image = $request->file('image')) {
+        //     $destinationPath = 'upload/products/';
+        //     $originalFileName = $image->getClientOriginalName();
+        //     $imageMimeType = $image->getMimeType();
+
+        //     // Memastikan file adalah gambar
+        //     if (strpos($imageMimeType, 'image/') === 0) {
+        //         $imageName = date('YmdHis') . '_' . str_replace(' ', '_', $originalFileName);
+        //         $image->move($destinationPath, $imageName);
+
+        //         $sourceImagePath = public_path($destinationPath . $imageName);
+        //         $webpImagePath = $destinationPath . pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
+
+        //         // Mengubah gambar ke format webp
+        //         switch ($imageMimeType) {
+        //             case 'image/jpeg':
+        //                 $sourceImage = @imagecreatefromjpeg($sourceImagePath);
+        //                 break;
+        //             case 'image/png':
+        //                 $sourceImage = @imagecreatefrompng($sourceImagePath);
+        //                 break;
+        //             default:
+        //                 throw new \Exception('Tipe MIME tidak didukung.');
+        //         }
+
+        //         // Jika gambar berhasil dibaca, konversi ke WebP dan hapus gambar asli
+        //         if ($sourceImage !== false) {
+        //             imagewebp($sourceImage, $webpImagePath);
+        //             imagedestroy($sourceImage);
+        //             @unlink($sourceImagePath); // Menghapus file gambar asli
+        //             $data['image'] = pathinfo($imageName, PATHINFO_FILENAME) . '.webp';  // Menggunakan $data, bukan $input
+        //         } else {
+        //             throw new \Exception('Gagal membaca gambar asli.');
+        //         }
+
+        //         // Hapus gambar lama jika ada
+        //         if ($product->image) {
+        //             $oldImagePath = public_path('upload/products/' . $product->image);
+        //             if (file_exists($oldImagePath)) {
+        //                 @unlink($oldImagePath);  // Menghapus gambar lama
+        //             }
+        //         }
+        //     } else {
+        //         throw new \Exception('Tipe MIME gambar tidak didukung.');
+        //     }
+        // } else {
+        //     $data['image'] = $product->image;  // Jika tidak ada gambar baru, gunakan gambar lama
+        // }
 
         // Menyimpan data produk yang diperbarui
         $product->update($data);

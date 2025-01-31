@@ -5,12 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Cash;
 use App\Models\LogHistori;
 use App\Models\Transaction;
-use App\Models\Category;
-use App\Models\CustomerCategory;
+ 
 use App\Models\Profit;
 use App\Models\TransactionCategory;
-use App\Models\TransactionPrice;
-use App\Models\Unit;
+use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -25,12 +23,14 @@ class TransactionController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    function __construct()
+    protected $imageService;
+    function __construct(ImageService $imageService)
     {
         $this->middleware('permission:transaction-list|transaction-create|transaction-edit|transaction-delete', ['only' => ['index', 'show']]);
         $this->middleware('permission:transaction-create', ['only' => ['create', 'store']]);
         $this->middleware('permission:transaction-edit', ['only' => ['edit', 'update']]);
         $this->middleware('permission:transaction-delete', ['only' => ['destroy']]);
+        $this->imageService = $imageService;
     }
 
     private function simpanLogHistori($aksi, $tabelAsal, $idEntitas, $pengguna, $dataLama, $dataBaru)
@@ -177,43 +177,18 @@ class TransactionController extends Controller
             $data = $request->except(['image', 'amount']);
             $data['amount'] = $numericAmount; // Gunakan amount yang sudah dibersihkan
 
-            if ($image = $request->file('image')) {
-                $destinationPath = 'upload/transactions/';
-                $originalFileName = $image->getClientOriginalName();
-                $imageMimeType = $image->getMimeType();
+           
 
-                // Memastikan file adalah gambar
-                if (strpos($imageMimeType, 'image/') === 0) {
-                    $imageName = date('YmdHis') . '_' . str_replace(' ', '_', $originalFileName);
-                    $image->move($destinationPath, $imageName);
 
-                    $sourceImagePath = public_path($destinationPath . $imageName);
-                    $webpImagePath = $destinationPath . pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
 
-                    // Mengubah gambar ke format webp
-                    switch ($imageMimeType) {
-                        case 'image/jpeg':
-                            $sourceImage = @imagecreatefromjpeg($sourceImagePath);
-                            break;
-                        case 'image/png':
-                            $sourceImage = @imagecreatefrompng($sourceImagePath);
-                            break;
-                        default:
-                            throw new \Exception('Tipe MIME tidak didukung.');
-                    }
-
-                    // Jika gambar berhasil dibaca, konversi ke WebP dan hapus gambar asli
-                    if ($sourceImage !== false) {
-                        imagewebp($sourceImage, $webpImagePath);
-                        imagedestroy($sourceImage);
-                        @unlink($sourceImagePath); // Menghapus file gambar asli
-                        $data['image'] = pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
-                    } else {
-                        throw new \Exception('Gagal membaca gambar asli.');
-                    }
-                } else {
-                    throw new \Exception('Tipe MIME gambar tidak didukung.');
-                }
+             // Upload dan konversi gambar menggunakan service
+             if ($request->hasFile('image')) {
+                $data['image'] = $this->imageService->handleImageUpload(
+                    $request->file('image'),
+                    'upload/transactions'
+                );
+            } else {
+                $data['image'] = '';
             }
 
             // Simpan transaksi ke database

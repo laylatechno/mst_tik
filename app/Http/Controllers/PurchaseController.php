@@ -14,15 +14,18 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Services\ImageService;
 
 class PurchaseController extends Controller
 {
-    function __construct()
+    protected $imageService;
+    function __construct(ImageService $imageService)
     {
         $this->middleware('permission:purchase-list|purchase-create|purchase-edit|purchase-delete', ['only' => ['index', 'show']]);
         $this->middleware('permission:purchase-create', ['only' => ['create', 'store']]);
         $this->middleware('permission:purchase-edit', ['only' => ['edit', 'update']]);
         $this->middleware('permission:purchase-delete', ['only' => ['destroy']]);
+        $this->imageService = $imageService;
     }
 
     private function simpanLogHistori($aksi, $tabelAsal, $idEntitas, $pengguna, $dataLama, $dataBaru)
@@ -117,141 +120,93 @@ class PurchaseController extends Controller
             'total_cost' => 'required|numeric',
             'product_id' => 'required|array',
             'quantity' => 'required|array',
-            'image' => 'mimes:jpg,jpeg,png,gif|max:4048', // Max 4 MB
+            'image' => 'mimes:jpg,jpeg,png,gif|max:4048',
         ], [
             'image.mimes' => 'Bukti yang dimasukkan hanya diperbolehkan berekstensi JPG, JPEG, PNG dan GIF',
             'image.max' => 'Ukuran image tidak boleh lebih dari 4 MB',
         ]);
 
-        // Menangani gambar (jika ada)
-        if ($image = $request->file('image')) {
-            $destinationPath = 'upload/purchases/';
-            $originalFileName = $image->getClientOriginalName();
-            $imageMimeType = $image->getMimeType();
-
-            // Memastikan file adalah gambar
-            if (strpos($imageMimeType, 'image/') === 0) {
-                $imageName = date('YmdHis') . '_' . str_replace(' ', '_', $originalFileName);
-                $image->move($destinationPath, $imageName);
-
-                $sourceImagePath = public_path($destinationPath . $imageName);
-                $webpImagePath = $destinationPath . pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
-
-                // Mengubah gambar ke format webp
-                switch ($imageMimeType) {
-                    case 'image/jpeg':
-                        $sourceImage = @imagecreatefromjpeg($sourceImagePath);
-                        break;
-                    case 'image/png':
-                        $sourceImage = @imagecreatefrompng($sourceImagePath);
-                        break;
-                    default:
-                        throw new \Exception('Tipe MIME tidak didukung.');
-                }
-
-                // Jika gambar berhasil dibaca, konversi ke WebP dan hapus gambar asli
-                if ($sourceImage !== false) {
-                    imagewebp($sourceImage, $webpImagePath);
-                    imagedestroy($sourceImage);
-                    @unlink($sourceImagePath); // Menghapus file gambar asli
-                    $data['image'] = pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
-                } else {
-                    throw new \Exception('Gagal membaca gambar asli.');
-                }
-            } else {
-                throw new \Exception('Tipe MIME gambar tidak didukung.');
+        try {
+            // Handle image upload
+            $imageName = null;
+            if ($request->hasFile('image')) {
+                $imageName = $this->imageService->handleImageUpload(
+                    $request->file('image'),
+                    'upload/purchases'
+                );
             }
-        } else {
-            $data['image'] = ''; // Jika tidak ada image yang diupload
-        }
 
-        // Simpan data pembelian ke dalam database
-        $purchase = new Purchase();
-        $purchase->image = $data['image'];  // Perbaikan disini, bukan $request->image
-        $purchase->type_payment = $request->type_payment;
-        $purchase->purchase_date = $request->purchase_date;
-        $purchase->no_purchase = $request->no_purchase;
-        $purchase->supplier_id = $request->supplier_id;
-        $purchase->user_id = Auth::id(); // Ganti dengan field yang sesuai dengan pic
-        $purchase->cash_id = $request->cash_id;
-        $purchase->total_cost = str_replace(['.', ','], '', $request->total_cost);
-        $purchase->status = $request->status;
-        $purchase->description = $request->description;
-        $purchase->save();
+            // Simpan data pembelian
+            $purchase = new Purchase();
+            $purchase->image = $imageName ?? '';
+            $purchase->type_payment = $request->type_payment;
+            $purchase->purchase_date = $request->purchase_date;
+            $purchase->no_purchase = $request->no_purchase;
+            $purchase->supplier_id = $request->supplier_id;
+            $purchase->user_id = Auth::id();
+            $purchase->cash_id = $request->cash_id;
+            $purchase->total_cost = str_replace(['.', ','], '', $request->total_cost);
+            $purchase->status = $request->status;
+            $purchase->description = $request->description;
+            $purchase->save();
 
-        // Mendapatkan ID dari purchase yang baru saja disimpan
-        $purchaseId = $purchase->id;
-
-        // Simpan detail purchase ke dalam database
-        $productIds = $request->product_id;
-        $quantitys = $request->quantity;
-        $purchaseprice = $request->purchase_price;
-
-        foreach ($productIds as $key => $productId) {
-            $hargaBeliWithoutSeparator = str_replace(['.', ','], '', $purchaseprice[$key]);
-            $detail = new PurchaseItem();
-            $detail->purchase_id = $purchaseId;
-            $detail->product_id = $productId;
-            $detail->purchase_price = $hargaBeliWithoutSeparator;
-            $detail->quantity = $quantitys[$key];
-            $detail->total_price = $quantitys[$key] * $hargaBeliWithoutSeparator;
-            $detail->save();
-        }
-
-        // Mengecek saldo cash sebelum melanjutkan transaksi
-        $cash = Cash::find($request->cash_id);
-        if ($cash && $cash->amount < $request->total_cost) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Saldo cash tidak mencukupi untuk transaksi ini.',
-            ], 400); // 400 adalah kode status HTTP untuk permintaan yang salah
-        }
-
-        // Proses pembayaran dan pembaruan stok hanya jika status pembelian 'Lunas'
-        if ($purchase->status === 'Lunas') {
-            // Update stock produk
+            // Simpan detail purchase
             foreach ($request->product_id as $key => $productId) {
-                $product = Product::find($productId);
-                if ($product) {
-                    $product->stock += $request->quantity[$key]; // Tambahkan stok
-                    $product->save();
-                }
+                $hargaBeliWithoutSeparator = str_replace(['.', ','], '', $request->purchase_price[$key]);
+                PurchaseItem::create([
+                    'purchase_id' => $purchase->id,
+                    'product_id' => $productId,
+                    'purchase_price' => $hargaBeliWithoutSeparator,
+                    'quantity' => $request->quantity[$key],
+                    'total_price' => $request->quantity[$key] * $hargaBeliWithoutSeparator,
+                ]);
             }
 
-            // Update saldo cash berdasarkan cash_id (hanya update saldo, tanpa pengecekan saldo)
-            $cash = Cash::find($request->cash_id); // Menemukan data cash berdasarkan cash_id
-            if ($cash) {
-                $cash->amount -= $purchase->total_cost; // Kurangi saldo cash
-                $cash->save();
-            } else {
-                // Jika cash_id tidak ditemukan, batalkan transaksi dan kirimkan error
-                $purchase->delete();
+            // Cek saldo cash
+            $cash = Cash::find($request->cash_id);
+            if ($cash && $cash->amount < $request->total_cost) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Cash ID tidak ditemukan. Silakan periksa input data Anda.'
-                ], 400);  // 400 adalah kode status HTTP untuk permintaan yang salah
+                    'message' => 'Saldo cash tidak mencukupi untuk transaksi ini.',
+                ], 400);
             }
 
-            // Simpan data ke tabel profit_loss jika status adalah Lunas
-            $profitLoss = new Profit();
-            $profitLoss->cash_id = $request->cash_id;
-            $profitLoss->purchase_id = $purchase->id;
-            $profitLoss->date = $purchase->purchase_date;
-            $profitLoss->category = 'kurang';
-            $profitLoss->amount = $purchase->total_cost;
-            $profitLoss->save();
+            // Proses jika status Lunas
+            if ($purchase->status === 'Lunas') {
+                // Update stock
+                foreach ($request->product_id as $key => $productId) {
+                    Product::find($productId)?->increment('stock', $request->quantity[$key]);
+                }
+
+                // Update cash
+                if ($cash) {
+                    $cash->decrement('amount', $purchase->total_cost);
+                } else {
+                    $purchase->delete();
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Cash ID tidak ditemukan.'
+                    ], 400);
+                }
+
+                // Simpan profit loss
+                Profit::create([
+                    'cash_id' => $request->cash_id,
+                    'purchase_id' => $purchase->id,
+                    'date' => $purchase->purchase_date,
+                    'category' => 'kurang',
+                    'amount' => $purchase->total_cost,
+                ]);
+            }
+
+            // Simpan log
+            $this->simpanLogHistori('Create', 'Purchase', $purchase->id, Auth::id(), null, json_encode($purchase));
+
+            return response()->json(['success' => true, 'message' => 'Pembelian berhasil disimpan'], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
-
-
-
-        // Mendapatkan ID user yang sedang login
-        $loggedInUserId = Auth::id();
-
-        // Simpan log histori untuk operasi Create dengan user_id yang sedang login
-        $this->simpanLogHistori('Create', 'Purchase', $purchase->id, $loggedInUserId, null, json_encode($purchase));
-
-        // Kembalikan respons sukses
-        return response()->json(['success' => true, 'message' => 'Pembelian berhasil disimpan'], 200);
     }
 
 
@@ -298,142 +253,7 @@ class PurchaseController extends Controller
         return view('purchase.edit', compact('purchase', 'title', 'subtitle', 'data_suppliers', 'data_products', 'data_cashes'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    // public function update(Request $request, $id)
-    // {
-    //     // Validasi input dari form
-    //     $request->validate([
-    //         'purchase_date' => 'required|date',
-    //         'image' => 'mimes:jpg,jpeg,png,gif|max:4048',
-    //         'items.*.product_id' => 'required|exists:products,id',
-    //         'items.*.purchase_price' => 'required|regex:/^\d+([.,]\d+)*$/',
-    //         'items.*.quantity' => 'required|integer|min:1',
-    //     ], [
-    //         'items.*.product_id.required' => 'Produk harus dipilih.',
-    //         'items.*.product_id.exists' => 'Produk yang dipilih tidak valid.',
-    //         'items.*.purchase_price.required' => 'Harga pembelian harus diisi.',
-    //         'items.*.purchase_price.regex' => 'Format harga pembelian tidak valid.',
-    //         'items.*.quantity.required' => 'Jumlah harus diisi.',
-    //         'items.*.quantity.integer' => 'Jumlah harus berupa angka.',
-    //         'items.*.quantity.min' => 'Jumlah minimal adalah 1.',
-    //     ]);
-
-
-
-
-    //     // Temukan data pembelian berdasarkan ID
-    //     $purchase = Purchase::findOrFail($id);
-
-    //     // Simpan status dan data awal sebelum update
-    //     $oldStatus = $purchase->status;
-    //     $oldData = $purchase->toArray();
-
-    //     // Menangani gambar (jika ada)
-    //     if ($image = $request->file('image')) {
-    //         $destinationPath = 'upload/purchases/';
-    //         $originalFileName = $image->getClientOriginalName();
-    //         $imageMimeType = $image->getMimeType();
-
-    //         // Hapus gambar lama jika ada
-    //         if ($purchase->image && file_exists(public_path($destinationPath . $purchase->image))) {
-    //             @unlink(public_path($destinationPath . $purchase->image));
-    //         }
-
-    //         // Proses upload gambar baru
-    //         $imageName = date('YmdHis') . '_' . str_replace(' ', '_', $originalFileName);
-    //         $image->move($destinationPath, $imageName);
-
-    //         $sourceImagePath = public_path($destinationPath . $imageName);
-    //         $webpImagePath = $destinationPath . pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
-
-    //         // Konversi gambar ke WebP
-    //         switch ($imageMimeType) {
-    //             case 'image/jpeg':
-    //                 $sourceImage = @imagecreatefromjpeg($sourceImagePath);
-    //                 break;
-    //             case 'image/png':
-    //                 $sourceImage = @imagecreatefrompng($sourceImagePath);
-    //                 break;
-    //             default:
-    //                 throw new \Exception('Tipe MIME tidak didukung.');
-    //         }
-
-    //         if ($sourceImage !== false) {
-    //             imagewebp($sourceImage, $webpImagePath);
-    //             imagedestroy($sourceImage);
-    //             @unlink($sourceImagePath); // Menghapus file gambar asli
-    //             $purchase->image = pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
-    //         } else {
-    //             throw new \Exception('Gagal membaca gambar asli.');
-    //         }
-    //     }
-
-    //     // Update data pembelian
-    //     $purchase->description = $request->description;
-    //     $purchase->type_payment = $request->type_payment;
-    //     $purchase->purchase_date = $request->purchase_date;
-    //     $purchase->status = $request->status;
-    //     $purchase->cash_id = $request->cash_id;
-    //     $purchase->supplier_id = $request->supplier_id;
-    //     $purchase->no_purchase = $request->no_purchase;
-    //     $purchase->user_id = Auth::id();
-    //     $purchase->total_cost = str_replace(['.', ','], '', $request->total_cost);
-    //     $purchase->save();
-
-    //     // Mendapatkan ID dari purchase yang baru saja disimpan
-    //     $purchaseId = $purchase->id;
-
-    //     // Update atau simpan detail purchase ke dalam database
-    //     $items = $request->items;
-    //     foreach ($items as $itemId => $itemData) {
-    //         $hargaBeliWithoutSeparator = str_replace(['.', ','], '', $itemData['purchase_price']);
-    //         $purchaseItem = PurchaseItem::findOrNew($itemId); // Update jika item ada, buat baru jika tidak ada
-    //         $purchaseItem->purchase_id = $purchaseId;
-    //         $purchaseItem->product_id = $itemData['product_id'];
-    //         $purchaseItem->purchase_price = $hargaBeliWithoutSeparator;
-    //         $purchaseItem->quantity = $itemData['quantity'];
-    //         $purchaseItem->total_price = $itemData['quantity'] * $hargaBeliWithoutSeparator;
-    //         $purchaseItem->save();
-    //     }
-
-    //     // Jika status berubah menjadi "Lunas", tambahkan stok dan kurangi saldo kas
-    //     if ($oldStatus !== 'Lunas' && $purchase->status === 'Lunas') {
-    //         foreach ($items as $itemId => $itemData) {
-    //             $purchaseItem = PurchaseItem::findOrFail($itemId);
-    //             $product = Product::find($purchaseItem->product_id);
-
-    //             if ($product) {
-    //                 $product->stock += $purchaseItem->quantity;
-    //                 $product->save();
-    //             }
-    //         }
-
-    //         // Pemotongan saldo kas
-    //         $cash = Cash::find($request->cash_id);
-    //         if ($cash) {
-    //             if ($cash->amount >= $purchase->total_cost) {
-    //                 $cash->amount -= $purchase->total_cost;  // Mengurangi saldo kas
-    //                 $cash->save();  // Simpan perubahan kas
-    //             } else {
-    //                 return response()->json(['error' => 'Saldo cash tidak mencukupi'], 400);
-    //             }
-    //         } else {
-    //             return response()->json(['error' => 'Kas tidak ditemukan'], 404);
-    //         }
-    //     }
-
-    //     // Simpan log histori
-    //     $loggedInUserId = Auth::id();
-    //     $this->simpanLogHistori('Update', 'purchases', $purchase->id, $loggedInUserId, json_encode($oldData), json_encode($purchase->toArray()));
-
-    //     // Return response JSON
-    //     return response()->json([
-    //         'status' => 'success',
-    //         'message' => 'Pembelian berhasil diperbarui!',
-    //     ]);
-    // }
+    
 
     public function update(Request $request, string $id)
     {
@@ -458,45 +278,53 @@ class PurchaseController extends Controller
         $oldData = $purchase->toArray();
 
         // Proses upload gambar jika ada
-        if ($image = $request->file('image')) {
-            $destinationPath = 'upload/purchases/';
-            $originalFileName = $image->getClientOriginalName();
-            $imageMimeType = $image->getMimeType();
+        // if ($image = $request->file('image')) {
+        //     $destinationPath = 'upload/purchases/';
+        //     $originalFileName = $image->getClientOriginalName();
+        //     $imageMimeType = $image->getMimeType();
 
-            // Hapus gambar lama jika ada
-            if ($purchase->image && file_exists(public_path($destinationPath . $purchase->image))) {
-                @unlink(public_path($destinationPath . $purchase->image));
-            }
+        //     // Hapus gambar lama jika ada
+        //     if ($purchase->image && file_exists(public_path($destinationPath . $purchase->image))) {
+        //         @unlink(public_path($destinationPath . $purchase->image));
+        //     }
 
-            // Proses upload gambar baru
-            $imageName = date('YmdHis') . '_' . str_replace(' ', '_', $originalFileName);
-            $image->move(public_path($destinationPath), $imageName);
+        //     // Proses upload gambar baru
+        //     $imageName = date('YmdHis') . '_' . str_replace(' ', '_', $originalFileName);
+        //     $image->move(public_path($destinationPath), $imageName);
 
-            // Path gambar yang telah diupload
-            $sourceImagePath = public_path($destinationPath . $imageName);
-            $webpImagePath = $destinationPath . pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
+        //     // Path gambar yang telah diupload
+        //     $sourceImagePath = public_path($destinationPath . $imageName);
+        //     $webpImagePath = $destinationPath . pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
 
-            // Konversi gambar ke WebP
-            switch ($imageMimeType) {
-                case 'image/jpeg':
-                    $sourceImage = @imagecreatefromjpeg($sourceImagePath);
-                    break;
-                case 'image/png':
-                    $sourceImage = @imagecreatefrompng($sourceImagePath);
-                    break;
-                default:
-                    throw new \Exception('Tipe MIME tidak didukung.');
-            }
+        //     // Konversi gambar ke WebP
+        //     switch ($imageMimeType) {
+        //         case 'image/jpeg':
+        //             $sourceImage = @imagecreatefromjpeg($sourceImagePath);
+        //             break;
+        //         case 'image/png':
+        //             $sourceImage = @imagecreatefrompng($sourceImagePath);
+        //             break;
+        //         default:
+        //             throw new \Exception('Tipe MIME tidak didukung.');
+        //     }
 
-            // Jika gambar berhasil dibaca, konversi ke WebP
-            if ($sourceImage !== false) {
-                imagewebp($sourceImage, public_path($webpImagePath));
-                imagedestroy($sourceImage);
-                @unlink($sourceImagePath); // Menghapus file gambar asli
-                $purchase->image = pathinfo($imageName, PATHINFO_FILENAME) . '.webp'; // Update nama gambar di database
-            } else {
-                throw new \Exception('Gagal membaca gambar asli.');
-            }
+        //     // Jika gambar berhasil dibaca, konversi ke WebP
+        //     if ($sourceImage !== false) {
+        //         imagewebp($sourceImage, public_path($webpImagePath));
+        //         imagedestroy($sourceImage);
+        //         @unlink($sourceImagePath); // Menghapus file gambar asli
+        //         $purchase->image = pathinfo($imageName, PATHINFO_FILENAME) . '.webp'; // Update nama gambar di database
+        //     } else {
+        //         throw new \Exception('Gagal membaca gambar asli.');
+        //     }
+        // }
+
+        if ($request->hasFile('image')) {
+            $purchase->image = $this->imageService->handleImageUpload(
+                $request->file('image'),
+                'upload/purchases',
+                $purchase->image // Pass old image for deletion
+            );
         }
 
         // Ambil status untuk pengecekan

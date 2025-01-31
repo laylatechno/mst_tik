@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\ImageService;
 use App\Models\LogHistori;
 use App\Models\Testimony;
 use Illuminate\Http\Request;
@@ -10,6 +11,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
+
 class TestimonyController extends Controller
 {
     /**
@@ -17,12 +19,15 @@ class TestimonyController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    function __construct()
+    protected $imageService;
+  
+    function __construct(ImageService $imageService)
     {
         $this->middleware('permission:testimony-list|testimony-create|testimony-edit|testimony-delete', ['only' => ['index', 'show']]);
         $this->middleware('permission:testimony-create', ['only' => ['create', 'store']]);
         $this->middleware('permission:testimony-edit', ['only' => ['edit', 'update']]);
         $this->middleware('permission:testimony-delete', ['only' => ['destroy']]);
+        $this->imageService = $imageService;
     }
 
     private function simpanLogHistori($aksi, $tabelAsal, $idEntitas, $pengguna, $dataLama, $dataBaru)
@@ -80,93 +85,45 @@ class TestimonyController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-
         $request->validate([
-            // 'name' => 'required',
-
             'image' => 'nullable|image|mimes:jpeg,jpg,png|max:4096',
         ], [
-            // 'name.required' => 'Nama wajib diisi.',
-
             'image.image' => 'Gambar harus dalam format jpeg, jpg, atau png',
             'image.mimes' => 'Format gambar harus jpeg, jpg, atau png',
             'image.max' => 'Ukuran gambar tidak boleh lebih dari 4 MB',
         ]);
 
+        try {
+            DB::beginTransaction();
 
+            $input = $request->all();
 
-        $input = $request->all();
-
-        if ($image = $request->file('image')) {
-            $destinationPath = 'upload/testimonial/';
-
-            // Mengambil nama file asli dan ekstensinya
-            $originalFileName = $image->getClientOriginalName();
-
-            // Membaca tipe MIME dari file image
-            $imageMimeType = $image->getMimeType();
-
-            // Menyaring hanya tipe MIME image yang didukung (misalnya, image/jpeg, image/png, dll.)
-            if (strpos($imageMimeType, 'image/') === 0) {
-                // Menggabungkan waktu dengan nama file asli
-                $imageName = date('YmdHis') . '_' . str_replace(' ', '_', $originalFileName);
-
-                // Simpan image asli ke tujuan yang diinginkan
-                $image->move($destinationPath, $imageName);
-
-                // Path image asli
-                $sourceImagePath = public_path($destinationPath . $imageName);
-
-                // Path untuk menyimpan image WebP
-                $webpImagePath = $destinationPath . pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
-
-                // Membaca image asli dan mengonversinya ke WebP jika tipe MIME-nya didukung
-                switch ($imageMimeType) {
-                    case 'image/jpeg':
-                        $sourceImage = @imagecreatefromjpeg($sourceImagePath);
-                        break;
-                    case 'image/png':
-                        $sourceImage = @imagecreatefrompng($sourceImagePath);
-                        break;
-                        // Tambahkan jenis MIME lain jika diperlukan
-                    default:
-                        // Jenis MIME tidak didukung, tangani kasus ini sesuai kebutuhan Anda
-                        // Misalnya, tampilkan pesan kesalahan atau lakukan tindakan yang sesuai
-                        break;
-                }
-
-                // Jika image asli berhasil dibaca
-                if ($sourceImage !== false) {
-                    // Membuat image baru dalam format WebP
-                    imagewebp($sourceImage, $webpImagePath);
-
-                    // Hapus image asli dari memori
-                    imagedestroy($sourceImage);
-
-                    // Hapus file asli setelah konversi selesai
-                    @unlink($sourceImagePath);
-
-                    // Simpan hanya nama file image ke dalam array input
-                    $input['image'] = pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
-                } else {
-                    // Gagal membaca image asli, tangani kasus ini sesuai kebutuhan Anda
-                }
+            // Upload dan konversi gambar menggunakan service
+            if ($request->hasFile('image')) {
+                $input['image'] = $this->imageService->handleImageUpload(
+                    $request->file('image'),
+                    'upload/testimonial'
+                );
             } else {
-                // Tipe MIME image tidak didukung, tangani kasus ini sesuai kebutuhan Anda
+                $input['image'] = '';
             }
-        } else {
-            // Set nilai default untuk image jika tidak ada image yang diunggah
-            $input['image'] = '';
+
+            // Simpan data testimony
+            $testimony = Testimony::create($input);
+
+            // Simpan log histori setelah semua proses berhasil
+            $loggedInUserId = Auth::id();
+            $this->simpanLogHistori('Create', 'Testimonial', $testimony->id, $loggedInUserId, null, json_encode($testimony));
+
+            DB::commit();
+
+            return redirect()->route('testimonial.index')->with('success', 'Data berhasil disimpan');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
         }
-
-        // Membuat testimony baru dan mendapatkan data pengguna yang baru dibuat
-        $testimony = Testimony::create($input);
-
-        // Simpan log histori
-        $loggedInUserId = Auth::id();
-        $this->simpanLogHistori('Create', 'Testimonial', $testimony->id, $loggedInUserId, null, json_encode($testimony));
-
-        return redirect()->route('testimonial.index')->with('success', 'Data berhasil disimpan');
     }
 
 
@@ -234,102 +191,54 @@ class TestimonyController extends Controller
     public function update(Request $request, $id): RedirectResponse
     {
         $request->validate([
-            
-            
-            'image' => 'image|mimes:jpeg,jpg,png|max:4096',
+            'image' => 'nullable|image|mimes:jpeg,jpg,png|max:4096',
         ], [
-            
-    
-        
             'image.image' => 'Gambar harus berupa file gambar.',
             'image.mimes' => 'Format gambar harus jpeg, jpg, atau png.',
             'image.max' => 'Ukuran gambar tidak boleh lebih dari 4 MB.',
         ]);
-        $testimony = Testimony::findOrFail($id);
-    
-        // Simpan data lama untuk log
-        $oldData = $testimony->toArray();
-    
-        $input = $request->all();
-    
-      
-    
-        if ($image = $request->file('image')) {
-            $destinationPath = 'upload/testimonial/';
-    
-            // Hapus gambar lama jika ada
-            if ($testimony->image && file_exists(public_path($destinationPath . $testimony->image))) {
-                unlink(public_path($destinationPath . $testimony->image));
+
+        try {
+            DB::beginTransaction();
+
+            $testimony = Testimony::findOrFail($id);
+            $oldData = $testimony->toArray();
+            $input = $request->all();
+
+            // Upload dan konversi gambar menggunakan service
+            if ($request->hasFile('image')) {
+                $input['image'] = $this->imageService->handleImageUpload(
+                    $request->file('image'),
+                    'upload/testimonial',
+                    $testimony->image // Pass old image for deletion
+                );
+            } else {
+                $input['image'] = $testimony->image; // Gunakan gambar yang sudah ada
             }
-    
-            // Mengambil nama file asli dan ekstensinya
-            $originalFileName = $image->getClientOriginalName();
-    
-            // Membaca tipe MIME dari file image
-            $imageMimeType = $image->getMimeType();
-    
-            // Menyaring hanya tipe MIME image yang didukung
-            if (strpos($imageMimeType, 'image/') === 0) {
-                // Menggabungkan waktu dengan nama file asli
-                $imageName = date('YmdHis') . '_' . str_replace(' ', '_', $originalFileName);
-    
-                // Simpan image asli ke tujuan yang diinginkan
-                $image->move($destinationPath, $imageName);
-    
-                // Path image asli
-                $sourceImagePath = public_path($destinationPath . $imageName);
-    
-                // Path untuk menyimpan image WebP
-                $webpImagePath = $destinationPath . pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
-    
-                // Membaca image asli dan mengonversinya ke WebP
-                $sourceImage = null;
-                switch ($imageMimeType) {
-                    case 'image/jpeg':
-                        $sourceImage = @imagecreatefromjpeg($sourceImagePath);
-                        break;
-                    case 'image/png':
-                        $sourceImage = @imagecreatefrompng($sourceImagePath);
-                        break;
-                    default:
-                        break;
-                }
-    
-                // Jika image asli berhasil dibaca
-                if ($sourceImage !== false) {
-                    // Membuat image baru dalam format WebP
-                    imagewebp($sourceImage, $webpImagePath);
-    
-                    // Hapus image asli dari memori
-                    imagedestroy($sourceImage);
-    
-                    // Hapus file asli setelah konversi selesai
-                    @unlink($sourceImagePath);
-    
-                    // Simpan hanya nama file image ke dalam array input
-                    $input['image'] = pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
-                }
-            }
-        } else {
-            // Jika tidak ada upload image baru, gunakan image yang ada
-            $input['image'] = $testimony->image;
+
+            // Update data testimony
+            $testimony->update($input);
+
+            // Simpan log histori setelah semua proses berhasil
+            $loggedInUserId = Auth::id();
+            $this->simpanLogHistori(
+                'Update',
+                'Testimoni',
+                $testimony->id,
+                $loggedInUserId,
+                json_encode($oldData),
+                json_encode($testimony->toArray())
+            );
+
+            DB::commit();
+
+            return redirect()->route('testimonial.index')->with('success', 'Data berhasil diperbarui');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Gagal memperbarui data: ' . $e->getMessage());
         }
-    
-        // Update data testimony
-        $testimony->update($input);
-    
-        // Simpan log histori
-        $loggedInUserId = Auth::id();
-        $this->simpanLogHistori(
-            'Update',
-            'Testimoni',
-            $testimony->id,
-            $loggedInUserId,
-            json_encode($oldData),
-            json_encode($testimony->toArray())
-        );
-    
-        return redirect()->route('testimonial.index')->with('success', 'Data berhasil diperbarui');
     }
 
 

@@ -5,13 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\LogHistori;
 use App\Models\Slider;
 
-use App\Models\Profit;
+use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
 
 class SliderController extends Controller
 {
@@ -20,14 +19,20 @@ class SliderController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    function __construct()
+    protected $imageService;
+    function __construct(ImageService $imageService)
     {
         $this->middleware('permission:slider-list|slider-create|slider-edit|slider-delete', ['only' => ['index', 'show']]);
         $this->middleware('permission:slider-create', ['only' => ['create', 'store']]);
         $this->middleware('permission:slider-edit', ['only' => ['edit', 'update']]);
         $this->middleware('permission:slider-delete', ['only' => ['destroy']]);
+        $this->imageService = $imageService;
     }
 
+
+   
+
+ 
     private function simpanLogHistori($aksi, $tabelAsal, $idEntitas, $pengguna, $dataLama, $dataBaru)
     {
         $log = new LogHistori();
@@ -75,7 +80,6 @@ class SliderController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-
         $request->validate([
             'name' => 'required',
             'image' => 'nullable|image|mimes:jpeg,jpg,png|max:4096',
@@ -86,80 +90,37 @@ class SliderController extends Controller
             'image.max' => 'Ukuran gambar tidak boleh lebih dari 4 MB',
         ]);
 
+        try {
+            DB::beginTransaction();
 
+            $input = $request->all();
 
-        $input = $request->all();
-
-        if ($image = $request->file('image')) {
-            $destinationPath = 'upload/sliders/';
-
-            // Mengambil nama file asli dan ekstensinya
-            $originalFileName = $image->getClientOriginalName();
-
-            // Membaca tipe MIME dari file image
-            $imageMimeType = $image->getMimeType();
-
-            // Menyaring hanya tipe MIME image yang didukung (misalnya, image/jpeg, image/png, dll.)
-            if (strpos($imageMimeType, 'image/') === 0) {
-                // Menggabungkan waktu dengan nama file asli
-                $imageName = date('YmdHis') . '_' . str_replace(' ', '_', $originalFileName);
-
-                // Simpan image asli ke tujuan yang diinginkan
-                $image->move($destinationPath, $imageName);
-
-                // Path image asli
-                $sourceImagePath = public_path($destinationPath . $imageName);
-
-                // Path untuk menyimpan image WebP
-                $webpImagePath = $destinationPath . pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
-
-                // Membaca image asli dan mengonversinya ke WebP jika tipe MIME-nya didukung
-                switch ($imageMimeType) {
-                    case 'image/jpeg':
-                        $sourceImage = @imagecreatefromjpeg($sourceImagePath);
-                        break;
-                    case 'image/png':
-                        $sourceImage = @imagecreatefrompng($sourceImagePath);
-                        break;
-                        // Tambahkan jenis MIME lain jika diperlukan
-                    default:
-                        // Jenis MIME tidak didukung, tangani kasus ini sesuai kebutuhan Anda
-                        // Misalnya, tampilkan pesan kesalahan atau lakukan tindakan yang sesuai
-                        break;
-                }
-
-                // Jika image asli berhasil dibaca
-                if ($sourceImage !== false) {
-                    // Membuat image baru dalam format WebP
-                    imagewebp($sourceImage, $webpImagePath);
-
-                    // Hapus image asli dari memori
-                    imagedestroy($sourceImage);
-
-                    // Hapus file asli setelah konversi selesai
-                    @unlink($sourceImagePath);
-
-                    // Simpan hanya nama file image ke dalam array input
-                    $input['image'] = pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
-                } else {
-                    // Gagal membaca image asli, tangani kasus ini sesuai kebutuhan Anda
-                }
+            // Upload dan konversi gambar menggunakan service
+            if ($request->hasFile('image')) {
+                $input['image'] = $this->imageService->handleImageUpload(
+                    $request->file('image'),
+                    'upload/sliders'
+                );
             } else {
-                // Tipe MIME image tidak didukung, tangani kasus ini sesuai kebutuhan Anda
+                $input['image'] = '';
             }
-        } else {
-            // Set nilai default untuk image jika tidak ada image yang diunggah
-            $input['image'] = '';
+
+            // Simpan data slider
+            $slider = Slider::create($input);
+
+            // Simpan log histori setelah semua proses berhasil
+            $loggedInUserId = Auth::id();
+            $this->simpanLogHistori('Create', 'Slider', $slider->id, $loggedInUserId, null, json_encode($slider));
+
+            DB::commit();
+
+            return redirect()->route('sliders.index')->with('success', 'Data berhasil disimpan');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
         }
-
-        // Membuat slider baru dan mendapatkan data pengguna yang baru dibuat
-        $slider = Slider::create($input);
-
-        // Simpan log histori
-        $loggedInUserId = Auth::id();
-        $this->simpanLogHistori('Create', 'Slider', $slider->id, $loggedInUserId, null, json_encode($slider));
-
-        return redirect()->route('sliders.index')->with('success', 'Data berhasil disimpan');
     }
 
 
@@ -235,88 +196,47 @@ class SliderController extends Controller
             'image.mimes' => 'Format gambar harus jpeg, jpg, atau png',
             'image.max' => 'Ukuran gambar tidak boleh lebih dari 4 MB',
         ]);
-    
-        // Simpan data lama untuk log
-        $oldData = $slider->toArray();
-        
-        $input = $request->all();
-    
-        if ($image = $request->file('image')) {
-            $destinationPath = 'upload/sliders/';
-    
-            // Hapus gambar lama jika ada
-            if ($slider->image && file_exists(public_path($destinationPath . $slider->image))) {
-                unlink(public_path($destinationPath . $slider->image));
+
+        try {
+            DB::beginTransaction();
+
+            $oldData = $slider->toArray();
+            $input = $request->all();
+
+            // Upload dan konversi gambar menggunakan service
+            if ($request->hasFile('image')) {
+                $input['image'] = $this->imageService->handleImageUpload(
+                    $request->file('image'),
+                    'upload/sliders',
+                    $slider->image // Pass old image for deletion
+                );
+            } else {
+                $input['image'] = $slider->image; // Gunakan gambar yang sudah ada
             }
-    
-            // Mengambil nama file asli dan ekstensinya
-            $originalFileName = $image->getClientOriginalName();
-    
-            // Membaca tipe MIME dari file image
-            $imageMimeType = $image->getMimeType();
-    
-            // Menyaring hanya tipe MIME image yang didukung
-            if (strpos($imageMimeType, 'image/') === 0) {
-                // Menggabungkan waktu dengan nama file asli
-                $imageName = date('YmdHis') . '_' . str_replace(' ', '_', $originalFileName);
-    
-                // Simpan image asli ke tujuan yang diinginkan
-                $image->move($destinationPath, $imageName);
-    
-                // Path image asli
-                $sourceImagePath = public_path($destinationPath . $imageName);
-    
-                // Path untuk menyimpan image WebP
-                $webpImagePath = $destinationPath . pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
-    
-                // Membaca image asli dan mengonversinya ke WebP
-                $sourceImage = null;
-                switch ($imageMimeType) {
-                    case 'image/jpeg':
-                        $sourceImage = @imagecreatefromjpeg($sourceImagePath);
-                        break;
-                    case 'image/png':
-                        $sourceImage = @imagecreatefrompng($sourceImagePath);
-                        break;
-                    default:
-                        break;
-                }
-    
-                // Jika image asli berhasil dibaca
-                if ($sourceImage !== false) {
-                    // Membuat image baru dalam format WebP
-                    imagewebp($sourceImage, $webpImagePath);
-    
-                    // Hapus image asli dari memori
-                    imagedestroy($sourceImage);
-    
-                    // Hapus file asli setelah konversi selesai
-                    @unlink($sourceImagePath);
-    
-                    // Simpan hanya nama file image ke dalam array input
-                    $input['image'] = pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
-                }
-            }
-        } else {
-            // Jika tidak ada upload image baru, gunakan image yang ada
-            $input['image'] = $slider->image;
+
+            // Update data slider
+            $slider->update($input);
+
+            // Simpan log histori setelah semua proses berhasil
+            $loggedInUserId = Auth::id();
+            $this->simpanLogHistori(
+                'Update',
+                'Slider',
+                $slider->id,
+                $loggedInUserId,
+                json_encode($oldData),
+                json_encode($slider->toArray())
+            );
+
+            DB::commit();
+
+            return redirect()->route('sliders.index')->with('success', 'Data berhasil diperbarui');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Gagal memperbarui data: ' . $e->getMessage());
         }
-    
-        // Update data slider
-        $slider->update($input);
-    
-        // Simpan log histori
-        $loggedInUserId = Auth::id();
-        $this->simpanLogHistori(
-            'Update',
-            'Slider',
-            $slider->id,
-            $loggedInUserId,
-            json_encode($oldData),
-            json_encode($slider->toArray())
-        );
-    
-        return redirect()->route('sliders.index')->with('success', 'Data berhasil diperbarui');
     }
 
 

@@ -179,7 +179,7 @@
                                         <label for="name">Nama Produk</label>
                                         <span class="text-danger">*</span>
                                         <input type="text" name="name" class="form-control" id="name" value="{{ old('name', $data_product->name) }}" required>
-                                        <input type="hidden" name="slug" class="form-control" id="slug" value="{{ old('slug') }}" required readonly>
+                                        <input type="hidden" name="slug" class="form-control" id="slug" value="{{ old('slug', $data_product->slug) }}" required readonly>
                                     </div>
 
 
@@ -273,9 +273,9 @@
 
                                         <!-- Menampilkan gambar yang sudah ada jika ada -->
                                         @if ($data_product->image)
-                                        <img id="preview_image" src="{{ asset('upload/products/' . $data_product->image) }}" alt="Preview Logo" style="display: block; max-width: 50%; margin-top: 10px;">
+                                        <img id="preview_image" src="{{ asset('upload/products/' . $data_product->image) }}" alt="Preview Logo" style="display: block; max-width: 20%; margin-top: 10px;">
                                         @else
-                                        <img id="preview_image" src="#" alt="Preview Logo" style="display: none; max-width: 50%; margin-top: 10px;">
+                                        <img id="preview_image" src="#" alt="Preview Logo" style="display: none; max-width: 20%; margin-top: 10px;">
                                         @endif
 
                                         <canvas id="preview_canvas" style="display: none; max-width: 50%; margin-top: 10px;"></canvas>
@@ -294,7 +294,7 @@
 
                                                     img.onload = function() {
                                                         var canvasContext = previewCanvas.getContext('2d');
-                                                        var maxWidth = 300; // Max width diperbesar
+                                                        var maxWidth = 100; // Max width diperbesar
                                                         var scaleFactor = maxWidth / img.width;
                                                         var newHeight = img.height * scaleFactor;
 
