@@ -55,6 +55,8 @@
                                         <th width="5%">No</th>
                                         <th>Nama Kategori Produk</th>
                                         <th>Deskripsi</th>
+                                        <th>Urutan</th>
+                                        <th>Gambar</th>
                                         <th width="280px">Action</th>
                                     </tr>
                                 </thead>
@@ -64,6 +66,12 @@
                                         <td>{{ $loop->iteration }}</td>
                                         <td>{{ $p->name }}</td>
                                         <td>{{ $p->description ?: 'No Data' }}</td>
+                                        <td>{{ $p->position }}</td>
+                                        <td>
+                                            <a href="/upload/product_categories/{{ $p->image }}" target="_blank">
+                                                <img style="max-width:50px; max-height:50px" src="/upload/product_categories/{{ $p->image }}" alt="">
+                                            </a>
+                                        </td>
 
                                         <td>
                                             <a class="btn btn-warning btn-sm" href="{{ route('categories.show', $p->id) }}"><i class="fa fa-eye"></i> Show</a>

@@ -43,21 +43,73 @@
                             </div>
                             @endif
 
-                            <form method="POST" action="{{ route('categories.update', $data_categories->id) }}">
+                            <form method="POST" action="{{ route('categories.update', $data_categories->id) }}" enctype="multipart/form-data">
                                 @csrf
                                 @method('PUT')
 
                                 <div class="form-group mb-3">
                                     <label for="name">Nama Kategori Produk</label>
-                                    <span class="text-danger">*</span>  
+                                    <span class="text-danger">*</span>
                                     <input type="text" name="name" class="form-control" id="name" value="{{ $data_categories->name }}" required>
                                 </div>
 
                                 <div class="form-group mb-3">
-                                        <label for="description">Deskripsi</label>
-                                        <textarea class="form-control" name="description" id="description">{{ $data_categories->description }}</textarea>
-                                    </div>
-                               
+                                    <label for="description">Deskripsi</label>
+                                    <textarea class="form-control" name="description" id="description">{{ $data_categories->description }}</textarea>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label for="position">Urutan</label>
+                                    <input type="number" name="position" class="form-control" id="position" value="{{ $data_categories->position }}">
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="image">Gambar</label>
+                                    <input type="file" name="image" class="form-control" id="image" onchange="previewImage()">
+                                    <canvas id="preview_canvas" style="display: none; max-width: 100%; margin-top: 10px;"></canvas>
+                                    <img id="preview_image" src="#" alt="Preview Logo" style="display: none; max-width: 100%; margin-top: 10px;">
+
+                                    <script>
+                                        function previewImage() {
+                                            var previewCanvas = document.getElementById('preview_canvas');
+                                            var previewImage = document.getElementById('preview_image');
+                                            var fileInput = document.getElementById('image');
+                                            var file = fileInput.files[0];
+                                            var reader = new FileReader();
+
+                                            reader.onload = function(e) {
+                                                var img = new Image();
+                                                img.src = e.target.result;
+
+                                                img.onload = function() {
+                                                    var canvasContext = previewCanvas.getContext('2d');
+                                                    var maxWidth = 300; // Max width diperbesar
+                                                    var scaleFactor = maxWidth / img.width;
+                                                    var newHeight = img.height * scaleFactor;
+
+                                                    // Atur dimensi canvas
+                                                    previewCanvas.width = maxWidth;
+                                                    previewCanvas.height = newHeight;
+
+                                                    // Gambar ke canvas
+                                                    canvasContext.drawImage(img, 0, 0, maxWidth, newHeight);
+
+                                                    // Tampilkan pratinjau
+                                                    previewCanvas.style.display = 'block';
+                                                    previewImage.style.display = 'none';
+                                                };
+                                            };
+
+                                            if (file) {
+                                                reader.readAsDataURL(file); // Membaca file sebagai URL data
+                                            } else {
+                                                // Reset pratinjau jika tidak ada file
+                                                previewImage.src = '';
+                                                previewCanvas.style.display = 'none';
+                                            }
+                                        }
+                                    </script>
+                                </div>
+
 
                                 <!-- Buttons -->
                                 <div class="mt-3">

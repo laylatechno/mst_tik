@@ -10,10 +10,9 @@ use App\Models\Adjustment;
 
 use Illuminate\Http\Request;
 use Illuminate\View\View;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
+use App\Services\ImageService;
 
 
 
@@ -24,12 +23,14 @@ class AdjustmentController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    function __construct()
+    protected $imageService;
+    function __construct(ImageService $imageService)
     {
         $this->middleware('permission:adjustment-list|adjustment-create|adjustment-edit|adjustment-delete', ['only' => ['index', 'show']]);
         $this->middleware('permission:adjustment-create', ['only' => ['create', 'store']]);
         $this->middleware('permission:adjustment-edit', ['only' => ['edit', 'update']]);
         $this->middleware('permission:adjustment-delete', ['only' => ['destroy']]);
+        $this->imageService = $imageService;
     }
 
     private function simpanLogHistori($aksi, $tabelAsal, $idEntitas, $pengguna, $dataLama, $dataBaru)
@@ -105,7 +106,7 @@ class AdjustmentController extends Controller
 
     public function store(Request $request)
     {
-    
+
 
         $request->validate([
             'adjustment_date' => 'required|date',
@@ -131,49 +132,17 @@ class AdjustmentController extends Controller
             'image.mimes' => 'Gambar yang dimasukkan hanya diperbolehkan berekstensi JPG, JPEG, PNG, atau GIF.',
             'image.max' => 'Ukuran gambar tidak boleh lebih dari 4 MB.',
         ]);
-        
+
 
 
 
         $imageName = null;
-
-        // Menangani gambar (jika ada)
-        if ($image = $request->file('image')) {
-            $destinationPath = 'upload/adjustments/';
-            $originalFileName = $image->getClientOriginalName();
-            $imageMimeType = $image->getMimeType();
-
-            // Pastikan file adalah gambar
-            if (strpos($imageMimeType, 'image/') === 0) {
-                $imageName = date('YmdHis') . '_' . str_replace(' ', '_', $originalFileName);
-                $image->move($destinationPath, $imageName);
-
-                $sourceImagePath = public_path($destinationPath . $imageName);
-                $webpImagePath = $destinationPath . pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
-
-                // Konversi ke format WebP
-                switch ($imageMimeType) {
-                    case 'image/jpeg':
-                        $sourceImage = imagecreatefromjpeg($sourceImagePath);
-                        break;
-                    case 'image/png':
-                        $sourceImage = imagecreatefrompng($sourceImagePath);
-                        break;
-                    default:
-                        throw new \Exception('Tipe MIME gambar tidak didukung.');
-                }
-
-                // Konversi ke WebP dan hapus gambar asli
-                if ($sourceImage !== false) {
-                    imagewebp($sourceImage, $webpImagePath);
-                    imagedestroy($sourceImage);
-                    @unlink($sourceImagePath); // Hapus gambar asli
-                    $imageName = pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
-                } else {
-                    throw new \Exception('Gagal membaca gambar asli.');
-                }
+            if ($request->hasFile('image')) {
+                $imageName = $this->imageService->handleImageUpload(
+                    $request->file('image'),
+                    'upload/adjustments'
+                );
             }
-        }
 
         // Proses penyimpanan dalam transaksi database
         DB::transaction(function () use ($request, $imageName) {
@@ -224,7 +193,7 @@ class AdjustmentController extends Controller
         $title = "Halaman Liht Adjustment";
         $subtitle = "Menu Liht Adjustment";
         $adjustment = Adjustment::with('details.product')->findOrFail($id);
- 
+
 
         // Kembalikan view dengan membawa data produk
         return view('adjustment.show', compact(
@@ -253,10 +222,7 @@ class AdjustmentController extends Controller
      * @param  \App\Adjustments  $adjustment
      * @return \Illuminate\Http\Response
      */
-    public function edit($id): View
-    {
-        
-    }
+    public function edit($id): View {}
 
 
 
@@ -271,10 +237,7 @@ class AdjustmentController extends Controller
      * @param  \App\Models\Adjustments  $adjustment
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
-    {
-        
-    }
+    public function update(Request $request, $id) {}
 
 
 

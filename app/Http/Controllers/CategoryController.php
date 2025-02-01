@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use App\Services\ImageService;
+use Illuminate\Support\Facades\DB;
 
 class CategoryController extends Controller
 {
@@ -16,12 +18,14 @@ class CategoryController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    function __construct()
+    protected $imageService;
+    function __construct(ImageService $imageService)
     {
         $this->middleware('permission:category-list|category-create|category-edit|category-delete', ['only' => ['index', 'show']]);
         $this->middleware('permission:category-create', ['only' => ['create', 'store']]);
         $this->middleware('permission:category-edit', ['only' => ['edit', 'update']]);
         $this->middleware('permission:category-delete', ['only' => ['destroy']]);
+        $this->imageService = $imageService;
     }
 
     private function simpanLogHistori($aksi, $tabelAsal, $idEntitas, $pengguna, $dataLama, $dataBaru)
@@ -74,21 +78,58 @@ class CategoryController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $this->validate($request, [
-            'name' => 'required|unique:categories,name',
+        $request->validate([
+            'name' => 'required',
+            'image' => 'nullable|image|mimes:jpeg,jpg,png|max:4096',
         ], [
             'name.required' => 'Nama wajib diisi.',
-            'name.unique' => 'Nama sudah terdaftar.',
+            'image.image' => 'Gambar harus dalam format jpeg, jpg, atau png',
+            'image.mimes' => 'Format gambar harus jpeg, jpg, atau png',
+            'image.max' => 'Ukuran gambar tidak boleh lebih dari 4 MB',
         ]);
-
-        $category = Category::create($request->all());
-
-        $loggedInUserId = Auth::id();
-        $this->simpanLogHistori('Create', 'Kategori Produk', $category->id, $loggedInUserId, null, json_encode($category));
-        return redirect()->route('categories.index')
-            ->with('success', 'Kategori Produk berhasil dibuat.');
+    
+        try {
+            $input = $request->all();
+    
+            // Upload dan konversi gambar menggunakan service
+            if ($request->hasFile('image')) {
+                try {
+                    $input['image'] = $this->imageService->handleImageUpload(
+                        $request->file('image'),
+                        'upload/product_categories'
+                    );
+                } catch (\Exception $e) {
+                    return redirect()->back()
+                        ->withInput()
+                        ->with('error', 'Gagal mengupload gambar: ' . $e->getMessage());
+                }
+            } else {
+                $input['image'] = '';
+            }
+    
+            // Simpan data kategori
+            $category = Category::create($input);
+    
+            // Simpan log histori
+            $loggedInUserId = Auth::id();
+            $this->simpanLogHistori(
+                'Create', 
+                'Kategori Produk', 
+                $category->id, 
+                $loggedInUserId, 
+                null, 
+                json_encode($category)
+            );
+    
+            return redirect()->route('categories.index')
+                ->with('success', 'Kategori Produk berhasil dibuat.');
+    
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
     }
-
 
 
 
@@ -132,41 +173,58 @@ class CategoryController extends Controller
      * @param  \App\Models\Category  $category
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id): RedirectResponse
+    public function update(Request $request, Category $category): RedirectResponse
     {
-        // Validasi input
-        $this->validate($request, [
+        $request->validate([
             'name' => 'required',
+            'image' => 'nullable|image|mimes:jpeg,jpg,png|max:4096',
         ], [
             'name.required' => 'Nama wajib diisi.',
+            'image.image' => 'Gambar harus dalam format jpeg, jpg, atau png',
+            'image.mimes' => 'Format gambar harus jpeg, jpg, atau png',
+            'image.max' => 'Ukuran gambar tidak boleh lebih dari 4 MB',
         ]);
 
-        // Cari data berdasarkan ID
-        $category = Category::find($id);
+        try {
+            DB::beginTransaction();
 
-        // Jika data tidak ditemukan
-        if (!$category) {
-            return redirect()->route('categories.index')
-                ->with('error', 'Data Kategori Produk tidak ditemukan.');
+            $oldData = $category->toArray();
+            $input = $request->all();
+
+            // Upload dan konversi gambar menggunakan service
+            if ($request->hasFile('image')) {
+                $input['image'] = $this->imageService->handleImageUpload(
+                    $request->file('image'),
+                    'upload/product_categories',
+                    $category->image // Pass old image for deletion
+                );
+            } else {
+                $input['image'] = $category->image; // Gunakan gambar yang sudah ada
+            }
+
+            // Update data category
+            $category->update($input);
+
+            // Simpan log histori setelah semua proses berhasil
+            $loggedInUserId = Auth::id();
+            $this->simpanLogHistori(
+                'Update',
+                'Slider',
+                $category->id,
+                $loggedInUserId,
+                json_encode($oldData),
+                json_encode($category->toArray())
+            );
+
+            DB::commit();
+
+            return redirect()->route('categories.index')->with('success', 'Data berhasil diperbarui');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Gagal memperbarui data: ' . $e->getMessage());
         }
-
-        // Menyimpan data lama sebelum update
-        $oldCategorysnData = $category->toArray();
-
-        // Melakukan update data
-        $category->update($request->all());
-
-        // Mendapatkan ID pengguna yang sedang login
-        $loggedInUserId = Auth::id();
-
-        // Mendapatkan data baru setelah update
-        $newCategorysnData = $category->fresh()->toArray();
-
-        // Menyimpan log histori untuk operasi Update
-        $this->simpanLogHistori('Update', 'Kategori Produk', $category->id, $loggedInUserId, json_encode($oldCategorysnData), json_encode($newCategorysnData));
-
-        return redirect()->route('categories.index')
-            ->with('success', 'Kategori Produk berhasil diperbaharui');
     }
 
 
