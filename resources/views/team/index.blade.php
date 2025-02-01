@@ -37,7 +37,7 @@
                                 <div class="col-lg-12 margin-tb">
                                     @can('slider-create')
                                     <div class="pull-right">
-                                        <a class="btn btn-success mb-2" href="{{ route('galleries.create') }}"><i class="fa fa-plus"></i> Tambah Data</a>
+                                        <a class="btn btn-success mb-2" href="{{ route('teams.create') }}"><i class="fa fa-plus"></i> Tambah Data</a>
                                     </div>
                                     @endcan
                                 </div>
@@ -53,7 +53,8 @@
                                 <thead>
                                     <tr>
                                         <th width="5%">No</th>
-                                        <th>Nama Galeri</th>
+                                        <th>Nama Team</th>
+                                        <th>Jabatan</th>
                                         <th>Link</th>
                                         <th>Urutan</th>
                                         <th>Gambar</th>
@@ -61,26 +62,27 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($data_galleries as $p)
+                                    @foreach ($data_teams as $p)
                                     <tr>
                                         <td>{{ $loop->iteration }}</td>
                                         <td>{{ $p->name }}</td>
+                                        <td>{{ $p->title }}</td>
                                         <td>{{ $p->link }}</td>
                                         <td>{{ $p->position }}</td>
                                         <td>
-                                            <a href="/upload/galleries/{{ $p->image }}" target="_blank">
-                                                <img style="max-width:50px; max-height:50px" src="/upload/galleries/{{ $p->image }}" alt="">
+                                            <a href="/upload/teams/{{ $p->image }}" target="_blank">
+                                                <img style="max-width:50px; max-height:50px" src="/upload/teams/{{ $p->image }}" alt="">
                                             </a>
                                         </td>
 
                                         <td>
-                                            <a class="btn btn-warning btn-sm" href="{{ route('galleries.show', $p->id) }}"><i class="fa fa-eye"></i> Show</a>
+                                            <a class="btn btn-warning btn-sm" href="{{ route('teams.show', $p->id) }}"><i class="fa fa-eye"></i> Show</a>
                                             @can('slider-edit')
-                                            <a class="btn btn-primary btn-sm" href="{{ route('galleries.edit', $p->id) }}"><i class="fa fa-edit"></i> Edit</a>
+                                            <a class="btn btn-primary btn-sm" href="{{ route('teams.edit', $p->id) }}"><i class="fa fa-edit"></i> Edit</a>
                                             @endcan
                                             @can('slider-delete')
                                             <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete({{ $p->id }})"><i class="fa fa-trash"></i> Delete</button>
-                                            <form id="delete-form-{{ $p->id }}" method="POST" action="{{ route('galleries.destroy', $p->id) }}" style="display:none;">
+                                            <form id="delete-form-{{ $p->id }}" method="POST" action="{{ route('teams.destroy', $p->id) }}" style="display:none;">
                                                 @csrf
                                                 @method('DELETE')
                                             </form>

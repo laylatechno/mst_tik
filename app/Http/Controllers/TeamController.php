@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\LogHistori;
-use App\Models\Gallery;
+use App\Models\Team;
 
 use App\Services\ImageService;
 use Illuminate\Http\Request;
@@ -12,7 +12,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class GalleryController extends Controller
+class TeamController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -22,10 +22,10 @@ class GalleryController extends Controller
     protected $imageService;
     function __construct(ImageService $imageService)
     {
-        $this->middleware('permission:gallery-list|gallery-create|gallery-edit|gallery-delete', ['only' => ['index', 'show']]);
-        $this->middleware('permission:gallery-create', ['only' => ['create', 'store']]);
-        $this->middleware('permission:gallery-edit', ['only' => ['edit', 'update']]);
-        $this->middleware('permission:gallery-delete', ['only' => ['destroy']]);
+        $this->middleware('permission:team-list|team-create|team-edit|team-delete', ['only' => ['index', 'show']]);
+        $this->middleware('permission:team-create', ['only' => ['create', 'store']]);
+        $this->middleware('permission:team-edit', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:team-delete', ['only' => ['destroy']]);
         $this->imageService = $imageService;
     }
 
@@ -54,10 +54,10 @@ class GalleryController extends Controller
      */
     public function index(Request $request): View
     {
-        $title = "Halaman Galeri";
-        $subtitle = "Menu Galeri";
-        $data_galleries = Gallery::all();
-        return view('gallery.index', compact('data_galleries', 'title', 'subtitle'));
+        $title = "Halaman Team";
+        $subtitle = "Menu Team";
+        $data_teams = Team::all();
+        return view('team.index', compact('data_teams', 'title', 'subtitle'));
     }
 
 
@@ -71,9 +71,9 @@ class GalleryController extends Controller
      */
     public function create(): View
     {
-        $title = "Halaman Tambah Galeri";
-        $subtitle = "Menu Tambah Galeri";
-        return view('gallery.create', compact('title', 'subtitle'));
+        $title = "Halaman Tambah Team";
+        $subtitle = "Menu Tambah Team";
+        return view('team.create', compact('title', 'subtitle'));
     }
 
 
@@ -99,22 +99,22 @@ class GalleryController extends Controller
             if ($request->hasFile('image')) {
                 $input['image'] = $this->imageService->handleImageUpload(
                     $request->file('image'),
-                    'upload/galleries'
+                    'upload/teams'
                 );
             } else {
                 $input['image'] = '';
             }
 
-            // Simpan data gallery
-            $gallery = Gallery::create($input);
+            // Simpan data team
+            $team = Team::create($input);
 
             // Simpan log histori setelah semua proses berhasil
             $loggedInUserId = Auth::id();
-            $this->simpanLogHistori('Create', 'Gallery', $gallery->id, $loggedInUserId, null, json_encode($gallery));
+            $this->simpanLogHistori('Create', 'Team', $team->id, $loggedInUserId, null, json_encode($team));
 
             DB::commit();
 
-            return redirect()->route('galleries.index')->with('success', 'Data berhasil disimpan');
+            return redirect()->route('teams.index')->with('success', 'Data berhasil disimpan');
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()
@@ -135,27 +135,27 @@ class GalleryController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Gallerys  $gallery
+     * @param  \App\Teams  $team
      * @return \Illuminate\Http\Response
      */
     public function show($id)
     {
 
         // Judul untuk halaman
-        $title = "Halaman Lihat Galeri";
-        $subtitle = "Menu Lihat Galeri";
+        $title = "Halaman Lihat Team";
+        $subtitle = "Menu Lihat Team";
 
 
 
-        // Ambil data gallery berdasarkan ID
-        $data_galleries = Gallery::findOrFail($id);
+        // Ambil data team berdasarkan ID
+        $data_teams = Team::findOrFail($id);
 
         // Kembalikan view dengan membawa data produk
-        return view('gallery.show', compact(
+        return view('team.show', compact(
             'title',
             'subtitle',
 
-            'data_galleries',
+            'data_teams',
         ));
     }
 
@@ -163,29 +163,29 @@ class GalleryController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Gallerys  $gallery
+     * @param  \App\Teams  $team
      * @return \Illuminate\Http\Response
      */
     public function edit($id): View
     {
-        $title = "Halaman Edit Galeri";
-        $subtitle = "Menu Edit Galeri";
+        $title = "Halaman Edit Team";
+        $subtitle = "Menu Edit Team";
 
 
-        // Ambil data gallery berdasarkan ID
-        $data_galleries = Gallery::findOrFail($id);
+        // Ambil data team berdasarkan ID
+        $data_teams = Team::findOrFail($id);
 
         // Kirim data ke view
-        return view('gallery.edit', compact(
+        return view('team.edit', compact(
             'title',
             'subtitle',
 
-            'data_galleries',
+            'data_teams',
         ));
     }
 
 
-    public function update(Request $request, Gallery $gallery): RedirectResponse
+    public function update(Request $request, Team $team): RedirectResponse
     {
         $request->validate([
             'name' => 'required',
@@ -200,37 +200,37 @@ class GalleryController extends Controller
         try {
             DB::beginTransaction();
 
-            $oldData = $gallery->toArray();
+            $oldData = $team->toArray();
             $input = $request->all();
 
             // Upload dan konversi gambar menggunakan service
             if ($request->hasFile('image')) {
                 $input['image'] = $this->imageService->handleImageUpload(
                     $request->file('image'),
-                    'upload/galleries',
-                    $gallery->image // Pass old image for deletion
+                    'upload/teams',
+                    $team->image // Pass old image for deletion
                 );
             } else {
-                $input['image'] = $gallery->image; // Gunakan gambar yang sudah ada
+                $input['image'] = $team->image; // Gunakan gambar yang sudah ada
             }
 
-            // Update data gallery
-            $gallery->update($input);
+            // Update data team
+            $team->update($input);
 
             // Simpan log histori setelah semua proses berhasil
             $loggedInUserId = Auth::id();
             $this->simpanLogHistori(
                 'Update',
-                'Galeri',
-                $gallery->id,
+                'Team',
+                $team->id,
                 $loggedInUserId,
                 json_encode($oldData),
-                json_encode($gallery->toArray())
+                json_encode($team->toArray())
             );
 
             DB::commit();
 
-            return redirect()->route('galleries.index')->with('success', 'Data berhasil diperbarui');
+            return redirect()->route('teams.index')->with('success', 'Data berhasil diperbarui');
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()
@@ -249,21 +249,21 @@ class GalleryController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Gallerys  $gallery
+     * @param  \App\Teams  $team
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)
     {
-        // Cari gallery berdasarkan ID
-        $gallery = Gallery::findOrFail($id);
+        // Cari team berdasarkan ID
+        $team = Team::findOrFail($id);
 
       
         try {
 
 
             // Hapus file gambar jika ada
-            if (!empty($gallery->image)) {
-                $imagePath = public_path('upload/galleries/' . $gallery->image);
+            if (!empty($team->image)) {
+                $imagePath = public_path('upload/teams/' . $team->image);
                 if (file_exists($imagePath)) {
                     @unlink($imagePath); // Menghapus file gambar
                 }
@@ -271,26 +271,26 @@ class GalleryController extends Controller
 
 
 
-            // Hapus gallery dari tabel galleries
-            $gallery->delete();
+            // Hapus team dari tabel teams
+            $team->delete();
 
             // Mendapatkan ID pengguna yang sedang login
             $loggedInUserId = Auth::id();
 
             // Simpan log histori untuk operasi Delete
-            $this->simpanLogHistori('Delete', 'Galeri', $id, $loggedInUserId, json_encode($gallery), null);
+            $this->simpanLogHistori('Delete', 'Team', $id, $loggedInUserId, json_encode($team), null);
 
-            // Commit gallery
+            // Commit team
             DB::commit();
 
             // Redirect kembali dengan pesan sukses
-            return redirect()->route('galleries.index')->with('success', 'Galeri berhasil dihapus');
+            return redirect()->route('teams.index')->with('success', 'Team berhasil dihapus');
         } catch (\Exception $e) {
-            // Rollback gallery jika terjadi error
+            // Rollback team jika terjadi error
             DB::rollBack();
 
             // Kembalikan pesan error
-            return redirect()->route('galleries.index')->with('error', 'Gagal menghapus gallery: ' . $e->getMessage());
+            return redirect()->route('teams.index')->with('error', 'Gagal menghapus team: ' . $e->getMessage());
         }
     }
 }

@@ -12,7 +12,7 @@
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a class="text-muted text-decoration-none" href="/">Beranda</a></li>
-                            <li class="breadcrumb-item"><a class="text-muted text-decoration-none" href="{{ route('customers.index') }}">Halaman Slider</a></li>
+                            <li class="breadcrumb-item"><a class="text-muted text-decoration-none" href="{{ route('customers.index') }}">Halaman Team</a></li>
                             <li class="breadcrumb-item">{{ $subtitle }}</li>
                         </ol>
                     </nav>
@@ -43,7 +43,7 @@
                             </div>
                             @endif
 
-                            <form method="POST" action="{{ route('sliders.update', $data_sliders->id) }}" enctype="multipart/form-data">
+                            <form method="POST" action="{{ route('teams.update', $data_teams->id) }}" enctype="multipart/form-data">
                                 @csrf
                                 @method('PUT')
 
@@ -53,21 +53,25 @@
 
                                 <div class="row">
                                     <div class="form-group mb-3">
-                                        <label for="name">Nama Slider</label>
+                                        <label for="name">Nama Team</label>
                                         <span class="text-danger">*</span> 
-                                        <input type="text" name="name" class="form-control" id="name" value="{{ $data_sliders->name }}" required>
+                                        <input type="text" name="name" class="form-control" id="name" value="{{ $data_teams->name }}" required>
                                     </div>
                                     <div class="form-group mb-3">
                                         <label for="link">Link</label>
-                                        <input type="text" name="link" class="form-control" id="link" value="{{ $data_sliders->link }}">
+                                        <input type="text" name="link" class="form-control" id="link" value="{{ $data_teams->link }}">
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label for="title">Jabatan</label>
+                                        <input type="text" name="title" class="form-control" id="title" value="{{ $data_teams->title }}">
                                     </div>
                                     <div class="form-group mb-3">
                                         <label for="description">Deskripsi</label>
-                                        <textarea class="form-control" name="description" id="description">{{ $data_sliders->description }}</textarea>
+                                        <textarea class="form-control" name="description" id="description">{{ $data_teams->description }}</textarea>
                                     </div>
                                     <div class="form-group mb-3">
                                         <label for="position">Urutan</label>
-                                        <input type="number" name="position" class="form-control" id="position" value="{{ $data_sliders->position }}">
+                                        <input type="number" name="position" class="form-control" id="position" value="{{ $data_teams->position }}">
                                     </div>
                                     <div class="form-group mb-3">
                                         <label for="image">Gambar</label>
@@ -119,7 +123,7 @@
 
                                     <div class="col-xs-12 col-sm-12 col-md-12 mt-3">
                                         <button type="submit" class="btn btn-primary btn-sm mb-3"><i class="fa fa-save"></i> Simpan</button>
-                                        <a class="btn btn-warning btn-sm mb-3" href="{{ route('sliders.index') }}"><i class="fa fa-undo"></i> Kembali</a>
+                                        <a class="btn btn-warning btn-sm mb-3" href="{{ route('teams.index') }}"><i class="fa fa-undo"></i> Kembali</a>
                                     </div>
                                 </div>
 

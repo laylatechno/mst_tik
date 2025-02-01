@@ -45,6 +45,7 @@
                             <div class="row">
                                 <div class="form-group mb-3">
                                     <label for="name">Nama Slider</label>
+                                    <span class="text-danger">*</span> 
                                     <input type="text" name="name" class="form-control" id="name" required>
                                 </div>
                                 <div class="form-group mb-3">
@@ -61,7 +62,8 @@
                                 </div>
                                 <div class="form-group mb-3">
                                     <label for="image">Gambar</label>
-                                    <input type="file" name="image" class="form-control" id="image" onchange="previewImage()">
+                                    <span class="text-danger">*</span> 
+                                    <input type="file" name="image" class="form-control" id="image" onchange="previewImage()" required>
                                     <canvas id="preview_canvas" style="display: none; max-width: 100%; margin-top: 10px;"></canvas>
                                     <img id="preview_image" src="#" alt="Preview Logo" style="display: none; max-width: 100%; margin-top: 10px;">
 

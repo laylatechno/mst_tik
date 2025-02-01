@@ -12,7 +12,7 @@
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a class="text-muted text-decoration-none" href="/">Beranda</a></li>
-                            <li class="breadcrumb-item" aria-current="page"><a class="text-muted text-decoration-none" href="{{ route('galleries.index') }}">Halaman Galeri</a></li>
+                            <li class="breadcrumb-item" aria-current="page"><a class="text-muted text-decoration-none" href="{{ route('teams.index') }}">Halaman Team</a></li>
                             <li class="breadcrumb-item" aria-current="page">{{ $subtitle }}</li>
                         </ol>
                     </nav>
@@ -36,34 +36,40 @@
                             <div class="row">
                                 <div class="col-xs-12 col-sm-12 col-md-12 mb-3">
                                     <div class="form-item">
-                                        <strong>Nama Galeri:</strong>
-                                        {{ $data_galleries->name }}
+                                        <strong>Nama Team:</strong>
+                                        {{ $data_teams->name }}
                                     </div>
                                 </div>
                                 <div class="col-xs-12 col-sm-12 col-md-12 mb-3">
                                     <div class="form-item">
                                         <strong>Link:</strong>
-                                        {{ $data_galleries->link }}
+                                        {{ $data_teams->link }}
+                                    </div>
+                                </div>
+                                <div class="col-xs-12 col-sm-12 col-md-12 mb-3">
+                                    <div class="form-item">
+                                        <strong>Jabatan:</strong>
+                                        {{ $data_teams->title }}
                                     </div>
                                 </div>
                                 <div class="col-xs-12 col-sm-12 col-md-12 mb-3">
                                     <div class="form-item">
                                         <strong>Deskripsi:</strong>
-                                        {{ $data_galleries->description }}
+                                        {{ $data_teams->description }}
                                     </div>
                                 </div>
                                 <div class="col-xs-12 col-sm-12 col-md-12 mb-3">
                                     <div class="form-item">
                                         <strong>Urutan:</strong>
-                                        {{ $data_galleries->position }}
+                                        {{ $data_teams->position }}
                                     </div>
                                 </div>
                                 <div class="col-xs-12 col-sm-12 col-md-12 mb-3">
                                     <div class="form-item">
                                         <strong>Gambar:</strong>
                                         <br>
-                                        @if ($data_galleries->image)
-                                        <img src="{{ asset('upload/galleries/' . $data_galleries->image) }}" alt="Adjustment Image" class="img-thumbnail" style="max-width: 200px;">
+                                        @if ($data_teams->image)
+                                        <img src="{{ asset('upload/teams/' . $data_teams->image) }}" alt="Adjustment Image" class="img-thumbnail" style="max-width: 200px;">
                                         @else
                                         <p class="form-control-plaintext">Tidak ada gambar</p>
                                         @endif
@@ -73,7 +79,7 @@
 
                             </div>
 
-                            <a class="btn btn-warning mb-2 mt-3" href="{{ route('galleries.index') }}"><i class="fa fa-undo"></i> Kembali</a>
+                            <a class="btn btn-warning mb-2 mt-3" href="{{ route('teams.index') }}"><i class="fa fa-undo"></i> Kembali</a>
 
                         </div>
                     </div>

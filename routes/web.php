@@ -1,4 +1,5 @@
 <?php
+use App\Http\Controllers\TeamController;
 
 use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\SliderController;
@@ -48,10 +49,9 @@ Route::middleware([HtmlMinifier::class])->group(function () {
 
 
     Route::group(['middleware' => ['auth']], function () {
-        Route::resource('gallery', GalleryController::class);
+    Route::resource('teams', TeamController::class);
 
-
-
+        Route::resource('galleries', GalleryController::class);
         Route::resource('testimonial', TestimonyController::class);
         Route::resource('sliders', SliderController::class);
 

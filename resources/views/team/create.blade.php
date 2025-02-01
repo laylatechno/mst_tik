@@ -11,7 +11,7 @@
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a class="text-muted text-decoration-none" href="/">Beranda</a></li>
                             <li class="breadcrumb-item" aria-current="page">
-                                <a class="text-muted text-decoration-none" href="{{ route('galleries.index') }}">Halaman Galeri</a>
+                                <a class="text-muted text-decoration-none" href="{{ route('teams.index') }}">Halaman Team</a>
                             </li>
                             <li class="breadcrumb-item" aria-current="page">{{ $subtitle }}</li>
                         </ol>
@@ -40,13 +40,17 @@
                         </div>
                         @endif
 
-                        <form method="POST" action="{{ route('galleries.store') }}"  enctype="multipart/form-data">
+                        <form method="POST" action="{{ route('teams.store') }}"  enctype="multipart/form-data">
                             @csrf
                             <div class="row">
                                 <div class="form-group mb-3">
-                                    <label for="name">Nama Galeri</label>
+                                    <label for="name">Nama Team</label>
                                     <span class="text-danger">*</span> 
                                     <input type="text" name="name" class="form-control" id="name" required>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="title">Jabatan</label>
+                                    <input type="text" name="title" class="form-control" id="title">
                                 </div>
                                 <div class="form-group mb-3">
                                     <label for="link">Link</label>
@@ -111,7 +115,7 @@
 
                                 <div class="col-xs-12 col-sm-12 col-md-12 mt-3">
                                     <button type="submit" class="btn btn-primary btn-sm mb-3"><i class="fa fa-save"></i> Simpan</button>
-                                    <a class="btn btn-warning btn-sm mb-3" href="{{ route('galleries.index') }}"><i class="fa fa-undo"></i> Kembali</a>
+                                    <a class="btn btn-warning btn-sm mb-3" href="{{ route('teams.index') }}"><i class="fa fa-undo"></i> Kembali</a>
                                 </div>
                             </div>
                         </form>
