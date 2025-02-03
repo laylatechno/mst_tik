@@ -4,7 +4,8 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, shrink-to-fit=no">
-    <meta name="description" content="Suha - Multipurpose Ecommerce Mobile HTML Template">
+    <meta name="keywords" content="{{$profil->keyword}}">
+    <meta name="description" content="{{$profil->deskripsi_keyword}}">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="theme-color" content="#625AFA">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -16,7 +17,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&amp;display=swap" rel="stylesheet">
     <!-- Favicon -->
-    <link rel="icon" href="{{ asset('template/front') }}/img/icons/icon-72x72.png">
+    <link rel="icon" href="{{ asset('/upload/profil/' . ($profil->favicon ?: 'https://static1.squarespace.com/static/524883b7e4b03fcb7c64e24c/524bba63e4b0bf732ffc8bce/646fb10bc178c30b7c6a31f2/1712669811602/Squarespace+Favicon.jpg?format=1500w')) }}">
     <!-- Apple Touch Icon -->
     <link rel="apple-touch-icon" href="{{ asset('template/front') }}/img/icons/icon-96x96.png">
     <link rel="apple-touch-icon" sizes="152x152" href="{{ asset('template/front') }}/img/icons/icon-152x152.png">
@@ -45,7 +46,7 @@
     <div class="header-area" id="headerArea">
       <div class="container h-100 d-flex align-items-center justify-content-between d-flex rtl-flex-d-row-r">
         <!-- Logo Wrapper -->
-        <div class="logo-wrapper"><a href="{{ asset('template/front') }}/home.html"><img src="{{ asset('template/front') }}/img/core-img/logo-small.png" alt=""></a></div>
+        <div class="logo-wrapper"><a href="{{ asset('template/front') }}/home.html"><img src="{{ asset('/upload/profil/' . $profil->logo_dark) }}" alt=""></a></div>
         <div class="navbar-logo-container d-flex align-items-center">
           <!-- Cart Icon -->
           <div class="cart-icon-wrap"><a href="{{ asset('template/front') }}/cart.html"><i class="ti ti-basket-bolt"></i><span>13</span></a></div>

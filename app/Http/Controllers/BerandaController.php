@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\Slider;
 use App\Models\Profil;
 use App\Models\Testimony;
 
@@ -26,8 +27,17 @@ class BerandaController extends Controller
         // Set title dan subtitle
         $title = "Halaman " . ($profil ? $profil->nama_profil : 'Nama Profil');
         $subtitle = "Menu Beranda";
+
+
+         // Menggunakan eager loading dan memilih kolom yang diperlukan
+         $data_sliders = Slider::select('id', 'name', 'image', 'description')->get();
+        //  $data_travel_routes = TravelRoute::select('id', 'image', 'price', 'start', 'end')->get();
+        //  $data_blogs = Blog::with(['blog_category:id,name'])->select('id', 'title', 'description', 'slug', 'posting_date', 'writer', 'image', 'blog_category_id')->get();
+ 
+ 
       
         return view('front.beranda', compact(
+            'data_sliders',
             'title',
             'subtitle',
         ));
