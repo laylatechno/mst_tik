@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\Profil;
 use App\Models\Testimony;
 
 class BerandaController extends Controller
@@ -12,7 +13,7 @@ class BerandaController extends Controller
      *
      * @return void
      */
-  
+
     /**
      * Show the application dashboard.
      *
@@ -20,19 +21,18 @@ class BerandaController extends Controller
      */
     public function index()
     {
-        // Set page title and subtitle
-        $title = "Parcel by Monera";
+        // Ambil profil pertama
+        $profil = Profil::first();
+        // Set title dan subtitle
+        $title = "Halaman " . ($profil ? $profil->nama_profil : 'Nama Profil');
         $subtitle = "Menu Beranda";
-        $produk = Product::all();
-
-
+      
         return view('front.beranda', compact(
-            'produk',
             'title',
             'subtitle',
-           
         ));
     }
+    
 
 
     public function katalog()
@@ -60,7 +60,7 @@ class BerandaController extends Controller
             'produk',
             'produk_lain',
             'subtitle',
-           
+
         ));
     }
 
@@ -76,12 +76,7 @@ class BerandaController extends Controller
             'data_testimonial',
             'title',
             'subtitle',
-           
+
         ));
     }
-
-
-   
-
-    
 }

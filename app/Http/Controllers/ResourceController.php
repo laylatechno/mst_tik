@@ -54,7 +54,7 @@ class ResourceController extends Controller
         $timestamp = date('Y_m_d_His');
         $migrationName = "create_{$tableName}_table";
         $migrationClassName = "Create" . Str::studly($tableName) . "Table";
-        
+
         // Create migration file content
         $migrationContent = "<?php\n\n";
         $migrationContent .= "use Illuminate\Database\Migrations\Migration;\n";
@@ -64,11 +64,11 @@ class ResourceController extends Controller
         $migrationContent .= "    public function up()\n    {\n";
         $migrationContent .= "        Schema::create('{$tableName}', function (Blueprint \$table) {\n";
         $migrationContent .= "            \$table->id();\n";
-        
+
         foreach ($fields as $field) {
             $migrationContent .= "            \$table->{$field['type']}('{$field['name']}');\n";
         }
-        
+
         $migrationContent .= "            \$table->timestamps();\n";
         $migrationContent .= "        });\n";
         $migrationContent .= "    }\n\n";
@@ -120,6 +120,7 @@ class ResourceController extends Controller
         foreach ($views as $view) {
             File::put("$viewFolderPath/$view.blade.php", "<!-- Halaman $view untuk $modelName -->");
         }
+
 
         // Update web routes
         $webRouteFile = base_path('routes/web.php');

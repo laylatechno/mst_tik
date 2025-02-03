@@ -1,4 +1,6 @@
 <?php
+ 
+ 
 use App\Http\Controllers\TeamController;
 
 use App\Http\Controllers\GalleryController;
@@ -49,6 +51,10 @@ Route::middleware([HtmlMinifier::class])->group(function () {
 
 
     Route::group(['middleware' => ['auth']], function () {
+     
+
+     
+
     Route::resource('teams', TeamController::class);
 
         Route::resource('galleries', GalleryController::class);
