@@ -552,42 +552,81 @@ class ProductController extends Controller
      */
     public function destroy($id)
     {
-        // Cari produk berdasarkan ID
         $product = Product::findOrFail($id);
 
-        // Mulai transaksi database untuk memastikan konsistensi
         DB::beginTransaction();
         try {
-            // Hapus file gambar dari folder upload/products jika ada
+            // Hapus file gambar utama produk
             if (!empty($product->image)) {
                 $imagePath = public_path('upload/products/' . $product->image);
                 if (file_exists($imagePath)) {
-                    @unlink($imagePath); // Menghapus file gambar
+                    @unlink($imagePath);
                 }
             }
 
-            // Hapus semua harga konsumen terkait pada tabel product_prices
-            $product->productPrices()->delete();
+            // Hapus file gambar dari product_images
+            foreach ($product->images as $image) {
+                $imagePath = public_path('upload/products/details/' . $image->image);
+                if (file_exists($imagePath)) {
+                    @unlink($imagePath);
+                }
+            }
 
-            // Hapus produk dari tabel products
+            // Hapus data terkait
+            $product->productPrices()->delete();
+            $product->images()->delete();
             $product->delete();
 
-            // Mendapatkan ID pengguna yang sedang login
             $loggedInUserId = Auth::id();
-
-            // Simpan log histori untuk operasi Delete
             $this->simpanLogHistori('Delete', 'Produk', $id, $loggedInUserId, json_encode($product), null);
 
-            // Commit transaksi
             DB::commit();
-
-            // Redirect kembali dengan pesan sukses
             return redirect()->route('products.index')->with('success', 'Produk berhasil dihapus');
         } catch (\Exception $e) {
-            // Rollback transaksi jika terjadi error
             DB::rollBack();
+            return redirect()->route('products.index')->with('error', 'Gagal menghapus produk: ' . $e->getMessage());
+        }
+    }
 
-            // Kembalikan pesan error
+
+    public function destroyMultiple(Request $request)
+    {
+        $ids = explode(',', $request->input('selected_ids'));
+
+        DB::beginTransaction();
+        try {
+            foreach ($ids as $id) {
+                $product = Product::find($id);
+                if ($product) {
+                    // Hapus file gambar utama
+                    if (!empty($product->image)) {
+                        $imagePath = public_path('upload/products/' . $product->image);
+                        if (file_exists($imagePath)) {
+                            @unlink($imagePath);
+                        }
+                    }
+
+                    // Hapus file gambar terkait
+                    foreach ($product->images as $image) {
+                        $imagePath = public_path('upload/products/details/' . $image->image);
+                        if (file_exists($imagePath)) {
+                            @unlink($imagePath);
+                        }
+                    }
+
+                    $product->productPrices()->delete();
+                    $product->images()->delete();
+                    $product->delete();
+
+                    $loggedInUserId = Auth::id();
+                    $this->simpanLogHistori('Delete', 'Produk', $id, $loggedInUserId, json_encode($product), null);
+                }
+            }
+
+            DB::commit();
+            return redirect()->route('products.index')->with('success', 'Produk berhasil dihapus');
+        } catch (\Exception $e) {
+            DB::rollBack();
             return redirect()->route('products.index')->with('error', 'Gagal menghapus produk: ' . $e->getMessage());
         }
     }

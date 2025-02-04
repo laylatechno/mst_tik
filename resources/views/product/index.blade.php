@@ -70,13 +70,19 @@
                                         <button class="btn btn-info mb-2" id="generate-barcode-btn" onclick="submitGenerateBarcodeForm()">
                                             <i class="fa fa-barcode"></i> Generate Barcode
                                         </button>
+                                        <button class="btn btn-danger mb-2" onclick="deleteSelected()">
+                                            <i class="fa fa-trash"></i> Delete Selected
+                                        </button>
                                     </div>
 
                                     @endcan
 
                                 </div>
                             </div>
-
+                            <form id="delete-multiple-form" action="{{ route('products.destroy-multiple') }}" method="POST" style="display: none;">
+                                @csrf
+                                <input type="hidden" name="selected_ids" id="selected_ids_delete">
+                            </form>
                             <form id="generate-barcode-form" action="{{ route('products.generate_barcode') }}" method="POST" style="display: none;">
                                 @csrf
                                 <input type="hidden" name="selected_ids" id="selected_ids">
@@ -97,6 +103,43 @@
                                     document.getElementById('generate-barcode-form').submit();
                                 }
                             </script>
+
+                   
+
+                            <script>
+                                function deleteSelected() {
+                                    let selected = [];
+                                    document.querySelectorAll('.row-checkbox:checked').forEach(checkbox => {
+                                        selected.push(checkbox.value);
+                                    });
+
+                                    if (selected.length === 0) {
+                                        Swal.fire({
+                                            icon: 'warning',
+                                            title: 'Oops!',
+                                            text: 'Pilih setidaknya satu produk untuk dihapus.',
+                                        });
+                                        return;
+                                    }
+
+                                    Swal.fire({
+                                        title: 'Apakah Anda yakin?',
+                                        text: "Data yang dihapus tidak bisa dikembalikan!",
+                                        icon: 'warning',
+                                        showCancelButton: true,
+                                        confirmButtonColor: '#d33',
+                                        cancelButtonColor: '#3085d6',
+                                        confirmButtonText: 'Ya, hapus!',
+                                        cancelButtonText: 'Batal'
+                                    }).then((result) => {
+                                        if (result.isConfirmed) {
+                                            document.getElementById('selected_ids_delete').value = selected.join(',');
+                                            document.getElementById('delete-multiple-form').submit();
+                                        }
+                                    });
+                                }
+                            </script>
+
 
 
                             @if(session('success'))
@@ -165,7 +208,7 @@
                                             <a class="btn btn-primary btn-sm" href="{{ route('products.edit', $p->id) }}"><i class="fa fa-edit"></i> Edit</a>
                                             @endcan
                                             @can('product-edit')
-                                            <a class="btn btn-info btn-sm" href="{{ route('products.images.index', $p->id) }}">
+                                            <a class="btn btn-secondary btn-sm" href="{{ route('products.images.index', $p->id) }}">
                                                 <i class="fa fa-images"></i> Images
                                             </a>
                                             @endcan

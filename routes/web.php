@@ -129,6 +129,7 @@ Route::middleware([HtmlMinifier::class])->group(function () {
         Route::get('products/{product}/images', [ProductImageController::class, 'index'])->name('products.images.index');
         Route::post('products/{product}/images', [ProductImageController::class, 'store'])->name('products.images.store');
         Route::delete('products/{product}/images/{image}', [ProductImageController::class, 'destroy'])->name('products.images.destroy');
+        Route::post('/products/destroy-multiple', [ProductController::class, 'destroyMultiple'])->name('products.destroy-multiple');
 
 
 
