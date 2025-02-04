@@ -21,6 +21,7 @@ use App\Http\Controllers\MenuItemsController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PermissionsController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductImageController;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ResourceController;
@@ -125,6 +126,14 @@ Route::middleware([HtmlMinifier::class])->group(function () {
         Route::get('/get-product-price', [ProductController::class, 'getProductPrice']);
         Route::post('/products/generate-barcode', [ProductController::class, 'generateBarcode'])->name('products.generate_barcode');
         Route::get('/get-product-by-barcode', [ProductController::class, 'getProductByBarcode']);
+        Route::get('products/{product}/images', [ProductImageController::class, 'index'])->name('products.images.index');
+        Route::post('products/{product}/images', [ProductImageController::class, 'store'])->name('products.images.store');
+        Route::delete('products/{product}/images/{image}', [ProductImageController::class, 'destroy'])->name('products.images.destroy');
+
+
+
+
+
         Route::resource('categories', CategoryController::class);
         Route::resource('routes', RouteController::class);
         Route::get('/generate-routes', [RouteController::class, 'generateRoutes'])->name('routes.generate');

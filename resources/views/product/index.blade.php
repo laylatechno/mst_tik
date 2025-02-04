@@ -44,7 +44,7 @@
                         Pilih <b>Generate Barcode</b> untuk membuat barcode berdasarkan kode produk dan silahkan pilih/checklist terlebih dahulu produk-produk yang akan digenerate
                     </li>
                 </ol>
-             
+
             </div>
         </div>
         <!-- End of Section Tutorial -->
@@ -149,7 +149,7 @@
                                         </td>
 
 
-                                        <td>{!!  substr($p->description, 0, 20) ?: 'No Data' !!}</td>
+                                        <td>{!! substr($p->description, 0, 20) ?: 'No Data' !!}</td>
 
                                         <td>Rp {{ number_format($p->purchase_price, 0, ',', '.') }}</td>
                                         <td>Rp {{ number_format($p->cost_price, 0, ',', '.') }}</td>
@@ -163,6 +163,11 @@
                                             <a class="btn btn-warning btn-sm" href="{{ route('products.show', $p->id) }}"><i class="fa fa-eye"></i> Show</a>
                                             @can('product-edit')
                                             <a class="btn btn-primary btn-sm" href="{{ route('products.edit', $p->id) }}"><i class="fa fa-edit"></i> Edit</a>
+                                            @endcan
+                                            @can('product-edit')
+                                            <a class="btn btn-info btn-sm" href="{{ route('products.images.index', $p->id) }}">
+                                                <i class="fa fa-images"></i> Images
+                                            </a>
                                             @endcan
                                             @can('product-delete')
                                             <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete({{ $p->id }})"><i class="fa fa-trash"></i> Delete</button>

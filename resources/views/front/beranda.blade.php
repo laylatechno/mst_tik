@@ -30,7 +30,7 @@
             <div class="pt-3">
                 <!-- Hero Slides-->
                 <div class="hero-slides owl-carousel">
-                @foreach ($data_sliders as $p)
+                    @foreach ($data_sliders as $p)
                     <!-- Single Hero Slide-->
                     <div class="single-hero-slide" style="background-image: url('/upload/sliders/{{ $p->image }}')">
                         <div class="slide-content h-100 d-flex align-items-center">
@@ -41,7 +41,7 @@
                         </div>
                     </div>
                     @endforeach
-                   
+
                 </div>
             </div>
         </div>
@@ -50,142 +50,63 @@
     <div class="product-catagories-wrapper py-3">
         <div class="container">
             <div class="row g-2 rtl-flex-d-row-r">
+
+                @foreach ($data_services as $p)
                 <!-- Catagory Card -->
                 <div class="col-3">
                     <div class="card catagory-card">
-                        <div class="card-body px-2"><a href="{{ asset('template/front') }}/catagory.html"><img src="{{ asset('template/front') }}/img/core-img/woman-clothes.png" alt=""><span>Women's Fashion</span></a></div>
+                        <div class="card-body px-2"><a href="{{ asset('template/front') }}/catagory.html"><img src="/upload/services/{{ $p->image }}" alt=""><span>{{ $p->name }}</span></a></div>
                     </div>
                 </div>
-                <!-- Catagory Card -->
-                <div class="col-3">
-                    <div class="card catagory-card">
-                        <div class="card-body px-2"><a href="{{ asset('template/front') }}/catagory.html"><img src="{{ asset('template/front') }}/img/core-img/grocery.png" alt=""><span>Groceries &amp; Pets</span></a></div>
-                    </div>
-                </div>
-                <!-- Catagory Card -->
-                <div class="col-3">
-                    <div class="card catagory-card">
-                        <div class="card-body px-2"><a href="{{ asset('template/front') }}/catagory.html"><img src="{{ asset('template/front') }}/img/core-img/shampoo.png" alt=""><span>Health &amp; Beauty</span></a></div>
-                    </div>
-                </div>
-                <!-- Catagory Card -->
-                <div class="col-3">
-                    <div class="card catagory-card">
-                        <div class="card-body px-2"><a href="{{ asset('template/front') }}/catagory.html"><img src="{{ asset('template/front') }}/img/core-img/rowboat.png" alt=""><span>Sports &amp; Outdoors</span></a></div>
-                    </div>
-                </div>
-                <!-- Catagory Card -->
-                <div class="col-3">
-                    <div class="card catagory-card">
-                        <div class="card-body px-2"><a href="{{ asset('template/front') }}/catagory.html"><img src="{{ asset('template/front') }}/img/core-img/tv-table.png" alt=""><span>Home Appliance</span></a></div>
-                    </div>
-                </div>
-                <!-- Catagory Card -->
-                <div class="col-3">
-                    <div class="card catagory-card">
-                        <div class="card-body px-2"><a href="{{ asset('template/front') }}/catagory.html"><img src="{{ asset('template/front') }}/img/core-img/beach.png" alt=""><span>Tour &amp; Travels</span></a></div>
-                    </div>
-                </div>
-                <!-- Catagory Card -->
-                <div class="col-3">
-                    <div class="card catagory-card">
-                        <div class="card-body px-2"><a href="{{ asset('template/front') }}/catagory.html"><img src="{{ asset('template/front') }}/img/core-img/baby-products.png" alt=""><span>Mother &amp; Baby</span></a></div>
-                    </div>
-                </div>
-                <!-- Catagory Card -->
-                <div class="col-3">
-                    <div class="card catagory-card active">
-                        <div class="card-body px-2"><a href="{{ asset('template/front') }}/catagory.html"><img src="{{ asset('template/front') }}/img/core-img/price-tag.png" alt=""><span>Clearance Sale</span></a></div>
-                    </div>
-                </div>
+                @endforeach
             </div>
         </div>
     </div>
-    <!-- Flash Sale Slide -->
-    <div class="flash-sale-wrapper">
-        <div class="container">
-            <div class="section-heading d-flex align-items-center justify-content-between rtl-flex-d-row-r">
-                <h6 class="d-flex align-items-center rtl-flex-d-row-r"><i class="ti ti-bolt-lightning me-1 text-danger lni-flashing-effect"></i>Cyclone Offer</h6>
-                <!-- Please use event time this format: YYYY/MM/DD hh:mm:ss -->
-                <ul class="sales-end-timer ps-0 d-flex align-items-center rtl-flex-d-row-r" data-countdown="2024/12/31 14:21:59">
-                    <li><span class="days">0</span>d</li>
-                    <li><span class="hours">0</span>h</li>
-                    <li><span class="minutes">0</span>m</li>
-                    <li><span class="seconds">0</span>s</li>
-                </ul>
-            </div>
-            <!-- Flash Sale Slide-->
-            <div class="flash-sale-slide owl-carousel">
-                <!-- Flash Sale Card -->
-                <div class="card flash-sale-card">
-                    <div class="card-body"><a href="{{ asset('template/front') }}/single-product.html"><img src="{{ asset('template/front') }}/img/product/1.png" alt=""><span class="product-title">Black Table Lamp</span>
-                            <p class="sale-price">$7.99<span class="real-price">$15</span></p><span class="progress-title">33% Sold</span>
-                            <!-- Progress Bar-->
-                            <div class="progress">
-                                <div class="progress-bar" role="progressbar" style="width: 33%" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                        </a></div>
-                </div>
-                <!-- Flash Sale Card -->
-                <div class="card flash-sale-card">
-                    <div class="card-body"><a href="{{ asset('template/front') }}/single-product.html"><img src="{{ asset('template/front') }}/img/product/2.png" alt=""><span class="product-title">Modern Sofa</span>
-                            <p class="sale-price">$14<span class="real-price">$21</span></p><span class="progress-title">57% Sold</span>
-                            <!-- Progress Bar-->
-                            <div class="progress">
-                                <div class="progress-bar" role="progressbar" style="width: 57%" aria-valuenow="57" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                        </a></div>
-                </div>
-                <!-- Flash Sale Card -->
-                <div class="card flash-sale-card">
-                    <div class="card-body"><a href="{{ asset('template/front') }}/single-product.html"><img src="{{ asset('template/front') }}/img/product/3.png" alt=""><span class="product-title">Classic Garden Chair</span>
-                            <p class="sale-price">$36<span class="real-price">$49</span></p><span class="progress-title">99% Sold</span>
-                            <!-- Progress Bar-->
-                            <div class="progress">
-                                <div class="progress-bar bg-danger" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                        </a></div>
-                </div>
-                <!-- Flash Sale Card -->
-                <div class="card flash-sale-card">
-                    <div class="card-body"><a href="{{ asset('template/front') }}/single-product.html"><img src="{{ asset('template/front') }}/img/product/1.png" alt=""><span class="product-title">Black Table Lamp</span>
-                            <p class="sale-price">$7.99<span class="real-price">$15</span></p><span class="progress-title">33% Sold</span>
-                            <!-- Progress Bar-->
-                            <div class="progress">
-                                <div class="progress-bar" role="progressbar" style="width: 33%" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                        </a></div>
-                </div>
-                <!-- Flash Sale Card -->
-                <div class="card flash-sale-card">
-                    <div class="card-body"><a href="{{ asset('template/front') }}/single-product.html"><img src="{{ asset('template/front') }}/img/product/2.png" alt=""><span class="product-title">Modern Sofa</span>
-                            <p class="sale-price">$14<span class="real-price">$21</span></p><span class="progress-title">57% Sold</span>
-                            <!-- Progress Bar-->
-                            <div class="progress">
-                                <div class="progress-bar" role="progressbar" style="width: 57%" aria-valuenow="57" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                        </a></div>
-                </div>
-                <!-- Flash Sale Card -->
-                <div class="card flash-sale-card">
-                    <div class="card-body"><a href="{{ asset('template/front') }}/single-product.html"><img src="{{ asset('template/front') }}/img/product/3.png" alt=""><span class="product-title">Classic Garden Chair</span>
-                            <p class="sale-price">$36<span class="real-price">$49</span></p><span class="progress-title">99% Sold</span>
-                            <!-- Progress Bar-->
-                            <div class="progress">
-                                <div class="progress-bar bg-danger" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                        </a></div>
-                </div>
-            </div>
-        </div>
-    </div>
+    
+  
     <!-- Dark Mode -->
     <div class="container">
-        <div class="dark-mode-wrapper mt-3 bg-img p-4 p-lg-5">
+        <div class="dark-mode-wrapper bg-img p-4 p-lg-5">
             <p class="text-white">You can change your display to a dark background using a dark mode.</p>
             <div class="form-check form-switch mb-0">
-                <label class="form-check-label text-white h6 mb-0" for="darkSwitch">Switch to Dark Mode</label>
+                <label class="form-check-label text-white h6 mb-0" for="darkSwitch">Pindah Mode Gelap</label>
                 <input class="form-check-input" id="darkSwitch" type="checkbox" role="switch">
+            </div>
+        </div>
+    </div>
+
+    <div class="pb-3 pt-3">
+        <div class="container">
+            <div class="section-heading d-flex align-items-center justify-content-between dir-rtl">
+                <h6>Galeri</h6><a class="btn btn-sm btn-light" href="{{ asset('template/front') }}/#">
+                    View all<i class="ms-1 ti ti-arrow-right"></i></a>
+            </div>
+            <!-- Collection Slide-->
+            <div class="collection-slide owl-carousel">
+                <!-- Collection Card-->
+                <div class="card collection-card"><a href="{{ asset('template/front') }}/single-product.html"><img src="{{ asset('template/front') }}/img/product/17.jpg" alt=""></a>
+                    <div class="collection-title"><span>Women</span><span class="badge bg-danger">9</span></div>
+                </div>
+                <!-- Collection Card-->
+                <div class="card collection-card"><a href="{{ asset('template/front') }}/single-product.html"><img src="{{ asset('template/front') }}/img/product/19.jpg" alt=""></a>
+                    <div class="collection-title"><span>Men</span><span class="badge bg-danger">29</span></div>
+                </div>
+                <!-- Collection Card-->
+                <div class="card collection-card"><a href="{{ asset('template/front') }}/single-product.html"><img src="{{ asset('template/front') }}/img/product/21.jpg" alt=""></a>
+                    <div class="collection-title"><span>Kids</span><span class="badge bg-danger">4</span></div>
+                </div>
+                <!-- Collection Card-->
+                <div class="card collection-card"><a href="{{ asset('template/front') }}/single-product.html"><img src="{{ asset('template/front') }}/img/product/22.jpg" alt=""></a>
+                    <div class="collection-title"><span>Gadget</span><span class="badge bg-danger">11</span></div>
+                </div>
+                <!-- Collection Card-->
+                <div class="card collection-card"><a href="{{ asset('template/front') }}/single-product.html"><img src="{{ asset('template/front') }}/img/product/23.jpg" alt=""></a>
+                    <div class="collection-title"><span>Foods</span><span class="badge bg-danger">2</span></div>
+                </div>
+                <!-- Collection Card-->
+                <div class="card collection-card"><a href="{{ asset('template/front') }}/single-product.html"><img src="{{ asset('template/front') }}/img/product/24.jpg" alt=""></a>
+                    <div class="collection-title"><span>Sports</span><span class="badge bg-danger">5</span></div>
+                </div>
             </div>
         </div>
     </div>
@@ -193,7 +114,7 @@
     <div class="top-products-area py-3">
         <div class="container">
             <div class="section-heading d-flex align-items-center justify-content-between dir-rtl">
-                <h6>Top Products</h6><a class="btn btn-sm btn-light" href="{{ asset('template/front') }}/shop-grid.html">View all<i class="ms-1 ti ti-arrow-right"></i></a>
+                <h6>Produk Kami</h6><a class="btn btn-sm btn-light" href="{{ asset('template/front') }}/shop-grid.html">View all<i class="ms-1 ti ti-arrow-right"></i></a>
             </div>
             <div class="row g-2">
                 <!-- Product Card -->
@@ -522,41 +443,7 @@
             </div>
         </div>
     </div>
-    <div class="pb-3">
-        <div class="container">
-            <div class="section-heading d-flex align-items-center justify-content-between dir-rtl">
-                <h6>Collections</h6><a class="btn btn-sm btn-light" href="{{ asset('template/front') }}/#">
-                    View all<i class="ms-1 ti ti-arrow-right"></i></a>
-            </div>
-            <!-- Collection Slide-->
-            <div class="collection-slide owl-carousel">
-                <!-- Collection Card-->
-                <div class="card collection-card"><a href="{{ asset('template/front') }}/single-product.html"><img src="{{ asset('template/front') }}/img/product/17.jpg" alt=""></a>
-                    <div class="collection-title"><span>Women</span><span class="badge bg-danger">9</span></div>
-                </div>
-                <!-- Collection Card-->
-                <div class="card collection-card"><a href="{{ asset('template/front') }}/single-product.html"><img src="{{ asset('template/front') }}/img/product/19.jpg" alt=""></a>
-                    <div class="collection-title"><span>Men</span><span class="badge bg-danger">29</span></div>
-                </div>
-                <!-- Collection Card-->
-                <div class="card collection-card"><a href="{{ asset('template/front') }}/single-product.html"><img src="{{ asset('template/front') }}/img/product/21.jpg" alt=""></a>
-                    <div class="collection-title"><span>Kids</span><span class="badge bg-danger">4</span></div>
-                </div>
-                <!-- Collection Card-->
-                <div class="card collection-card"><a href="{{ asset('template/front') }}/single-product.html"><img src="{{ asset('template/front') }}/img/product/22.jpg" alt=""></a>
-                    <div class="collection-title"><span>Gadget</span><span class="badge bg-danger">11</span></div>
-                </div>
-                <!-- Collection Card-->
-                <div class="card collection-card"><a href="{{ asset('template/front') }}/single-product.html"><img src="{{ asset('template/front') }}/img/product/23.jpg" alt=""></a>
-                    <div class="collection-title"><span>Foods</span><span class="badge bg-danger">2</span></div>
-                </div>
-                <!-- Collection Card-->
-                <div class="card collection-card"><a href="{{ asset('template/front') }}/single-product.html"><img src="{{ asset('template/front') }}/img/product/24.jpg" alt=""></a>
-                    <div class="collection-title"><span>Sports</span><span class="badge bg-danger">5</span></div>
-                </div>
-            </div>
-        </div>
-    </div>
+ 
 </div>
 
 @endsection

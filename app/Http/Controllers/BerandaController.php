@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\Slider;
 use App\Models\Profil;
+use App\Models\Service;
 use App\Models\Testimony;
 
 class BerandaController extends Controller
@@ -31,6 +32,7 @@ class BerandaController extends Controller
 
          // Menggunakan eager loading dan memilih kolom yang diperlukan
          $data_sliders = Slider::select('id', 'name', 'image', 'description')->get();
+         $data_services = Service::select('id', 'name', 'image', 'description')->get();
         //  $data_travel_routes = TravelRoute::select('id', 'image', 'price', 'start', 'end')->get();
         //  $data_blogs = Blog::with(['blog_category:id,name'])->select('id', 'title', 'description', 'slug', 'posting_date', 'writer', 'image', 'blog_category_id')->get();
  
@@ -38,6 +40,7 @@ class BerandaController extends Controller
       
         return view('front.beranda', compact(
             'data_sliders',
+            'data_services',
             'title',
             'subtitle',
         ));
