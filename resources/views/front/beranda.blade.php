@@ -69,7 +69,7 @@
         <div class="dark-mode-wrapper bg-img p-4 p-lg-5">
             <p class="text-white">You can change your display to a dark background using a dark mode.</p>
             <div class="form-check form-switch mb-0">
-                <label class="form-check-label text-white h6 mb-0" for="darkSwitch">Pindah Mode Gelap</label>
+                <label class="form-check-label text-white h6 mb-0" for="darkSwitch">Mode Gelap</label>
                 <input class="form-check-input" id="darkSwitch" type="checkbox" role="switch">
             </div>
         </div>

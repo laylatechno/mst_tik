@@ -8,6 +8,7 @@ use App\Http\Controllers\TeamController;
 use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\SliderController;
 use App\Http\Controllers\AdjustmentController;
+use App\Http\Controllers\BackupController;
 use App\Http\Controllers\BerandaController;
 use App\Http\Controllers\StockOpnameController;
 use App\Http\Controllers\CashController;
@@ -151,5 +152,11 @@ Route::middleware([HtmlMinifier::class])->group(function () {
         Route::post('menu-groups/update-positions', [MenuGroupsController::class, 'updatePositions'])->name('menu_groups.update_positions');
         Route::get('/create-resource', [ResourceController::class, 'createForm'])->name('resource.create');
         Route::post('/create-resource', [ResourceController::class, 'createResource'])->name('resource.store');
+
+
+        Route::resource('/backupdatabase', BackupController::class);
+        Route::get('/backup/manual', [BackupController::class, 'manualBackup'])->name('backup.manual');
+
+        Route::post('/restore', [BackupController::class, 'restore'])->name('database.restore');
     });
 });

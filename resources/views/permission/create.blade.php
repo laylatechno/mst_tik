@@ -30,26 +30,30 @@
                 <div class="card">
                     <div class="card-body">
                         @if ($errors->any())
-                            <div class="alert alert-danger">
-                                <strong>Whoops!</strong> Ada beberapa masalah dengan data yang anda masukkan.
-                                <ul>
-                                    @foreach ($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
+                        <div class="alert alert-danger">
+                            <strong>Whoops!</strong> Ada beberapa masalah dengan data yang anda masukkan.
+                            <ul>
+                                @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
                         @endif
 
                         <form method="POST" action="{{ route('permissions.store') }}">
                             @csrf
                             <div class="row">
                                 @foreach (['name' => 'Nama', 'urutan' => 'Urutan', 'guard_name' => 'Guard'] as $field => $label)
-                                    <div class="col-12 mb-3">
-                                        <div class="form-group">
-                                            <strong>{{ $label }}:</strong>
-                                            <input type="{{ $field === 'urutan' ? 'number' : 'text' }}" name="{{ $field }}" placeholder="{{ $label }}" class="form-control" value="{{ old($field) }}">
-                                        </div>
+                                <div class="col-12 mb-3">
+                                    <div class="form-group">
+                                        <strong>{{ $label }}:</strong>
+                                        <input type="{{ $field === 'urutan' ? 'number' : 'text' }}"
+                                            name="{{ $field }}"
+                                            placeholder="{{ $label }}"
+                                            class="form-control"
+                                            value="{{ old($field, $field === 'guard_name' ? 'web' : '') }}">
                                     </div>
+                                </div>
                                 @endforeach
 
                                 <div class="col-12 mt-3">
@@ -58,6 +62,7 @@
                                 </div>
                             </div>
                         </form>
+
                     </div>
                 </div>
             </div>

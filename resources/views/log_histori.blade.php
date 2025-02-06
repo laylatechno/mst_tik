@@ -83,7 +83,7 @@
                                         <td>{{ $p->ID_Entitas }}</td>
                                         <td>{{ $p->Aksi }}</td>
                                         <td>{{ $p->Waktu }}</td>
-                                        <td>{{ $p->Waktu }}</td>
+                                        <td>{{ $p->Pengguna }}</td>
                                         {{-- <td>{{ $p->user->name }}</td> --}}
                                         <td>{{ $p->Data_Lama }}</td>
                                         <td>{{ $p->Data_Baru }}</td>

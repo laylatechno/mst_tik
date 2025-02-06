@@ -119,11 +119,11 @@
     <div class="footer-nav-area" id="footerNav">
       <div class="suha-footer-nav">
         <ul class="h-100 d-flex align-items-center justify-content-between ps-0 d-flex rtl-flex-d-row-r">
-          <li><a href="{{ asset('template/front') }}/home.html"><i class="ti ti-home"></i>Home</a></li>
-          <li><a href="{{ asset('template/front') }}/message.html"><i class="ti ti-message"></i>Chat</a></li>
-          <li><a href="{{ asset('template/front') }}/cart.html"><i class="ti ti-basket"></i>Cart</a></li>
-          <li><a href="{{ asset('template/front') }}/settings.html"><i class="ti ti-settings"></i>Settings</a></li>
-          <li><a href="{{ asset('template/front') }}/pages.html"><i class="ti ti-heart"></i>Pages</a></li>
+          <li><a href="{{ asset('template/front') }}/home.html"><i class="ti ti-home"></i>Beranda</a></li>
+          <li><a href="{{ asset('template/front') }}/message.html"><i class="ti ti-building-store"></i>Produk</a></li>
+          <li><a href="{{ asset('template/front') }}/cart.html"><i class="ti ti-notebook"></i>Layanan</a></li>
+          <li><a href="{{ asset('template/front') }}/settings.html"><i class="ti ti-news"></i>Blog</a></li>
+          <li><a href="{{ asset('template/front') }}/pages.html"><i class="ti ti-login"></i>Login</a></li>
         </ul>
       </div>
     </div>
