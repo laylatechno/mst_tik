@@ -1,6 +1,45 @@
 @extends('layouts.app')
 @push('css')
 <link rel="stylesheet" href="{{ asset('template/back') }}/dist/libs/select2/dist/css/select2.min.css">
+<link rel="stylesheet" href="{{ asset('template/back/dist/libs/datatables.net-bs5/css/dataTables.bootstrap5.min.css') }}">
+<style>
+    .table-responsive {
+        width: 100%;
+        margin-bottom: 1rem;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .table-responsive::-webkit-scrollbar {
+        height: 8px;
+    }
+
+    .table-responsive::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 4px;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+
+    .table {
+        margin-bottom: 0;
+        white-space: nowrap;
+    }
+
+    @media screen and (max-width: 768px) {
+        .table-responsive {
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+    }
+</style>
 <style>
     .select2-container--default .select2-selection--single .select2-selection__arrow b {
         border-color: #888 transparent transparent transparent;
@@ -17,15 +56,19 @@
 
 
 
-
+ 
+</style>
+<style>
     .product-list {
-        display: flex;
-        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
         gap: 10px;
+        padding: 10px;
+        width: 100%;
     }
 
     .product-item {
-        width: 150px;
+        width: 100%;
         text-align: center;
         cursor: pointer;
         border: 1px solid #ddd;
@@ -35,7 +78,7 @@
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        /* Menjaga gambar dan teks tetap terpisah */
+        background: #fff;
     }
 
     .product-item:hover {
@@ -46,23 +89,57 @@
     .product-item img {
         width: 100%;
         height: 100px;
-        /* Tentukan tinggi gambar agar konsisten */
         object-fit: cover;
-        /* Menjaga aspek rasio gambar */
+        border-radius: 3px;
     }
 
     .product-item p {
         font-size: 14px;
         margin-top: 10px;
-        /* Jarak antara gambar dan nama */
         text-overflow: ellipsis;
-        /* Memotong nama jika terlalu panjang */
         white-space: nowrap;
-        /* Membatasi nama agar tidak terputus */
         overflow: hidden;
-        /* Menyembunyikan teks yang melebihi kontainer */
         padding: 0 5px;
-        /* Memberikan sedikit padding agar teks tidak menempel ke tepi */
+    }
+
+    /* Responsive breakpoints */
+    @media screen and (max-width: 768px) {
+        .product-list {
+            grid-template-columns: repeat(2, 1fr);
+            /* 2 kolom untuk mobile */
+            gap: 8px;
+            /* Gap lebih kecil untuk mobile */
+            padding: 8px;
+        }
+
+        .product-item {
+            padding: 8px;
+        }
+
+        .product-item img {
+            height: 80px;
+            /* Gambar lebih kecil untuk mobile */
+        }
+
+        .product-item p {
+            font-size: 12px;
+            /* Font lebih kecil untuk mobile */
+        }
+    }
+
+    /* Untuk tablet */
+    @media screen and (min-width: 769px) and (max-width: 1024px) {
+        .product-list {
+            grid-template-columns: repeat(3, 1fr);
+            /* 3 kolom untuk tablet */
+        }
+    }
+
+    /* Untuk desktop */
+    @media screen and (min-width: 1025px) {
+        .product-list {
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        }
     }
 </style>
 @endpush
@@ -70,27 +147,6 @@
 
 
 <div class="container-fluid">
-    <!-- <div class="card bg-light-info shadow-none position-relative overflow-hidden" style="border: solid 0.5px #ccc;">
-        <div class="card-body px-4 py-3">
-            <div class="row align-items-center">
-                <div class="col-9">
-                    <h4 class="fw-semibold mb-8">{{ $title }}</h4>
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a class="text-muted text-decoration-none" href="/">Beranda</a></li>
-                            <li class="breadcrumb-item" aria-current="page">
-                                <a class="text-muted text-decoration-none" href="{{ route('orders.index') }}">Halaman Penjualan</a>
-                            </li>
-                            <li class="breadcrumb-item" aria-current="page">{{ $subtitle }}</li>
-                        </ol>
-                    </nav>
-                </div>
-                <div class="col-3 text-center mb-n5">
-                    <img src="{{ asset('template/back') }}/dist/images/breadcrumb/ChatBc.png" alt="" class="img-fluid mb-n4">
-                </div>
-            </div>
-        </div>
-    </div> -->
 
     <div class="card-body">
         <!-- Section Tutorial -->
@@ -281,16 +337,16 @@
                                 </div>
 
                                 {{-- Tabel Produk --}}
-                                <div>
+                                <div class="table-responsive">
                                     <table class="table table-bordered" id="cart-table">
                                         <thead>
                                             <tr>
                                                 <th width="5%">No</th>
-                                                <th style="text-align: left;">Produk</th>
-                                                <th>Harga</th>
-                                                <th>Stock</th>
-                                                <th width="15%">Qty</th>
-                                                <th>Total</th>
+                                                <th style="text-align: left;">Nama Produk</th>
+                                                <th>Harga Produk Terpilih</th>
+                                                <th>Stock Produk Terpilih</th>
+                                                <th width="15%">Qty Terpilih</th>
+                                                <th>Total Harga Produk Terpilih</th>
                                                 <th width="5%">Aksi</th>
                                             </tr>
                                         </thead>
@@ -327,8 +383,11 @@
 
                                 <div class="row mt-4">
                                     <div class="col-md-6 mb-3">
-                                        <h5 style="color: red; font-size:30px;" class="badge badge-danger"><b>Total Bayar: </b> Rp.
-                                            <span id="total_cost">{{ number_format(old('total_cost', $order->total_cost ?? 0), 0, ',', '.') }}</span>
+                                        <h5 style="color: red; font-size:30px;" class="badge badge-danger"><b>Total Bayar: </b> 
+                                        </h5>
+                                        <br>
+                                        <h5 style="color: red; font-size:30px;" class="badge badge-danger">Rp.
+                                        <span id="total_cost">{{ number_format(old('total_cost', $order->total_cost ?? 0), 0, ',', '.') }}</span> 
                                         </h5>
                                         <input type="hidden" name="total_cost" id="total_cost_input" class="form-control total_cost"
                                             value="{{ old('total_cost', $order->total_cost ?? 0) }}">
@@ -438,7 +497,7 @@
 
                                 <div class="border-top">
                                     <div class="card-body">
-                                        <button type="submit" class="btn btn-success" style="color:white;" id="btn-save-order">
+                                        <button type="submit" class="btn btn-success my-3" style="color:white;" id="btn-save-order">
                                             <i class="fas fa-save"></i> Simpan
                                         </button>
                                         <a href="{{ route('orders.index') }}" class="btn btn-danger" style="color:white;">
@@ -462,6 +521,9 @@
 @push('script')
 <script src="{{ asset('template/back') }}/dist/libs/select2/dist/js/select2.full.min.js"></script>
 <script src="{{ asset('template/back') }}/dist/libs/select2/dist/js/select2.min.js"></script>
+
+<script src="{{ asset('template/back/dist/libs/datatables.net/js/jquery.dataTables.min.js') }}"></script>
+<script src="{{ asset('template/back/dist/js/datatable/datatable-basic.init.js') }}"></script>
 
 
 

@@ -121,18 +121,18 @@
                         <!-- Tombol Aktif / Nonaktif -->
                         <div class="ml-auto d-flex gap-2">
 
-                            <a class="btn btn-sm {{ $menu_item->status == 'Aktif' ? 'btn-success' : 'btn-warning' }}" href="{{ route('menu_items.show',$menu_item->id) }}">
+                            <a class="btn btn-sm {{ $menu_item->status == 'Aktif' ? 'btn-success' : 'btn-warning' }}" href="{{ route('menu_items.show',$menu_item->id) }}" title="Status">
                                 <i class="fa {{ $menu_item->status == 'Aktif' ? 'fa-check-circle' : 'fa-times-circle' }}"></i>
-                                {{ $menu_item->status }}
+                                <!-- {{ $menu_item->status }} -->
                             </a>
                             @can('menuitem-edit')
-                            <a class="btn btn-primary btn-sm" href="{{ route('menu_items.edit', $menu_item->id) }}">
-                                <i class="fa fa-edit"></i> Edit
+                            <a class="btn btn-primary btn-sm" href="{{ route('menu_items.edit', $menu_item->id) }}" title="Edit Data">
+                                <i class="fa fa-edit"></i> 
                             </a>
                             @endcan
                             @can('menuitem-delete')
-                            <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete({{ $menu_item->id }})">
-                                <i class="fa fa-trash"></i> Delete
+                            <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete({{ $menu_item->id }})" title="Hapus Data">
+                                <i class="fa fa-trash"></i> 
                             </button>
                             <form id="delete-form-{{ $menu_item->id }}" method="POST" action="{{ route('menu_items.destroy', $menu_item->id) }}" style="display:none;">
                                 @csrf
@@ -154,19 +154,19 @@
                                     <!-- Tombol-tombol di sebelah kanan -->
                                     <div class="d-flex gap-2">
 
-                                        <a class="btn btn-sm {{ $sub_item->status == 'Aktif' ? 'btn-success' : 'btn-warning' }}" href="{{ route('menu_items.show',$sub_item->id) }}">
+                                        <a class="btn btn-sm {{ $sub_item->status == 'Aktif' ? 'btn-success' : 'btn-warning' }}" href="{{ route('menu_items.show',$sub_item->id) }}" title="Status">
                                             <i class="fa {{ $sub_item->status == 'Aktif' ? 'fa-check-circle' : 'fa-times-circle' }}"></i>
-                                            {{ $sub_item->status }}
+                                            <!-- {{ $sub_item->status }} -->
                                         </a>
                                         @can('menuitem-edit')
                                         <!-- Edit menu submenu dengan ID sub_item -->
-                                        <a class="btn btn-primary btn-sm" href="{{ route('menu_items.edit', $sub_item->id) }}">
-                                            <i class="fa fa-edit"></i> Edit
+                                        <a class="btn btn-primary btn-sm" href="{{ route('menu_items.edit', $sub_item->id) }}" title="Edit Data">
+                                            <i class="fa fa-edit"></i> 
                                         </a>
                                         @endcan
                                         @can('menuitem-delete')
-                                        <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete({{ $sub_item->id }})">
-                                            <i class="fa fa-trash"></i> Delete
+                                        <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete({{ $sub_item->id }})" title="Hapus Data">
+                                            <i class="fa fa-trash"></i>
                                         </button>
                                         <form id="delete-form-{{ $sub_item->id }}" method="POST" action="{{ route('menu_items.destroy', $sub_item->id) }}" style="display:none;">
                                             @csrf

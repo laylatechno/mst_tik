@@ -70,8 +70,57 @@
                                 <!-- Icon Field -->
                                 <div class="form-item mb-3">
                                     <label for="icon">Ikon</label>
-                                    <input type="text" name="icon" class="form-control" id="icon" value="{{ $data_menu_item->icon }}" required>
+                                    <div class="input-group">
+                                        <input type="text" name="icon" class="form-control" id="icon" value="{{ $data_menu_item->icon }}" required>
+                                        <button type="button" class="btn btn-primary" id="openIconPicker" data-bs-toggle="modal" data-bs-target="#iconPickerModal">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                    </div>
                                 </div>
+
+                                <!-- Modal -->
+                                <div class="modal fade" id="iconPickerModal" tabindex="-1" aria-labelledby="iconPickerModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog modal-xl">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="iconPickerModalLabel">Pilih Ikon</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="embed-container">
+                                                    <iframe id="iconFrame" src="about:blank" width="100%" height="600px" frameborder="0"></iframe>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <style>
+                                    .embed-container {
+                                        position: relative;
+                                        width: 100%;
+                                        height: 600px;
+                                        overflow: hidden;
+                                    }
+
+                                    .embed-container iframe {
+                                        width: 100%;
+                                        height: 100%;
+                                        border: none;
+                                    }
+                                </style>
+
+                                <script>
+                                    document.addEventListener('DOMContentLoaded', function() {
+                                        const iconFrame = document.getElementById('iconFrame');
+
+                                        // Buka modal dengan halaman FontAwesome
+                                        document.getElementById('openIconPicker').addEventListener('click', function() {
+                                            iconFrame.src = 'https://fontawesome.com/v4/icons/';
+                                        });
+                                    });
+                                </script>
+
                                 <!-- Route Field -->
                                 <div class="form-item mb-3">
                                     <label for="route">Route</label>

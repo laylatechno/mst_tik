@@ -134,7 +134,7 @@
 
                         </div>
                         <div class="john-title">
-                            <h6 class="mb-0 fs-4 fw-semibold">{{ explode(' ', Auth::user()->name)[0] }}</h6>
+                            <h6 class="mb-0 fs-4 fw-semibold" title="{{ Auth::user()->name }}">{{ explode(' ', Auth::user()->name)[0] }}</h6>
 
                             <span class="fs-2">{{ Auth::user()->getRoleNames()->first() }}</span>
                         </div>

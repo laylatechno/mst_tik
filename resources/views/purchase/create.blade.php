@@ -15,6 +15,46 @@
         width: 0;
     }
 </style>
+
+
+<style>
+    .table-responsive {
+        width: 100%;
+        margin-bottom: 1rem;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .table-responsive::-webkit-scrollbar {
+        height: 8px;
+    }
+
+    .table-responsive::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 4px;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+
+    .table {
+        margin-bottom: 0;
+        white-space: nowrap;
+    }
+
+    @media screen and (max-width: 768px) {
+        .table-responsive {
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+    }
+</style>
 @endpush
 @section('content')
 <div class="container-fluid">
@@ -53,16 +93,16 @@
             <div class="card-body">
                 <ol>
                     <li>
-                        Tentukan status transaksi, jika akan melakukan Purchase Order atau pesanan pembelian maka pilih status transaksi Pesanan Pembelian, lalu jika sudah terjadi pembelian di supplier, maka sesuaikan/edit dengan item pembelian yang real. 
+                        Tentukan status transaksi, jika akan melakukan Purchase Order atau pesanan pembelian maka pilih status transaksi Pesanan Pembelian, lalu jika sudah terjadi pembelian di supplier, maka sesuaikan/edit dengan item pembelian yang real.
                     </li>
                     <li>
-                        Untuk transaksi pembelian yang <b>sudah diterima barang dan sudah diselesaikan pembayaran</b>, maka pilih status transaksi Lunas.  
+                        Untuk transaksi pembelian yang <b>sudah diterima barang dan sudah diselesaikan pembayaran</b>, maka pilih status transaksi Lunas.
                     </li>
                     <li>
-                        Sisa transaksi diluar Pesanan Pembelian dan Lunas silahkan pilih antara <b>Belum Lunas dan Pending</b>    
+                        Sisa transaksi diluar Pesanan Pembelian dan Lunas silahkan pilih antara <b>Belum Lunas dan Pending</b>
                     </li>
                     <li>
-                        Jika Status Transaksi <b>Lunas</b>, maka Supplier, Kas dan Jenis Pembayaran <b>Wajib Diisi</b> sehingga transaksi tersebut akan mengurangi Kas serta menambah Kuantiti Produk yang dipilih    
+                        Jika Status Transaksi <b>Lunas</b>, maka Supplier, Kas dan Jenis Pembayaran <b>Wajib Diisi</b> sehingga transaksi tersebut akan mengurangi Kas serta menambah Kuantiti Produk yang dipilih
                     </li>
                     <li>
                         Pilih <b>Supplier</b> dari dropdown yang tersedia untuk menentukan dari mana barang dibeli. Untuk Supplier yang sifatnya tentatif bisa memilih <b>Supplier Umum</b>
@@ -192,28 +232,32 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="table-responsive">
+                                <table id="scroll_hor"
+                                    class="table border table-striped table-bordered display nowrap"
+                                    style="width: 100%">
+                                    <thead>
+                                        <tr>
+                                            <th width="5%">No</th>
+                                            <th style="text-align: left;">Nama Produk</th>
+                                            <th>Harga Produk Terpilih</th>
+                                            <th width="15%">Qty Produk Terpilih</th>
+                                            <th>Total Harga Produk Terpilih</th>
+                                            <th width="5%">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
 
-                            <table id="scroll_hor"
-                                class="table border table-striped table-bordered display nowrap"
-                                style="width: 100%">
-                                <thead>
-                                    <tr>
-                                        <th width="5%">No</th>
-                                        <th style="text-align: left;">Produk</th>
-                                        <th>Harga</th>
-                                        <th width="15%">Qty</th>
-                                        <th>Total</th>
-                                        <th width="5%">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
+
 
                             <!-- Total Bayar dan Input Bayar -->
                             <div class="row mt-4">
                                 <div class="col-md-6 mb-3">
                                     <h5 style="color: red; font-size:30px;" class="badge badge-danger"><b>Total
-                                            Bayar: </b> Rp.<span id="total_cost">0</span></h5>
+                                            Bayar: </b> </h5>
+                                    <h5 style="color: red; font-size:30px;" class="badge badge-danger">Rp.<span id="total_cost">0</span> </h5>
                                     <input type="hidden" name="total_cost" id="" class="form-control total_cost">
                                     <hr>
                                     <h1 style="color: red" id="info_payment"></h1>
@@ -294,7 +338,7 @@
 
                             <div class="border-top">
                                 <div class="card-body">
-                                    <button type="submit" class="btn btn-success" style="color:white;" id="btn-save-purchase"><i
+                                    <button type="submit" class="btn btn-success my-3" style="color:white;" id="btn-save-purchase"><i
                                             class="fas fa-save"></i> Simpan</button>
                                     <a href="{{ route('purchases.index') }}" class="btn btn-danger" style="color:white;"><i
                                             class="fas fa-step-backward"></i> Kembali</a>
@@ -317,6 +361,8 @@
 <script src="{{ asset('template/back') }}/dist/libs/select2/dist/js/select2.full.min.js"></script>
 <script src="{{ asset('template/back') }}/dist/libs/select2/dist/js/select2.min.js"></script>
 <script src="{{ asset('template/back') }}/dist/js/forms/select2.init.js"></script>
+
+
 
 
 <script>

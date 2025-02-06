@@ -15,6 +15,46 @@
         width: 0;
     }
 </style>
+
+
+<style>
+    .table-responsive {
+        width: 100%;
+        margin-bottom: 1rem;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .table-responsive::-webkit-scrollbar {
+        height: 8px;
+    }
+
+    .table-responsive::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 4px;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+
+    .table {
+        margin-bottom: 0;
+        white-space: nowrap;
+    }
+
+    @media screen and (max-width: 768px) {
+        .table-responsive {
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+    }
+</style>
 @endpush
 @section('content')
 
@@ -53,16 +93,16 @@
             <div class="card-body">
                 <ol>
                     <li>
-                        Tentukan status transaksi, jika akan melakukan Purchase Order atau pesanan pembelian maka pilih status transaksi Pesanan Pembelian, lalu jika sudah terjadi pembelian di supplier, maka sesuaikan/edit dengan item pembelian yang real. 
+                        Tentukan status transaksi, jika akan melakukan Purchase Order atau pesanan pembelian maka pilih status transaksi Pesanan Pembelian, lalu jika sudah terjadi pembelian di supplier, maka sesuaikan/edit dengan item pembelian yang real.
                     </li>
                     <li>
-                        Untuk transaksi pembelian yang <b>sudah diterima barang dan sudah diselesaikan pembayaran</b>, maka pilih status transaksi Lunas.  
+                        Untuk transaksi pembelian yang <b>sudah diterima barang dan sudah diselesaikan pembayaran</b>, maka pilih status transaksi Lunas.
                     </li>
                     <li>
-                        Sisa transaksi diluar Pesanan Pembelian dan Lunas silahkan pilih antara <b>Belum Lunas dan Pending</b>    
+                        Sisa transaksi diluar Pesanan Pembelian dan Lunas silahkan pilih antara <b>Belum Lunas dan Pending</b>
                     </li>
                     <li>
-                        Jika Status Transaksi <b>Lunas</b>, maka Supplier, Kas dan Jenis Pembayaran <b>Wajib Diisi</b> sehingga transaksi tersebut akan mengurangi Kas serta menambah Kuantiti Produk yang dipilih    
+                        Jika Status Transaksi <b>Lunas</b>, maka Supplier, Kas dan Jenis Pembayaran <b>Wajib Diisi</b> sehingga transaksi tersebut akan mengurangi Kas serta menambah Kuantiti Produk yang dipilih
                     </li>
                     <li>
                         Pilih <b>Supplier</b> dari dropdown yang tersedia untuk menentukan dari mana barang dibeli. Untuk Supplier yang sifatnya tentatif bisa memilih <b>Supplier Umum</b>
@@ -197,46 +237,50 @@
                                 </div>
 
                                 {{-- Tabel Produk --}}
-                                <table class="table table-bordered" id="cart-table">
-                                    <thead>
-                                        <tr>
-                                            <th width="5%">No</th>
-                                            <th>Produk</th>
-                                            <th>Harga</th>
-                                            <th width="15%">Qty</th>
-                                            <th>Total</th>
-                                            <th>Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($purchase->purchaseItems as $index => $item)
-                                        <tr data-id="{{ $item->product_id }}">
-                                            <td>{{ $index + 1 }}</td>
-                                            <td>
-                                                <input type="hidden" name="product_id[]" value="{{ $item->product_id }}">
-                                                {{ $item->product->name }}
-                                            </td>
-                                            <td>
-                                                <input type="text" class="form-control purchase_price" name="purchase_price[]" value="{{ $item->purchase_price }}">
-                                            </td>
-                                            <td>
-                                                <input type="number" class="form-control quantity" name="quantity[]" value="{{ $item->quantity }}">
-                                            </td>
-                                            <td>
-                                                <input type="text" class="form-control total" name="total[]" value="{{ $item->purchase_price * $item->quantity }}" readonly>
-                                            </td>
-                                            <td>
-                                                <button type="button" class="btn btn-danger btn-sm btn-remove-product"><i class="fas fa-trash"></i></button>
-                                            </td>
-                                        </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered" id="cart-table">
+                                        <thead>
+                                            <tr>
+                                                <th width="5%">No</th>
+                                                <th>Nama Produk</th>
+                                                <th>Harga Produk Terpilih</th>
+                                                <th width="15%">Qty Produk Terpilih</th>
+                                                <th>Total Produk Terpilih</th>
+                                                <th>Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($purchase->purchaseItems as $index => $item)
+                                            <tr data-id="{{ $item->product_id }}">
+                                                <td>{{ $index + 1 }}</td>
+                                                <td>
+                                                    <input type="hidden" name="product_id[]" value="{{ $item->product_id }}">
+                                                    {{ $item->product->name }}
+                                                </td>
+                                                <td>
+                                                    <input type="text" class="form-control purchase_price" name="purchase_price[]" value="{{ $item->purchase_price }}">
+                                                </td>
+                                                <td>
+                                                    <input type="number" class="form-control quantity" name="quantity[]" value="{{ $item->quantity }}">
+                                                </td>
+                                                <td>
+                                                    <input type="text" class="form-control total" name="total[]" value="{{ $item->purchase_price * $item->quantity }}" readonly>
+                                                </td>
+                                                <td>
+                                                    <button type="button" class="btn btn-danger btn-sm btn-remove-product"><i class="fas fa-trash"></i></button>
+                                                </td>
+                                            </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
 
                                 <div class="row mt-4">
                                     <div class="col-md-6 mb-3">
                                         <h5 style="color: red; font-size:30px;" class="badge badge-danger"><b>Total
-                                                Bayar: </b> Rp.<span id="total_cost">{{ number_format(old('total_cost', $purchase->total_cost ?? 0), 0, ',', '.') }}</span></h5>
+                                                Bayar: </b> </h5>
+                                                <br>
+                                        <h5 style="color: red; font-size:30px;" class="badge badge-danger">Rp.<span id="total_cost">{{ number_format(old('total_cost', $purchase->total_cost ?? 0), 0, ',', '.') }}</span> </h5>
                                         <input type="hidden" name="total_cost" id="total_cost_input" class="form-control total_cost"
                                             value="{{ old('total_cost', $purchase->total_cost ?? 0) }}">
                                         <hr>
@@ -320,7 +364,7 @@
 
                                 <div class="border-top">
                                     <div class="card-body">
-                                        <button type="submit" class="btn btn-success" style="color:white;" id="btn-save-purchase">
+                                        <button type="submit" class="btn btn-success my-3" style="color:white;" id="btn-save-purchase">
                                             <i class="fas fa-save"></i> Simpan
                                         </button>
                                         <a href="{{ route('purchases.index') }}" class="btn btn-danger" style="color:white;">
