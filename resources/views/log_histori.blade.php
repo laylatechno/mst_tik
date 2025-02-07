@@ -57,6 +57,7 @@
                                 onclick="confirmDelete()">
                                 <i class="fa fa-trash"></i> Hapus Semua Data
                             </a>
+                            <a class="btn btn-success mb-3" href="{{ route('logs.show') }}"><i class="fa fa-plus"></i> Lihat Logs</a>
                             @endcan
                             <table id="scroll_hor"
                                 class="table border table-striped table-bordered display nowrap"

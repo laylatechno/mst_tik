@@ -6,14 +6,16 @@ use App\Models\LogHistori;
 
 
 use Illuminate\View\View;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Config;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
- 
-
-
-
+use Illuminate\Support\Facades\Session;
+use Symfony\Component\Process\Exception\ProcessFailedException;
+use Symfony\Component\Process\Process;
 
 class BackupController extends Controller
 {
@@ -25,9 +27,9 @@ class BackupController extends Controller
     function __construct()
     {
         $this->middleware('permission:backupdatabase-list|backupdatabase-create|backupdatabase-edit|backupdatabase-delete', ['only' => ['index', 'show']]);
-        $this->middleware('permission:backupdatabase-create', ['only' => ['create', 'store', 'manualBackup', 'autoBackup','restore']]);
+        $this->middleware('permission:backupdatabase-create', ['only' => ['create', 'store', 'manualBackup']]);
         $this->middleware('permission:backupdatabase-edit', ['only' => ['edit', 'update']]);
-        $this->middleware('permission:backupdatabase-delete', ['only' => ['destroy', 'restoreDatabase']]);
+        $this->middleware('permission:backupdatabase-delete', ['only' => ['destroy']]);
     }
 
 
@@ -60,72 +62,76 @@ class BackupController extends Controller
 
     public function manualBackup()
     {
-        // Path tempat menyimpan backup
-        $backupPath = public_path('backup/' . date('Y-m-d_H-i-s') . '_backup.sql');
+        try {
+            // Path tempat menyimpan backup
+            $fileName = date('Y-m-d_H-i-s') . '_backup.sql';
+            $backupPath = public_path('backup/' . $fileName);
 
-        // Gunakan full path ke mysqldump
-        $mysqldumpPath = "C:\\xampp\\mysql\\bin\\mysqldump.exe"; // Windows
-        // $mysqldumpPath = "/usr/bin/mysqldump"; // Linux/macOS
+            // Gunakan full path ke mysqldump
+            // $mysqldumpPath = "C:\\xampp\\mysql\\bin\\mysqldump.exe";
+            $mysqldumpPath = "D:\\laragon\\bin\\mysql\\mysql-8.0.30-winx64\\bin\\mysqldump.exe";
 
-        // Pastikan folder backup ada
-        if (!file_exists(public_path('backup'))) {
-            mkdir(public_path('backup'), 0777, true);
+            $host = Config::get('database.connections.mysql.host');
+            $database = Config::get('database.connections.mysql.database');
+            $username = Config::get('database.connections.mysql.username');
+            $password = Config::get('database.connections.mysql.password');
+
+            // Pastikan folder backup ada
+            if (!file_exists(public_path('backup'))) {
+                mkdir(public_path('backup'), 0777, true);
+            }
+
+            // Buat command dengan password jika ada
+            if (!empty($password)) {
+                $command = "\"{$mysqldumpPath}\" -h {$host} -u {$username} -p{$password} {$database} > \"{$backupPath}\"";
+            } else {
+                $command = "\"{$mysqldumpPath}\" -h {$host} -u {$username} {$database} > \"{$backupPath}\"";
+            }
+
+            exec($command, $output, $return_var);
+
+            if ($return_var !== 0) {
+                throw new Exception('Backup gagal!');
+            }
+
+            // Menyiapkan data untuk log
+            $loggedInUserId = Auth::id();
+            $backupInfo = [
+                'file_name' => $fileName,
+                'file_size' => File::size($backupPath),
+                'created_at' => now()->format('Y-m-d H:i:s')
+            ];
+
+            // Simpan log histori dengan aksi yang sederhana
+            $this->simpanLogHistori(
+                'Create',           // Aksi yang disederhanakan
+                'Backup Database',                  // Tabel asal
+                0,                          // ID entitas
+                $loggedInUserId,            // User yang melakukan backup
+                null,                       // Data lama
+                json_encode($backupInfo)    // Data baru
+            );
+
+            return response()->download($backupPath)->deleteFileAfterSend(true);
+        } catch (Exception $e) {
+            // Log error dengan aksi yang sederhana
+            $errorInfo = [
+                'error_message' => $e->getMessage(),
+                'attempted_at' => now()->format('Y-m-d H:i:s')
+            ];
+
+            $this->simpanLogHistori(
+                'Create',           // Aksi yang disederhanakan
+                'Backup Database',                  // Tabel asal
+                0,                          // ID entitas
+                Auth::id(),                 // User yang melakukan backup
+                null,                       // Data lama
+                json_encode($errorInfo)     // Data baru
+            );
+
+            return response()->json(['error' => $e->getMessage()], 500);
         }
-
-        // Jalankan perintah backup
-        $command = "\"{$mysqldumpPath}\" -h 127.0.0.1 -u root db_masterkit > \"{$backupPath}\"";
-        exec($command, $output, $return_var);
-
-        if ($return_var !== 0) {
-            return response()->json(['error' => 'Backup gagal!'], 500);
-        }
-
-        return response()->download($backupPath);
     }
-
-
-
-    public function restore(Request $request)
-    {
-        $request->validate([
-            'sql_file' => 'required|mimes:sql|max:2048',
-        ]);
-
-        // Upload file SQL
-        $file = $request->file('sql_file');
-        $filePath = $file->storeAs('backups', $file->getClientOriginalName());
-
-        // Proses restore
-        $this->restoreDatabase(storage_path('app/' . $filePath));
-
-        return redirect()->back()->with('success', 'Database has been restored successfully.');
-
-    }
-
-    private function restoreDatabase($filePath)
-    {
-        $databaseConfig = config('database.connections.mysql');
-    
-        // Tentukan perintah untuk restore database
-        $command = sprintf(
-            'mysql -u%s -p%s %s < %s',
-            $databaseConfig['username'],
-            $databaseConfig['password'],
-            $databaseConfig['database'],
-            $filePath
-        );
-    
-        // Debug: tampilkan perintah untuk memastikan benar
-        \Log::info('Restore command: ' . $command);
-    
-        // Jalankan perintah untuk restore database
-        exec($command, $output, $status);
-    
-        // Debug: tampilkan hasil perintah
-        \Log::info('Restore status: ' . $status);
-        \Log::info('Output: ' . implode("\n", $output));
-    }
-    
 
 
 

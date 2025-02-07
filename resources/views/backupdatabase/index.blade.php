@@ -39,20 +39,20 @@
 
 
                             <!-- Back Up Section -->
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <div class="card">
                                     <div class="card-header">Back Up Database</div>
 
 
                                     <div class="card-body">
-                                        <a href="{{ route('backup.manual') }}" class="btn btn-primary">Backup & Download</a>
+                                        <a href="{{ route('backup.manual') }}" class="btn btn-primary"><i class="fa fa-download"></i> Backup & Download</a>
 
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Restore Section -->
-                            <div class="col-md-6">
+                            <!-- <div class="col-md-6">
                                 <div class="card">
                                     <div class="card-header">Restore Database</div>
                                     @if (session('success'))
@@ -76,7 +76,7 @@
 
                                     </div>
                                 </div>
-                            </div>
+                            </div> -->
                         </div>
                     </div>
 

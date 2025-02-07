@@ -25,36 +25,58 @@
             </div>
         </div>
     </div>
+    
+
+
     <section class="datatables">
         <div class="row">
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <div class="table-responsive">
-                            <div class="container">
-                                <h2>Generate Routes</h2>
-                                @can('route-create')
-                                <!-- Tombol untuk generate routes -->
-                                <form action="{{ route('routes.generate') }}" method="GET">
-                                    <button type="submit" class="btn btn-primary">Generate Routes</button>
-                                </form>
-                                @endcan
-                                <!-- Menampilkan pesan sukses jika ada -->
-                                @if(session('success'))
-                                <div class="alert alert-success mt-3">
-                                    {{ session('success') }}
+
+
+                        <h2>Generate Routes</h2>
+
+                        <div class="row">
+
+ 
+
+                            <!-- Restore Section -->
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-header">Generate Routes</div>
+                                 
+
+                                    <div class="card-body">
+                                        @can('route-create')
+                                        <!-- Tombol untuk generate routes -->
+                                        <form action="{{ route('routes.generate') }}" method="GET">
+                                            <button type="submit" class="btn btn-primary">Generate Sekarang</button>
+                                        </form>
+                                        @endcan
+                                        <!-- Menampilkan pesan sukses jika ada -->
+                                        @if(session('success'))
+                                        <div class="alert alert-success mt-3">
+                                            {{ session('success') }}
+                                        </div>
+                                        @endif
+                                    </div>
                                 </div>
-                                @endif
                             </div>
                         </div>
                     </div>
+
+
                 </div>
             </div>
         </div>
     </section>
+
+
+
 </div>
 @endsection
 
 @push('script')
-  
+
 @endpush

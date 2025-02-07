@@ -141,6 +141,10 @@ Route::middleware([HtmlMinifier::class])->group(function () {
         Route::get('/generate-routes', [RouteController::class, 'generateRoutes'])->name('routes.generate');
         Route::resource('log_histori', LogHistoriController::class);
         Route::get('/log-histori/delete-all', [LogHistoriController::class, 'deleteAll'])->name('log-histori.delete-all');
+        Route::get('/logs', [LogHistoriController::class, 'show'])->name('logs.show');
+        Route::post('/logs/clear', [LogHistoriController::class, 'clear'])->name('logs.clear');
+
+
         Route::resource('roles', RolesController::class);
         Route::resource('users', UsersController::class);
         Route::resource('permissions', PermissionsController::class);
@@ -157,6 +161,6 @@ Route::middleware([HtmlMinifier::class])->group(function () {
         Route::resource('/backupdatabase', BackupController::class);
         Route::get('/backup/manual', [BackupController::class, 'manualBackup'])->name('backup.manual');
 
-        Route::post('/restore', [BackupController::class, 'restore'])->name('database.restore');
+
     });
 });
