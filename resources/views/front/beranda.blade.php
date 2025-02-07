@@ -62,8 +62,8 @@
             </div>
         </div>
     </div>
-    
-  
+
+
     <!-- Dark Mode -->
     <div class="container">
         <div class="dark-mode-wrapper bg-img p-4 p-lg-5">
@@ -78,35 +78,18 @@
     <div class="pb-3 pt-3">
         <div class="container">
             <div class="section-heading d-flex align-items-center justify-content-between dir-rtl">
-                <h6>Galeri</h6><a class="btn btn-sm btn-light" href="{{ asset('template/front') }}/#">
+                <h6>Galeri</h6><a class="btn btn-sm btn-light" href="/">
                     View all<i class="ms-1 ti ti-arrow-right"></i></a>
             </div>
             <!-- Collection Slide-->
             <div class="collection-slide owl-carousel">
+
                 <!-- Collection Card-->
-                <div class="card collection-card"><a href="{{ asset('template/front') }}/single-product.html"><img src="{{ asset('template/front') }}/img/product/17.jpg" alt=""></a>
-                    <div class="collection-title"><span>Women</span><span class="badge bg-danger">9</span></div>
+                @foreach ($data_galleries as $p)
+                <div class="card collection-card"><a href="/upload/galleries/{{ $p->image }}"><img src="/upload/galleries/{{ $p->image }}" alt=""></a>
+                    <div class="collection-title"><span>{{ $p->name }}</span> </div>
                 </div>
-                <!-- Collection Card-->
-                <div class="card collection-card"><a href="{{ asset('template/front') }}/single-product.html"><img src="{{ asset('template/front') }}/img/product/19.jpg" alt=""></a>
-                    <div class="collection-title"><span>Men</span><span class="badge bg-danger">29</span></div>
-                </div>
-                <!-- Collection Card-->
-                <div class="card collection-card"><a href="{{ asset('template/front') }}/single-product.html"><img src="{{ asset('template/front') }}/img/product/21.jpg" alt=""></a>
-                    <div class="collection-title"><span>Kids</span><span class="badge bg-danger">4</span></div>
-                </div>
-                <!-- Collection Card-->
-                <div class="card collection-card"><a href="{{ asset('template/front') }}/single-product.html"><img src="{{ asset('template/front') }}/img/product/22.jpg" alt=""></a>
-                    <div class="collection-title"><span>Gadget</span><span class="badge bg-danger">11</span></div>
-                </div>
-                <!-- Collection Card-->
-                <div class="card collection-card"><a href="{{ asset('template/front') }}/single-product.html"><img src="{{ asset('template/front') }}/img/product/23.jpg" alt=""></a>
-                    <div class="collection-title"><span>Foods</span><span class="badge bg-danger">2</span></div>
-                </div>
-                <!-- Collection Card-->
-                <div class="card collection-card"><a href="{{ asset('template/front') }}/single-product.html"><img src="{{ asset('template/front') }}/img/product/24.jpg" alt=""></a>
-                    <div class="collection-title"><span>Sports</span><span class="badge bg-danger">5</span></div>
-                </div>
+                @endforeach
             </div>
         </div>
     </div>
@@ -114,121 +97,41 @@
     <div class="top-products-area py-3">
         <div class="container">
             <div class="section-heading d-flex align-items-center justify-content-between dir-rtl">
-                <h6>Produk Kami</h6><a class="btn btn-sm btn-light" href="{{ asset('template/front') }}/shop-grid.html">View all<i class="ms-1 ti ti-arrow-right"></i></a>
+                <h6>Produk Kami</h6><a class="btn btn-sm btn-light" href="/l">View all<i class="ms-1 ti ti-arrow-right"></i></a>
             </div>
             <div class="row g-2">
+                @foreach ($data_products as $p)
                 <!-- Product Card -->
                 <div class="col-6 col-md-4">
                     <div class="card product-card">
                         <div class="card-body">
-                            <!-- Badge--><span class="badge rounded-pill badge-warning">Sale</span>
-                            <!-- Wishlist Button--><a class="wishlist-btn" href="{{ asset('template/front') }}/#"><i class="ti ti-heart"> </i></a>
-                            <!-- Thumbnail --><a class="product-thumbnail d-block" href="{{ asset('template/front') }}/single-product.html"><img class="mb-2" src="{{ asset('template/front') }}/img/product/11.png" alt="">
+                            <!-- Badge-->
+                             <!-- <span class="badge rounded-pill badge-warning">Sale</span> -->
+                            <!-- Wishlist Button-->
+                             <!-- <a class="wishlist-btn" href="{{ asset('template/front') }}/#"><i class="ti ti-heart"> </i></a> -->
+                            <!-- Thumbnail -->
+                             <a class="product-thumbnail d-block" href="{{ asset('template/front') }}/single-product.html"><img class="mb-2" src="/upload/products/{{ $p->image }}" alt="">
                                 <!-- Offer Countdown Timer: Please use event time this format: YYYY/MM/DD hh:mm:ss -->
-                                <ul class="offer-countdown-timer d-flex align-items-center shadow-sm" data-countdown="2024/12/31 23:59:59">
+                                <!-- <ul class="offer-countdown-timer d-flex align-items-center shadow-sm" data-countdown="2024/12/31 23:59:59">
                                     <li><span class="days">0</span>d</li>
                                     <li><span class="hours">0</span>h</li>
                                     <li><span class="minutes">0</span>m</li>
                                     <li><span class="seconds">0</span>s</li>
-                                </ul>
+                                </ul> -->
                             </a>
-                            <!-- Product Title --><a class="product-title" href="{{ asset('template/front') }}/single-product.html">Beach Cap</a>
+                            <!-- Product Title --><a class="product-title" href="{{ asset('template/front') }}/single-product.html">{{ $p->name }}</a>
                             <!-- Product Price -->
-                            <p class="sale-price">$13<span>$42</span></p>
+                            <p class="sale-price">Rp {{ number_format($p->cost_price, 0, ',', '.') }}</p>
+                            <!-- <p class="sale-price">$13<span>$42</span></p> -->
                             <!-- Rating -->
-                            <div class="product-rating"><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i></div>
-                            <!-- Add to Cart --><a class="btn btn-primary btn-sm" href="{{ asset('template/front') }}/#"><i class="ti ti-plus"></i></a>
+                            <!-- <div class="product-rating"><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i></div> -->
+                            <!-- Add to Cart --><a class="btn btn-primary btn-sm" href="/"><i class="ti ti-plus"></i></a>
                         </div>
                     </div>
                 </div>
-                <!-- Product Card -->
-                <div class="col-6 col-md-4">
-                    <div class="card product-card">
-                        <div class="card-body">
-                            <!-- Badge--><span class="badge rounded-pill badge-success">New</span>
-                            <!-- Wishlist Button--><a class="wishlist-btn" href="{{ asset('template/front') }}/#"><i class="ti ti-heart"> </i></a>
-                            <!-- Thumbnail --><a class="product-thumbnail d-block" href="{{ asset('template/front') }}/single-product.html"><img class="mb-2" src="{{ asset('template/front') }}/img/product/5.png" alt=""></a>
-                            <!-- Product Title --><a class="product-title" href="{{ asset('template/front') }}/single-product.html">Wooden Sofa</a>
-                            <!-- Product Price -->
-                            <p class="sale-price">$74<span>$99</span></p>
-                            <!-- Rating -->
-                            <div class="product-rating"><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i></div>
-                            <!-- Add to Cart --><a class="btn btn-primary btn-sm" href="{{ asset('template/front') }}/#"><i class="ti ti-plus"></i></a>
-                        </div>
-                    </div>
-                </div>
-                <!-- Product Card -->
-                <div class="col-6 col-md-4">
-                    <div class="card product-card">
-                        <div class="card-body">
-                            <!-- Badge--><span class="badge rounded-pill badge-success">Sale</span>
-                            <!-- Wishlist Button--><a class="wishlist-btn" href="{{ asset('template/front') }}/#"><i class="ti ti-heart"> </i></a>
-                            <!-- Thumbnail --><a class="product-thumbnail d-block" href="{{ asset('template/front') }}/single-product.html"><img class="mb-2" src="{{ asset('template/front') }}/img/product/6.png" alt=""></a>
-                            <!-- Product Title --><a class="product-title" href="{{ asset('template/front') }}/single-product.html">Roof Lamp</a>
-                            <!-- Product Price -->
-                            <p class="sale-price">$99<span>$113</span></p>
-                            <!-- Rating -->
-                            <div class="product-rating"><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i></div>
-                            <!-- Add to Cart --><a class="btn btn-primary btn-sm" href="{{ asset('template/front') }}/#"><i class="ti ti-plus"></i></a>
-                        </div>
-                    </div>
-                </div>
-                <!-- Product Card -->
-                <div class="col-6 col-md-4">
-                    <div class="card product-card">
-                        <div class="card-body">
-                            <!-- Badge--><span class="badge rounded-pill badge-danger">-18%</span>
-                            <!-- Wishlist Button--><a class="wishlist-btn" href="{{ asset('template/front') }}/#"><i class="ti ti-heart"> </i></a>
-                            <!-- Thumbnail --><a class="product-thumbnail d-block" href="{{ asset('template/front') }}/single-product.html"><img class="mb-2" src="{{ asset('template/front') }}/img/product/9.png" alt="">
-                                <!-- Offer Countdown Timer: Please use event time this format: YYYY/MM/DD hh:mm:ss -->
-                                <ul class="offer-countdown-timer d-flex align-items-center shadow-sm" data-countdown="2024/12/23 00:21:29">
-                                    <li><span class="days">0</span>d</li>
-                                    <li><span class="hours">0</span>h</li>
-                                    <li><span class="minutes">0</span>m</li>
-                                    <li><span class="seconds">0</span>s</li>
-                                </ul>
-                            </a>
-                            <!-- Product Title --><a class="product-title" href="{{ asset('template/front') }}/single-product.html">Sneaker Shoes</a>
-                            <!-- Product Price -->
-                            <p class="sale-price">$87<span>$92</span></p>
-                            <!-- Rating -->
-                            <div class="product-rating"><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i></div>
-                            <!-- Add to Cart --><a class="btn btn-primary btn-sm" href="{{ asset('template/front') }}/#"><i class="ti ti-plus"></i></a>
-                        </div>
-                    </div>
-                </div>
-                <!-- Product Card -->
-                <div class="col-6 col-md-4">
-                    <div class="card product-card">
-                        <div class="card-body">
-                            <!-- Badge--><span class="badge rounded-pill badge-danger">-11%</span>
-                            <!-- Wishlist Button--><a class="wishlist-btn" href="{{ asset('template/front') }}/#"><i class="ti ti-heart"></i></a>
-                            <!-- Thumbnail --><a class="product-thumbnail d-block" href="{{ asset('template/front') }}/single-product.html"><img class="mb-2" src="{{ asset('template/front') }}/img/product/8.png" alt=""></a>
-                            <!-- Product Title --><a class="product-title" href="{{ asset('template/front') }}/single-product.html">Wooden Chair</a>
-                            <!-- Product Price -->
-                            <p class="sale-price">$21<span>$25</span></p>
-                            <!-- Rating -->
-                            <div class="product-rating"><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i></div>
-                            <!-- Add to Cart --><a class="btn btn-primary btn-sm" href="{{ asset('template/front') }}/#"><i class="ti ti-plus"></i></a>
-                        </div>
-                    </div>
-                </div>
-                <!-- Product Card -->
-                <div class="col-6 col-md-4">
-                    <div class="card product-card">
-                        <div class="card-body">
-                            <!-- Badge--><span class="badge rounded-pill badge-warning">On Sale</span>
-                            <!-- Wishlist Button--><a class="wishlist-btn" href="{{ asset('template/front') }}/#"><i class="ti ti-heart"></i></a>
-                            <!-- Thumbnail --><a class="product-thumbnail d-block" href="{{ asset('template/front') }}/single-product.html"><img class="mb-2" src="{{ asset('template/front') }}/img/product/4.png" alt=""></a>
-                            <!-- Product Title --><a class="product-title" href="{{ asset('template/front') }}/single-product.html">Polo Shirts</a>
-                            <!-- Product Price -->
-                            <p class="sale-price">$38<span>$41</span></p>
-                            <!-- Rating -->
-                            <div class="product-rating"><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i></div>
-                            <!-- Add to Cart --><a class="btn btn-primary btn-sm" href="{{ asset('template/front') }}/#"><i class="ti ti-plus"></i></a>
-                        </div>
-                    </div>
-                </div>
+                @endforeach
+
+
             </div>
         </div>
     </div>
@@ -443,7 +346,7 @@
             </div>
         </div>
     </div>
- 
+
 </div>
 
 @endsection

@@ -267,6 +267,41 @@
                                         <label for="description">Deskripsi</label>
                                         <textarea class="form-control" name="description" id="description">{{ old('description', $data_product->description) }}</textarea>
                                     </div>
+
+
+                                    <div class="form-group col-6 mb-3">
+                                        <label title="Status Aktif berpengaruh terhadap tampilnya produk pada Penjualan/menu Kasir/POS">
+                                            Status Aktif <i class="fa fa-info-circle"></i>
+                                        </label>
+                                        <div>
+                                            <label class="me-3">
+                                                <input type="radio" name="status_active" value="active" required
+                                                    {{ old('status_active', $product->status_active ?? 'nonactive') == 'active' ? 'checked' : '' }}> Active
+                                            </label>
+                                            <label>
+                                                <input type="radio" name="status_active" value="nonactive" required
+                                                    {{ old('status_active', $product->status_active ?? 'nonactive') == 'nonactive' ? 'checked' : '' }}> Non Active
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group col-6 mb-3">
+                                        <label title="Status Display berpengaruh terhadap tampilnya produk pada Halaman Depan yang diakses oleh pengguna umum">
+                                            Status Display <i class="fa fa-info-circle"></i>
+                                        </label>
+                                        <div>
+                                            <label class="me-3">
+                                                <input type="radio" name="status_display" value="active" required
+                                                    {{ old('status_display', $product->status_display ?? 'nonactive') == 'active' ? 'checked' : '' }}> Active
+                                            </label>
+                                            <label>
+                                                <input type="radio" name="status_display" value="nonactive" required
+                                                    {{ old('status_display', $product->status_display ?? 'nonactive') == 'nonactive' ? 'checked' : '' }}> Non Active
+                                            </label>
+                                        </div>
+                                    </div>
+
+
                                     <div class="form-group mb-3">
                                         <label for="image">Gambar</label>
                                         <input type="file" name="image" class="form-control" id="image" onchange="previewImage()">

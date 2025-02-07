@@ -129,7 +129,7 @@
                             <div class="col-md-12 mb-3">
                                 <div class="form-item">
                                     <strong>Deskripsi:</strong>
-                                    <p>{{ $data_product->description ?? 'Tidak ada deskripsi tersedia' }}</p>
+                                    <p>{!! $data_product->description ?? 'Tidak ada deskripsi tersedia' !!}</p>
                                 </div>
                             </div>
 

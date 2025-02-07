@@ -66,7 +66,7 @@ class ProductController extends Controller
 
         // Optimasi query produk dengan eager loading
         $data_products = Product::with(['category:id,name', 'unit:id,name']) // Load relasi hanya kolom yang dibutuhkan
-            ->select('id', 'name', 'code_product', 'barcode', 'description', 'purchase_price', 'cost_price', 'stock', 'image', 'category_id', 'unit_id') // Pilih kolom spesifik
+            ->select('id', 'name', 'code_product', 'barcode', 'description', 'purchase_price', 'cost_price', 'stock', 'image', 'category_id', 'unit_id','status_active','status_display') // Pilih kolom spesifik
             ->get();
 
         // Kirim data ke view

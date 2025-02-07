@@ -104,7 +104,7 @@
                                 }
                             </script>
 
-                   
+
 
                             <script>
                                 function deleteSelected() {
@@ -170,7 +170,7 @@
                                         <th>Nama</th>
                                         <th>Kode Produk</th>
                                         <th>Barcode</th>
-                                        <th>Deskripsi</th>
+                                        <th>Status Aktif</th>
                                         <th>Harga Beli</th>
                                         <th>Harga Jual</th>
                                         <th>Stok</th>
@@ -191,8 +191,13 @@
                                             {!! !empty($p->barcode) ? \App\Helpers\BarcodeHelper::generateBarcode($p->barcode) : '<span>No Data</span>' !!}
                                         </td>
 
+                                        <td>
+                                            <span class="badge {{ $p->status_active == 'active' ? 'bg-success' : 'bg-danger' }}">
+                                                {{ ucfirst($p->status_active) }}
+                                            </span>
+                                        </td>
 
-                                        <td>{!! substr($p->description, 0, 20) ?: 'No Data' !!}</td>
+
 
                                         <td>Rp {{ number_format($p->purchase_price, 0, ',', '.') }}</td>
                                         <td>Rp {{ number_format($p->cost_price, 0, ',', '.') }}</td>

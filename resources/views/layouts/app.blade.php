@@ -16,7 +16,7 @@
 
     <!-- Core Css -->
     <link id="themeColors" rel="stylesheet" href="{{ asset('template/back') }}/dist/css/styles.css" />
-    
+
 
     <title>{{ $title }}</title>
     <!-- Owl Carousel  -->
@@ -123,7 +123,7 @@
                         @endforeach
                     </ul>
                 </nav>
- 
+
 
                 <div class="fixed-profile p-3 mx-4 mb-2 bg-secondary-subtle rounded mt-3">
                     <div class="hstack gap-3">
@@ -213,12 +213,18 @@
                                     <!-- ------------------------------- -->
                                     <!-- start language Dropdown -->
                                     <!-- ------------------------------- -->
+                                    <li class="nav-item nav-icon-hover-bg rounded-circle" title="Halaman Depan">
+                                        <a class="nav-link" href="/" target="_blank">
+                                            <i class="fas fa-globe"></i>
+                                        </a>
+
+                                    </li>
                                     @can('purchase-create')
                                     <li class="nav-item nav-icon-hover-bg rounded-circle" title="Menu Penjualan">
                                         <a class="nav-link" href="{{ route('orders.create') }}">
                                             <i class="fas fa-cart-plus"></i>
                                         </a>
-                                       
+
                                     </li>
                                     @endcan
 
@@ -360,9 +366,9 @@
                     <!-- End Vertical Layout Header -->
                     <!-- ---------------------------------- -->
 
-         
 
- 
+
+
                 </div>
 
 
@@ -546,10 +552,18 @@
                 Layout: "vertical", // vertical | horizontal
                 Direction: "ltr", // ltr | rtl
                 SidebarType: "{{ request()->is('orders/create') || request()->is('orders/*/edit') ? 'mini-sidebar' : $profil->sidebar_type }}", // full | mini-sidebar
-                BoxedLayout: {{$profil->boxed_layout}}, // true | false
+                BoxedLayout: {
+                    {
+                        $profil - > boxed_layout
+                    }
+                }, // true | false
                 Theme: "{{ $profil->theme }}", // light | dark
                 ColorTheme: "{{ $profil->theme_color }}", // Blue_Theme | Aqua_Theme | Purple_Theme | Green_Theme | Cyan_Theme | Orange_Theme
-                cardBorder: {{$profil->card_border}}, // true | false
+                cardBorder: {
+                    {
+                        $profil - > card_border
+                    }
+                }, // true | false
             }
 
             function handleColorTheme(e) {
@@ -557,7 +571,7 @@
             }
         </script>
 
-      
+
 
         <!--  Search Bar -->
         <div class="modal fade" id="exampleModal" tabindex="-1" aria-hidden="true">
@@ -592,14 +606,14 @@
 
 
 
- 
+
     <!-- Import Js Files -->
     <script src="{{ asset('template/back') }}/dist/libs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ asset('template/back') }}/dist/js/vendor.min.js"></script>
     <script src="{{ asset('template/back') }}/dist/js/theme/app.min.js"></script>
     <script src="{{ asset('template/back') }}/dist/js/theme/theme.js"></script>
-    
-    
+
+
     <!-- <script src="{{ asset('template/back') }}/dist/libs/simplebar/dist/simplebar.min.js"></script> -->
     <!-- <script src="{{ asset('template/back') }}/dist/js/theme/app.init.js"></script> -->
 
@@ -616,58 +630,58 @@
 
 
     <script>
-                $(document).ready(function() {
-                    $('#updateProfilForm').on('submit', function(e) {
-                        e.preventDefault();
-                        let formData = new FormData(this);
-                        let id = '{{ $profil->id }}';
+        $(document).ready(function() {
+            $('#updateProfilForm').on('submit', function(e) {
+                e.preventDefault();
+                let formData = new FormData(this);
+                let id = '{{ $profil->id }}';
 
-                        $.ajax({
-                            url: '/profil/update_setting/' + id,
-                            type: 'POST', // Ubah sesuai metode yang sesuai
-                            data: formData,
-                            contentType: false,
-                            processData: false,
-                            headers: {
-                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                            },
-                            success: function(response) {
-                                Swal.fire({
-                                    title: 'Success!',
-                                    text: response.message,
-                                    icon: 'success',
-                                    confirmButtonText: 'OK'
-                                }).then((result) => {
-                                    if (result.isConfirmed) {
-                                        window.location.reload();
-                                    }
-                                });
-                            },
-                            error: function(xhr) {
-                                let errors = xhr.responseJSON.errors;
-                                let errorMessages = '';
-
-                                $.each(errors, function(field, messages) {
-                                    errorMessages += messages.join(' ') + '\n';
-                                });
-
-                                Swal.fire({
-                                    title: 'Error!',
-                                    text: errorMessages || 'Gagal memperbarui profil.',
-                                    icon: 'error',
-                                    confirmButtonText: 'OK'
-                                });
-                            },
-                            complete: function() {
-                                $('#updateButton').prop('disabled', false).text('Update');
+                $.ajax({
+                    url: '/profil/update_setting/' + id,
+                    type: 'POST', // Ubah sesuai metode yang sesuai
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        Swal.fire({
+                            title: 'Success!',
+                            text: response.message,
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.reload();
                             }
                         });
+                    },
+                    error: function(xhr) {
+                        let errors = xhr.responseJSON.errors;
+                        let errorMessages = '';
 
-                    });
+                        $.each(errors, function(field, messages) {
+                            errorMessages += messages.join(' ') + '\n';
+                        });
+
+                        Swal.fire({
+                            title: 'Error!',
+                            text: errorMessages || 'Gagal memperbarui profil.',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    },
+                    complete: function() {
+                        $('#updateButton').prop('disabled', false).text('Update');
+                    }
                 });
-            </script>
+
+            });
+        });
+    </script>
     @stack('script')
-    
+
 </body>
 
 </html>

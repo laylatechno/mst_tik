@@ -92,7 +92,10 @@ class OrderController extends Controller
 
         // Mengambil data yang diperlukan
         $data_users = User::all();
-        $data_products = Product::where('stock', '>', 0)->get();
+        $data_products = Product::where('stock', '>', 0)
+            ->where('status_active', 'active')
+            ->get();
+
         $data_customers = Customer::all();
         $data_orders = Order::all();
         $data_cashes = Cash::all();
@@ -272,7 +275,9 @@ class OrderController extends Controller
 
         // Ambil data lainnya yang dibutuhkan untuk dropdown
         $data_customers = Customer::all();
-        $data_products = Product::where('stock', '>', 0)->get();
+        $data_products = Product::where('stock', '>', 0)
+            ->where('status_active', 'active')
+            ->get();
         $data_cashes = Cash::all();
 
         // Kirim data ke view
