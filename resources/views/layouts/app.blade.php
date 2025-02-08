@@ -552,18 +552,10 @@
                 Layout: "vertical", // vertical | horizontal
                 Direction: "ltr", // ltr | rtl
                 SidebarType: "{{ request()->is('orders/create') || request()->is('orders/*/edit') ? 'mini-sidebar' : $profil->sidebar_type }}", // full | mini-sidebar
-                BoxedLayout: {
-                    {
-                        $profil - > boxed_layout
-                    }
-                }, // true | false
+                BoxedLayout: {{ $profil -> boxed_layout}}, // true | false
                 Theme: "{{ $profil->theme }}", // light | dark
                 ColorTheme: "{{ $profil->theme_color }}", // Blue_Theme | Aqua_Theme | Purple_Theme | Green_Theme | Cyan_Theme | Orange_Theme
-                cardBorder: {
-                    {
-                        $profil - > card_border
-                    }
-                }, // true | false
+                cardBorder: {{ $profil -> card_border}}, // true | false
             }
 
             function handleColorTheme(e) {
