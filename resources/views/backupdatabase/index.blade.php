@@ -33,7 +33,7 @@
                     <div class="card-body">
 
 
-                        <h2>Backup & Restore Database</h2>
+                        <h2>Backup Database</h2>
 
                         <div class="row">
 
@@ -41,9 +41,7 @@
                             <!-- Back Up Section -->
                             <div class="col-md-12">
                                 <div class="card">
-                                    <div class="card-header">Back Up Database</div>
-
-
+                                    <div class="card-header">Silahkan Back Up Database Anda</div>
                                     <div class="card-body">
                                         <a href="{{ route('backup.manual') }}" class="btn btn-primary"><i class="fa fa-download"></i> Backup & Download</a>
 
@@ -52,31 +50,7 @@
                             </div>
 
                             <!-- Restore Section -->
-                            <!-- <div class="col-md-6">
-                                <div class="card">
-                                    <div class="card-header">Restore Database</div>
-                                    @if (session('success'))
-                                    <div class="alert alert-success">
-                                        {{ session('success') }}
-                                    </div>
-                                    @endif
-
-                                    @if (session('error'))
-                                    <div class="alert alert-danger">
-                                        {{ session('error') }}
-                                    </div>
-                                    @endif
-
-                                    <div class="card-body">
-                                        <form action="{{ route('database.restore') }}" method="POST" enctype="multipart/form-data">
-                                            @csrf
-                                            <input type="file" name="sql_file" id="sql_file" class="form-control mb-3" required>
-                                            <button type="submit" class="btn btn-success">Restore Database</button>
-                                        </form>
-
-                                    </div>
-                                </div>
-                            </div> -->
+                            
                         </div>
                     </div>
 

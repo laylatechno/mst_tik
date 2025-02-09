@@ -31,16 +31,19 @@ class BerandaController extends Controller
         $subtitle = "Menu Beranda";
 
 
-         // Menggunakan eager loading dan memilih kolom yang diperlukan
-         $data_sliders = Slider::select('id', 'name', 'image', 'description')->get();
-         $data_services = Service::select('id', 'name', 'image', 'description')->get();
-         $data_galleries = Gallery::select('id', 'name', 'image')->get();
-         $data_products = Product::select('id', 'name', 'image','cost_price')->get();
+        // Menggunakan eager loading dan memilih kolom yang diperlukan
+        $data_sliders = Slider::select('id', 'name', 'image', 'description')->get();
+        $data_services = Service::select('id', 'name', 'image', 'description')->get();
+        $data_galleries = Gallery::select('id', 'name', 'image')->get();
+        $data_products = Product::with('category:id,name')
+            ->select('id', 'name', 'image', 'cost_price', 'price_before_discount', 'description', 'category_id','note')
+            ->get();
+
         //  $data_travel_routes = TravelRoute::select('id', 'image', 'price', 'start', 'end')->get();
         //  $data_blogs = Blog::with(['blog_category:id,name'])->select('id', 'title', 'description', 'slug', 'posting_date', 'writer', 'image', 'blog_category_id')->get();
- 
- 
-      
+
+
+
         return view('front.beranda', compact(
             'data_sliders',
             'data_services',
@@ -50,7 +53,7 @@ class BerandaController extends Controller
             'subtitle',
         ));
     }
-    
+
 
 
     public function katalog()

@@ -67,7 +67,7 @@
     <!-- Dark Mode -->
     <div class="container">
         <div class="dark-mode-wrapper bg-img p-4 p-lg-5">
-            <p class="text-white">You can change your display to a dark background using a dark mode.</p>
+            <p class="text-white">Anda bisa merubah background menjadi mode gelap.</p>
             <div class="form-check form-switch mb-0">
                 <label class="form-check-label text-white h6 mb-0" for="darkSwitch">Mode Gelap</label>
                 <input class="form-check-input" id="darkSwitch" type="checkbox" role="switch">
@@ -79,7 +79,7 @@
         <div class="container">
             <div class="section-heading d-flex align-items-center justify-content-between dir-rtl">
                 <h6>Galeri</h6><a class="btn btn-sm btn-light" href="/">
-                    View all<i class="ms-1 ti ti-arrow-right"></i></a>
+                    Lihat Semua<i class="ms-1 ti ti-arrow-right"></i></a>
             </div>
             <!-- Collection Slide-->
             <div class="collection-slide owl-carousel">
@@ -97,7 +97,7 @@
     <div class="top-products-area py-3">
         <div class="container">
             <div class="section-heading d-flex align-items-center justify-content-between dir-rtl">
-                <h6>Produk Kami</h6><a class="btn btn-sm btn-light" href="/l">View all<i class="ms-1 ti ti-arrow-right"></i></a>
+                <h6>Produk Kami</h6><a class="btn btn-sm btn-light" href="/l">Lihat Semua<i class="ms-1 ti ti-arrow-right"></i></a>
             </div>
             <div class="row g-2">
                 @foreach ($data_products as $p)
@@ -106,11 +106,11 @@
                     <div class="card product-card">
                         <div class="card-body">
                             <!-- Badge-->
-                             <!-- <span class="badge rounded-pill badge-warning">Sale</span> -->
+                            <!-- <span class="badge rounded-pill badge-warning">{{ $p->category->name ?? 'Tanpa Kategori' }}</span> -->
                             <!-- Wishlist Button-->
-                             <!-- <a class="wishlist-btn" href="{{ asset('template/front') }}/#"><i class="ti ti-heart"> </i></a> -->
+                            <!-- <a class="wishlist-btn" href="{{ asset('template/front') }}/#"><i class="ti ti-heart"> </i></a> -->
                             <!-- Thumbnail -->
-                             <a class="product-thumbnail d-block" href="{{ asset('template/front') }}/single-product.html"><img class="mb-2" src="/upload/products/{{ $p->image }}" alt="">
+                            <a class="product-thumbnail d-block" href="/"><img class="mb-2" src="/upload/products/{{ $p->image }}" alt="">
                                 <!-- Offer Countdown Timer: Please use event time this format: YYYY/MM/DD hh:mm:ss -->
                                 <!-- <ul class="offer-countdown-timer d-flex align-items-center shadow-sm" data-countdown="2024/12/31 23:59:59">
                                     <li><span class="days">0</span>d</li>
@@ -119,13 +119,38 @@
                                     <li><span class="seconds">0</span>s</li>
                                 </ul> -->
                             </a>
-                            <!-- Product Title --><a class="product-title" href="{{ asset('template/front') }}/single-product.html">{{ $p->name }}</a>
-                            <!-- Product Price -->
-                            <p class="sale-price">Rp {{ number_format($p->cost_price, 0, ',', '.') }}</p>
+                            <a class="product-title" href="/">{{ $p->name }}</a>
+
+
+
+
+
                             <!-- <p class="sale-price">$13<span>$42</span></p> -->
+
+                            <p class="sale-price-new">
+                                Rp {{ number_format($p->cost_price, 0, ',', '.') }}
+                                @if($p->price_before_discount && $p->price_before_discount > 0)
+                                <br> <span class="old-price">Rp {{ number_format($p->price_before_discount, 0, ',', '.') }}</span>
+                                @endif
+                            </p>
+
+                            <p class="custom-badge">
+                                {{ $p->category->name ?? 'Tanpa Kategori' }}
+                            </p>
+
+                            <span class="product-note">
+                                {{ $p->note }}
+                            </span>
+                            <br>
+
+
+
+
                             <!-- Rating -->
                             <!-- <div class="product-rating"><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i></div> -->
-                            <!-- Add to Cart --><a class="btn btn-primary btn-sm" href="/"><i class="ti ti-plus"></i></a>
+                            <!-- Add to Cart -->
+                            <br>
+                            <a class="btn btn-primary btn-sm" href="/"><i class="ti ti-shopping-cart"></i></a>
                         </div>
                     </div>
                 </div>
@@ -140,17 +165,17 @@
         <div class="cta-text dir-rtl p-4 p-lg-5">
             <div class="row">
                 <div class="col-9">
-                    <h5 class="text-white">20% discount on women's care items.</h5><a class="btn btn-primary" href="{{ asset('template/front') }}/#">Grab this offer</a>
+                    <h5 class="text-white">Bisnis Anda Butuh Aplikasi/Website?</h5><a class="btn btn-primary" href=""><i class="ti ti-bell"></i> Hubungi Kami</a>
                 </div>
-            </div><img src="{{ asset('template/front') }}/img/bg-img/make-up.png" alt="">
+            </div><img src="{{ asset('template/front') }}/img/website.png" alt="">
         </div>
     </div>
     <!-- Weekly Best Sellers-->
-    <div class="weekly-best-seller-area py-3">
+    <div class="weekly-best-seller-area pt-3">
         <div class="container">
             <div class="section-heading d-flex align-items-center justify-content-between dir-rtl">
-                <h6>Weekly Best Sellers</h6><a class="btn btn-sm btn-light" href="{{ asset('template/front') }}/shop-list.html">
-                    View all<i class="ms-1 ti ti-arrow-right"></i></a>
+                <h6>Informasi Terbaru</h6><a class="btn btn-sm btn-light" href="{{ asset('template/front') }}/shop-list.html">
+                    Lihat Semua<i class="ms-1 ti ti-arrow-right"></i></a>
             </div>
             <div class="row g-2">
                 <!-- Weekly Product Card -->
@@ -228,124 +253,67 @@
             </div>
         </div>
     </div>
+
+
+    <div class="container pb-4">
+        <div class="section-heading pt-3 rtl-text-right">
+            <h6>Baca Berdasarkan Kategori</h6>
+        </div>
+        <div class="row g-2 rtl-flex-d-row-r">
+            <!-- Single Catagory-->
+            <div class="col-4">
+                <div class="card blog-catagory-card">
+                    <div class="card-body"><a href="#"> <span class="d-block">Review</span></a></div>
+                </div>
+            </div>
+            <!-- Single Catagory-->
+            <div class="col-4">
+                <div class="card blog-catagory-card">
+                    <div class="card-body"><a href="#"> <span class="d-block">Shopping</span></a></div>
+                </div>
+            </div>
+            <!-- Single Catagory-->
+            <div class="col-4">
+                <div class="card blog-catagory-card">
+                    <div class="card-body"><a href="#"> <span class="d-block">Tips</span></a></div>
+                </div>
+            </div>
+            <!-- Single Catagory-->
+            <div class="col-4">
+                <div class="card blog-catagory-card">
+                    <div class="card-body"><a href="#"> <span class="d-block">Offer</span></a></div>
+                </div>
+            </div>
+            <!-- Single Catagory-->
+            <div class="col-4">
+                <div class="card blog-catagory-card">
+                    <div class="card-body"><a href="#"> <span class="d-block">Trends</span></a></div>
+                </div>
+            </div>
+            <!-- Single Catagory-->
+            <div class="col-4">
+                <div class="card blog-catagory-card">
+                    <div class="card-body"><a href="#"> <span class="d-block">News</span></a></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
     <!-- Discount Coupon Card-->
-    <div class="container">
+    <div class="container pb-3">
         <div class="discount-coupon-card p-4 p-lg-5 dir-rtl">
             <div class="d-flex align-items-center">
-                <div class="discountIcon"><img class="w-100" src="{{ asset('template/front') }}/img/core-img/discount.png" alt=""></div>
+                <div class="discountIcon"><img class="w-100" src="{{ asset('template/front') }}/img/website.png" alt=""></div>
                 <div class="text-content">
-                    <h5 class="text-white mb-2">Get 20% discount!</h5>
-                    <p class="text-white mb-0">To get discount, enter the<span class="px-1 fw-bold">GET20</span>code on the checkout page.</p>
+                    <h5 class="text-white mb-2">Hadiah Terbaik Untuk Buah Hati!</h5>
+                    <p class="text-white mb-0">Media Belajar<span class="px-1 fw-bold">Anak</span>Agar Cerdas & Bahagia.</p>
                 </div>
             </div>
         </div>
     </div>
-    <!-- Featured Products Wrapper-->
-    <div class="featured-products-wrapper py-3">
-        <div class="container">
-            <div class="section-heading d-flex align-items-center justify-content-between dir-rtl">
-                <h6>Featured Products</h6><a class="btn btn-sm btn-light" href="{{ asset('template/front') }}/featured-products.html">View all<i class="ms-1 ti ti-arrow-right"></i></a>
-            </div>
-            <div class="row g-2">
-                <!-- Featured Product Card-->
-                <div class="col-4">
-                    <div class="card featured-product-card">
-                        <div class="card-body">
-                            <!-- Badge--><span class="badge badge-warning custom-badge"><i class="ti ti-star-filled"></i></span>
-                            <div class="product-thumbnail-side">
-                                <!-- Thumbnail --><a class="product-thumbnail d-block" href="{{ asset('template/front') }}/single-product.html"><img src="{{ asset('template/front') }}/img/product/14.png" alt=""></a>
-                            </div>
-                            <div class="product-description">
-                                <!-- Product Title --><a class="product-title d-block" href="{{ asset('template/front') }}/single-product.html">Blue Skateboard</a>
-                                <!-- Price -->
-                                <p class="sale-price">$39<span>$89</span></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- Featured Product Card-->
-                <div class="col-4">
-                    <div class="card featured-product-card">
-                        <div class="card-body">
-                            <!-- Badge--><span class="badge badge-warning custom-badge"><i class="ti ti-star-filled"></i></span>
-                            <div class="product-thumbnail-side">
-                                <!-- Thumbnail --><a class="product-thumbnail d-block" href="{{ asset('template/front') }}/single-product.html"><img src="{{ asset('template/front') }}/img/product/15.png" alt=""></a>
-                            </div>
-                            <div class="product-description">
-                                <!-- Product Title --><a class="product-title d-block" href="{{ asset('template/front') }}/single-product.html">Travel Bag</a>
-                                <!-- Price -->
-                                <p class="sale-price">$14.7<span>$21</span></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- Featured Product Card-->
-                <div class="col-4">
-                    <div class="card featured-product-card">
-                        <div class="card-body">
-                            <!-- Badge--><span class="badge badge-warning custom-badge"><i class="ti ti-star-filled"></i></span>
-                            <div class="product-thumbnail-side">
-                                <!-- Thumbnail --><a class="product-thumbnail d-block" href="{{ asset('template/front') }}/single-product.html"><img src="{{ asset('template/front') }}/img/product/16.png" alt=""></a>
-                            </div>
-                            <div class="product-description">
-                                <!-- Product Title --><a class="product-title d-block" href="{{ asset('template/front') }}/single-product.html">Cotton T-shirts</a>
-                                <!-- Price -->
-                                <p class="sale-price">$3.69<span>$5</span></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- Featured Product Card-->
-                <div class="col-4">
-                    <div class="card featured-product-card">
-                        <div class="card-body">
-                            <!-- Badge--><span class="badge badge-warning custom-badge"><i class="ti ti-star-filled"></i></span>
-                            <div class="product-thumbnail-side">
-                                <!-- Thumbnail --><a class="product-thumbnail d-block" href="{{ asset('template/front') }}/single-product.html"><img src="{{ asset('template/front') }}/img/product/21.png" alt=""></a>
-                            </div>
-                            <div class="product-description">
-                                <!-- Product Title --><a class="product-title d-block" href="{{ asset('template/front') }}/single-product.html">ECG Rice Cooker</a>
-                                <!-- Price -->
-                                <p class="sale-price">$9.33<span>$13</span></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- Featured Product Card-->
-                <div class="col-4">
-                    <div class="card featured-product-card">
-                        <div class="card-body">
-                            <!-- Badge--><span class="badge badge-warning custom-badge"><i class="ti ti-star-filled"></i></span>
-                            <div class="product-thumbnail-side">
-                                <!-- Thumbnail --><a class="product-thumbnail d-block" href="{{ asset('template/front') }}/single-product.html"><img src="{{ asset('template/front') }}/img/product/20.png" alt=""></a>
-                            </div>
-                            <div class="product-description">
-                                <!-- Product Title --><a class="product-title d-block" href="{{ asset('template/front') }}/single-product.html">Beauty Cosmetics</a>
-                                <!-- Price -->
-                                <p class="sale-price">$5.99<span>$8</span></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- Featured Product Card-->
-                <div class="col-4">
-                    <div class="card featured-product-card">
-                        <div class="card-body">
-                            <!-- Badge--><span class="badge badge-warning custom-badge"><i class="ti ti-star-filled"></i></span>
-                            <div class="product-thumbnail-side">
-                                <!-- Thumbnail --><a class="product-thumbnail d-block" href="{{ asset('template/front') }}/single-product.html"><img src="{{ asset('template/front') }}/img/product/19.png" alt=""></a>
-                            </div>
-                            <div class="product-description">
-                                <!-- Product Title --><a class="product-title d-block" href="{{ asset('template/front') }}/single-product.html">Basketball</a>
-                                <!-- Price -->
-                                <p class="sale-price">$16<span>$20</span></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+
 
 </div>
 
