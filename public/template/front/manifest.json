@@ -1,13 +1,13 @@
 {
-  "name": "Suha",
-  "short_name": "Suha",
-  "start_url": "https://designing-world.com/suha-3.2.0/intro.html",
+  "name": "Layla",
+  "short_name": "Layla",
+  "start_url": "https://ltpresent.com",
   "display": "standalone",
   "background_color": "#625AFA",
   "theme_color": "#625AFA",
   "categories": ["shop", "ecommerce", "fashion"],
   "orientation": "portrait",
-  "description": "Suha - Multipurpose Ecommerce Mobile HTML Template",
+  "description": "Layla - Multipurpose Ecommerce Mobile HTML Template",
   "icons": [{
       "src": "img/icons/icon-72x72.png",
       "type": "image/png",

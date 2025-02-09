@@ -101,7 +101,7 @@
   <div class="header-area" id="headerArea">
     <div class="container h-100 d-flex align-items-center justify-content-between d-flex rtl-flex-d-row-r">
       <!-- Logo Wrapper -->
-      <div class="logo-wrapper"><a href="{{ asset('template/front') }}/home.html"><img src="{{ asset('/upload/profil/' . $profil->logo_dark) }}" alt=""></a></div>
+      <div class="logo-wrapper"><a href="/"><img src="{{ asset('/upload/profil/' . $profil->logo_dark) }}" alt=""></a></div>
       <div class="navbar-logo-container d-flex align-items-center">
         <!-- Cart Icon -->
         <div class="cart-icon-wrap"><a href="{{ asset('template/front') }}/cart.html"><i class="ti ti-basket-bolt"></i><span>13</span></a></div>
