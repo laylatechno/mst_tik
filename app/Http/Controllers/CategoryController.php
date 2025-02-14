@@ -51,9 +51,13 @@ class CategoryController extends Controller
     {
         $title = "Halaman Kategori Produk";
         $subtitle = "Menu Kategori Produk";
-        $data_categories = Category::all();
+    
+        // Mengambil semua kategori dan mengurutkan berdasarkan kolom 'position' secara ascending
+        $data_categories = Category::orderBy('position', 'asc')->get();
+    
         return view('category.index', compact('data_categories', 'title', 'subtitle'));
     }
+    
 
 
     /**

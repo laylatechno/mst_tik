@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @push('css')
-<link rel="stylesheet" href="{{ asset('template/back') }}/dist/libs/datatables.net-bs5/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="{{ asset('template/back/dist/libs/datatables.net-bs5/css/dataTables.bootstrap5.min.css') }}">
 @endpush
 
 @section('content')
@@ -58,6 +58,7 @@
                                         <th>Email</th>
                                         <th>Roles</th>
                                         <th>Gambar</th>
+                                        <th>Banner</th>
                                         <th width="280px">Action</th>
                                     </tr>
                                 </thead>
@@ -78,6 +79,11 @@
                                             </a>
                                         </td>
                                         <td>
+                                            <a href="/upload/users/{{ $user->banner }}" target="_blank">
+                                                <img style="max-width:50px; max-height:50px" src="/upload/users/{{ $user->banner }}" alt="">
+                                            </a>
+                                        </td>
+                                        <td>
                                             <!-- Show Button -->
                                             <a class="btn btn-warning btn-sm" href="{{ route('users.show', $user->id) }}">
                                                 <i class="fa fa-eye"></i> Show
@@ -89,7 +95,10 @@
                                                 <i class="fa fa-edit"></i> Edit
                                             </a>
                                             @endcan
-
+                                            <!-- Link Button -->
+                                            <a class="btn btn-info btn-sm" href="{{ route('users.links', $user->id) }}">
+                                                <i class="fa fa-link"></i> Links
+                                            </a>
                                             <!-- Delete Button -->
                                             @can('user-delete')
                                             @if ($user->id !== auth()->id())

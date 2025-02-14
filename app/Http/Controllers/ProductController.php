@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\CustomerCategory;
 use App\Models\ProductPrice;
 use App\Models\Unit;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -66,7 +67,7 @@ class ProductController extends Controller
 
         // Optimasi query produk dengan eager loading
         $data_products = Product::with(['category:id,name', 'unit:id,name']) // Load relasi hanya kolom yang dibutuhkan
-            ->select('id', 'name', 'code_product', 'barcode', 'description', 'purchase_price', 'cost_price', 'stock', 'image', 'category_id', 'unit_id','status_active','status_display') // Pilih kolom spesifik
+            ->select('id', 'name', 'code_product', 'barcode', 'description', 'purchase_price', 'cost_price', 'stock', 'image', 'category_id', 'unit_id', 'status_active', 'status_display') // Pilih kolom spesifik
             ->get();
 
         // Kirim data ke view
@@ -149,13 +150,15 @@ class ProductController extends Controller
         $subtitle = "Menu Tambah Produk";
 
         // Ambil data untuk dropdown select
-        $data_units = Unit::all(); // Ambil semua kategori perkembangan
-        $data_categories = Category::all(); // Ambil semua stimuli
+        $data_units = Unit::all();
+        $data_categories = Category::all();
         $data_customer_categories = CustomerCategory::all();
+        $users = User::all(); // Ambil semua pengguna
 
         // Kirim data ke view
-        return view('product.create', compact('title', 'subtitle', 'data_customer_categories', 'data_units', 'data_categories'));
+        return view('product.create', compact('title', 'subtitle', 'data_customer_categories', 'data_units', 'data_categories', 'users'));
     }
+
 
 
 

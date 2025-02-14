@@ -62,6 +62,21 @@
       text-align: center;
     }
 
+    .store-badge {
+      display: inline-block;
+      background-color: rgb(106, 60, 214);
+      /* Warna biru (bisa diganti sesuai tema) */
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+      padding: 4px 10px;
+      border-radius: 8px;
+      margin-top: 5px;
+      margin-bottom: 5px;
+      /* Agar ada jarak dari elemen di atasnya */
+      text-align: center;
+    }
+
     .product-note {
       font-style: italic;
       font-size: 0.875rem;
@@ -101,13 +116,20 @@
   <div class="header-area" id="headerArea">
     <div class="container h-100 d-flex align-items-center justify-content-between d-flex rtl-flex-d-row-r">
       <!-- Logo Wrapper -->
-      <div class="logo-wrapper"><a href="/"><img src="{{ asset('/upload/profil/' . $profil->logo_dark) }}" alt=""></a></div>
+      <div class="logo-wrapper">
+        <a href="/">
+          <img id="logoImage"
+            src="{{ asset('/upload/profil/' . $profil->logo) }}"
+            alt="Logo"
+            data-light="{{ asset('/upload/profil/' . $profil->logo) }}"
+            data-dark="{{ asset('/upload/profil/' . $profil->logo_dark) }}">
+        </a>
+      </div>
+
       <div class="navbar-logo-container d-flex align-items-center">
         <!-- Cart Icon -->
-        <div class="cart-icon-wrap"><a href="{{ asset('template/front') }}/cart.html"><i class="ti ti-basket-bolt"></i><span>13</span></a></div>
-        <!-- User Profile Icon -->
-        <div class="user-profile-icon ms-2"><a href="{{ asset('template/front') }}/profile.html"><img src="{{ asset('template/front') }}/img/bg-img/9.jpg" alt=""></a></div>
-        <!-- Navbar Toggler -->
+        <!-- <div class="cart-icon-wrap"><a href="/"><i class="ti ti-basket-bolt"></i><span>13</span></a></div> -->
+
         <div class="suha-navbar-toggler ms-2" data-bs-toggle="offcanvas" data-bs-target="#suhaOffcanvas" aria-controls="suhaOffcanvas">
           <div><span></span><span></span><span></span></div>
         </div>
@@ -123,32 +145,45 @@
       <div class="sidenav-profile">
         <div class="user-profile"><img src="{{ asset('template/front') }}/img/bg-img/9.jpg" alt=""></div>
         <div class="user-info">
-          <h5 class="user-name mb-1 text-white">Suha Sarah</h5>
-          <p class="available-balance text-white">Current Balance $<span class="counter">99</span></p>
+          <h5 class="user-name mb-1 text-white">{{ $profil->nama_profil }}</h5>
+          <span style="color: white; font-size:12px;">{{ $profil->alamat }}</span>
+          <br>
+          <p class="available-balance text-white">{{ $profil->email }}</p>
+          <p class="available-balance text-white">{{ $profil->no_telp }}</p>
+          <br>
+          <p class="available-balance text-white"><i class="ti ti-building-store"></i></p>
+          <p class="available-balance text-white"><i class="ti ti-building-store"></i></p>
         </div>
       </div>
       <!-- Sidenav Nav-->
       <ul class="sidenav-nav ps-0">
-        <li><a href="{{ asset('template/front') }}/profile.html"><i class="ti ti-user"></i>My Profile</a></li>
-        <li><a href="{{ asset('template/front') }}/notifications.html"><i class="ti ti-bell-ringing lni-tada-effect"></i>Notifications<span class="ms-1 badge badge-warning">3</span></a></li>
-        <li class="suha-dropdown-menu"><a href="{{ asset('template/front') }}/#"><i class="ti ti-building-store"></i>Shop Pages</a>
-          <ul>
-            <li><a href="{{ asset('template/front') }}/shop-grid.html">Shop Grid</a></li>
-            <li><a href="{{ asset('template/front') }}/shop-list.html">Shop List</a></li>
-            <li><a href="{{ asset('template/front') }}/single-product.html">Product Details</a></li>
-            <li><a href="{{ asset('template/front') }}/featured-products.html">Featured Products</a></li>
-            <li><a href="{{ asset('template/front') }}/flash-sale.html">Flash Sale</a></li>
-          </ul>
+        <li><a href="/"><i class="ti ti-home"></i>Beranda</a></li>
+        <li><a href="/"><i class="ti ti-bell-ringing lni-tada-effect"></i>Informasi Penting<span class="ms-1 badge badge-warning">3</span></a></li>
+        <li><a href="/toko"><i class="ti ti-building-store"></i>Toko</a></li>
+        <li>
+          @php
+          $no_wa = str_replace(['-', ' ', '+'], '', $profil->no_wa); // Menghapus tanda tambah (+), spasi, dan tanda hubung jika ada
+          $pesan =
+          'Hallo.. !! Apakah berkenan saya bertanya terkait informasi tentang ' .
+          $profil->nama_profil .
+          ' ?';
+          $encoded_pesan = urlencode($pesan); // Meng-encode pesan agar aman dalam URL
+          $whatsapp_url = "https://wa.me/{$no_wa}?text={$encoded_pesan}"; // Membuat URL lengkap
+          @endphp
+
+          <a href="{{ $whatsapp_url }}"><i class="ti ti-notebook"></i> Kontak</a>
         </li>
-        <li><a href="{{ asset('template/front') }}/pages.html"><i class="ti ti-notebook"></i>All Pages</a></li>
-        <li class="suha-dropdown-menu"><a href="{{ asset('template/front') }}/wishlist-grid.html"><i class="ti ti-heart"></i>My Wishlist</a>
-          <ul>
-            <li><a href="{{ asset('template/front') }}/wishlist-grid.html">Wishlist Grid</a></li>
-            <li><a href="{{ asset('template/front') }}/wishlist-list.html">Wishlist List</a></li>
-          </ul>
-        </li>
-        <li><a href="{{ asset('template/front') }}/settings.html"><i class="ti ti-adjustments-horizontal"></i>Settings</a></li>
-        <li><a href="{{ asset('template/front') }}/intro.html"><i class="ti ti-logout"></i>Sign Out</a></li>
+        <!-- <div class="form-check form-switch mb-0">
+          <label class="form-check-label text-white h6 mb-0" for="darkSwitch">Mode Gelap</label>
+          <input class="form-check-input" id="darkSwitch" type="checkbox" role="switch">
+        </div> -->
+
+        <br><br>
+        <li><a href="{{ asset('template/front') }}/#"> &copy; Copyright {{ $profil->nama_profil }}</a></li>
+
+
+
+
       </ul>
     </div>
   </div>
@@ -156,9 +191,9 @@
   <div class="toast pwa-install-alert shadow bg-white" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000" data-bs-autohide="true">
     <div class="toast-body">
       <div class="content d-flex align-items-center mb-2"><img src="{{ asset('template/front') }}/img/icons/icon-72x72.png" alt="">
-        <h6 class="mb-0">Add to Home Screen</h6>
+        <h6 class="mb-0">Tambahkan Ke Halaman Depan</h6>
         <button class="btn-close ms-auto" type="button" data-bs-dismiss="toast" aria-label="Close"></button>
-      </div><span class="mb-0 d-block">Click the<strong class="mx-1">Add to Home Screen</strong>button &amp; enjoy it like a regular app.</span>
+      </div><span class="mb-0 d-block">Click the<strong class="mx-1">Tambahkan Ke Halaman Depan</strong>button &amp; enjoy it like a regular app.</span>
     </div>
   </div>
 
@@ -174,11 +209,18 @@
   <div class="footer-nav-area" id="footerNav">
     <div class="suha-footer-nav">
       <ul class="h-100 d-flex align-items-center justify-content-between ps-0 d-flex rtl-flex-d-row-r">
-        <li><a href="{{ asset('template/front') }}/home.html"><i class="ti ti-home"></i>Beranda</a></li>
-        <li><a href="{{ asset('template/front') }}/message.html"><i class="ti ti-building-store"></i>Produk</a></li>
-        <li><a href="{{ asset('template/front') }}/cart.html"><i class="ti ti-notebook"></i>Layanan</a></li>
-        <li><a href="{{ asset('template/front') }}/settings.html"><i class="ti ti-news"></i>Blog</a></li>
-        <li><a href="{{ asset('template/front') }}/pages.html"><i class="ti ti-login"></i>Login</a></li>
+        <li><a href="/"><i class="ti ti-home"></i>Beranda</a></li>
+        <li><a href="/produk"><i class="ti ti-package"></i>Produk</a></li>
+        <li><a href="/toko"><i class="ti ti-building-store"></i>Toko</a></li>
+        <li>
+          <a href="/">
+            <i class="ti ti-basket-bolt"></i>Keranjang
+            <span id="cartCount" style="color:red;"><b>(99)</b></span>
+          </a>
+        </li>
+
+        <li><a href="/"><i class="ti ti-news"></i>Blog</a></li>
+        <li><a href="/"><i class="ti ti-login"></i>Login</a></li>
       </ul>
     </div>
   </div>

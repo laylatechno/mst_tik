@@ -9,12 +9,12 @@ use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\SliderController;
 use App\Http\Controllers\AdjustmentController;
 use App\Http\Controllers\BackupController;
-use App\Http\Controllers\BerandaController;
 use App\Http\Controllers\StockOpnameController;
 use App\Http\Controllers\CashController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\DepanController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LogHistoriController;
 use App\Http\Controllers\MenuGroupsController;
@@ -45,15 +45,17 @@ Route::middleware([HtmlMinifier::class])->group(function () {
 
 
 
-    Route::get('/', [BerandaController::class, 'index'])->name('beranda');
-    Route::get('/katalog/{slug}', [BerandaController::class, 'katalog_detail'])->name('katalog.katalog_detail');
+    Route::get('/', [DepanController::class, 'index'])->name('beranda');
+    Route::get('/produk', [DepanController::class, 'product'])->name('product');
+    
+    Route::get('/product/{slug}', [DepanController::class, 'product_detail'])->name('product.product_detail');
+    Route::get('/toko', [DepanController::class, 'store'])->name('store');
+    Route::get('/toko/{user}', [DepanController::class, 'store_detail'])->name('store.store_detail');
 
-    Route::get('/testimoni', [BerandaController::class, 'testimoni'])->name('testimoni');
-    Route::get('/katalog', [BerandaController::class, 'katalog'])->name('katalog');
-    Route::get('/detail_katalog', [BerandaController::class, 'detail_katalog'])->name('detail_katalog');
+
+
+
     Route::get('/home', [HomeController::class, 'index'])->name('home');
-
-
     Route::group(['middleware' => ['auth']], function () {
         Route::resource('services', ServiceController::class);
         Route::resource('teams', TeamController::class);
@@ -147,6 +149,10 @@ Route::middleware([HtmlMinifier::class])->group(function () {
 
         Route::resource('roles', RolesController::class);
         Route::resource('users', UsersController::class);
+        Route::get('users/{user}/links', [UsersController::class, 'manageLinks'])->name('users.links');
+        Route::post('users/{user}/links', [UsersController::class, 'storeLink'])->name('users.links.store');
+        Route::delete('users/{user}/links/{link}', [UsersController::class, 'deleteLink'])->name('users.links.delete');
+
         Route::resource('permissions', PermissionsController::class);
         Route::resource('profil', ProfilController::class);
         Route::put('/profil/update_setting/{id}', [ProfilController::class, 'update_setting'])->name('profil.update_setting');
@@ -160,7 +166,5 @@ Route::middleware([HtmlMinifier::class])->group(function () {
 
         Route::resource('/backupdatabase', BackupController::class);
         Route::get('/backup/manual', [BackupController::class, 'manualBackup'])->name('backup.manual');
-
-
     });
 });

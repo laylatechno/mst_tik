@@ -13,15 +13,19 @@ use Illuminate\Support\Arr;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Link;
+use App\Services\ImageService;
 
 class UsersController extends Controller
 {
-    function __construct()
+    protected $imageService;
+    function __construct(ImageService $imageService)
     {
         $this->middleware('permission:user-list|user-create|user-edit|user-delete', ['only' => ['index', 'store']]);
         $this->middleware('permission:user-create', ['only' => ['create', 'store']]);
         $this->middleware('permission:user-edit', ['only' => ['edit', 'update']]);
         $this->middleware('permission:user-delete', ['only' => ['destroy']]);
+        $this->imageService = $imageService;
     }
 
     private function simpanLogHistori($aksi, $tabelAsal, $idEntitas, $pengguna, $dataLama, $dataBaru)
@@ -45,6 +49,34 @@ class UsersController extends Controller
         return view('user.index', compact('data_user', 'title', 'subtitle'));
     }
 
+    public function manageLinks(User $user)
+    {
+        $title = "Halaman Link User";
+        $subtitle = "Menu Link User";
+        return view('user.link', compact('user', 'title', 'subtitle'));
+    }
+
+    public function storeLink(Request $request, User $user)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'link' => 'required|url'
+        ]);
+
+        $user->links()->create([
+            'name' => $request->name,
+            'link' => $request->link
+        ]);
+
+        return back()->with('success', 'Link berhasil ditambahkan!');
+    }
+
+    public function deleteLink(User $user, Link $link)
+    {
+        $link->delete();
+        return back()->with('success', 'Link berhasil dihapus!');
+    }
+
     public function create(): View
     {
         $title = "Halaman Tambah User";
@@ -57,12 +89,15 @@ class UsersController extends Controller
     {
         $this->validate($request, [
             'name' => 'required',
+            'user' => 'required',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|same:confirm-password',
             'roles' => 'required',
-            'image' => 'image|mimes:jpeg,png,jpg,gif,webp|max:4048'
+            'image' => 'image|mimes:jpeg,png,jpg,gif,webp|max:4048',
+            'banner' => 'image|mimes:jpeg,png,jpg,gif,webp|max:4048'
         ], [
             'name.required' => 'Nama wajib diisi.',
+            'user.required' => 'User wajib diisi.',
             'email.required' => 'Email wajib diisi.',
             'email.email' => 'Format email tidak valid.',
             'email.unique' => 'Email sudah terdaftar.',
@@ -71,54 +106,76 @@ class UsersController extends Controller
             'roles.required' => 'Peran wajib dipilih.',
             'image.image' => 'Gambar harus dalam format jpeg, jpg, atau png',
             'image.mimes' => 'Format gambar harus jpeg, jpg, atau png',
-            'image.max' => 'Ukuran gambar tidak boleh lebih dari 4 MB'
+            'image.max' => 'Ukuran gambar tidak boleh lebih dari 4 MB',
+            'banner.image' => 'Gambar harus dalam format jpeg, jpg, atau png',
+            'banner.mimes' => 'Format gambar harus jpeg, jpg, atau png',
+            'banner.max' => 'Ukuran gambar tidak boleh lebih dari 4 MB'
         ]);
 
         // Menyiapkan data input
         $input = $request->all();
 
         // Proses image jika ada file yang diupload
-        if ($image = $request->file('image')) {
-            $destinationPath = public_path('upload/users/');
-            $originalFileName = $image->getClientOriginalName();
-            $imageMimeType = $image->getMimeType();
+        // if ($image = $request->file('image')) {
+        //     $destinationPath = public_path('upload/users/');
+        //     $originalFileName = $image->getClientOriginalName();
+        //     $imageMimeType = $image->getMimeType();
 
-            // Pastikan folder tujuan ada
-            if (!file_exists($destinationPath)) {
-                mkdir($destinationPath, 0755, true);
-            }
+        //     // Pastikan folder tujuan ada
+        //     if (!file_exists($destinationPath)) {
+        //         mkdir($destinationPath, 0755, true);
+        //     }
 
-            // Nama file baru
-            $imageName = date('YmdHis') . '_' . str_replace(' ', '_', $originalFileName);
+        //     // Nama file baru
+        //     $imageName = date('YmdHis') . '_' . str_replace(' ', '_', $originalFileName);
 
-            // Pindahkan file ke folder tujuan
-            $image->move($destinationPath, $imageName);
+        //     // Pindahkan file ke folder tujuan
+        //     $image->move($destinationPath, $imageName);
 
-            $sourceImagePath = $destinationPath . $imageName;
-            $webpImagePath = $destinationPath . pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
+        //     $sourceImagePath = $destinationPath . $imageName;
+        //     $webpImagePath = $destinationPath . pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
 
-            // Konversi ke WebP jika perlu
-            switch ($imageMimeType) {
-                case 'image/jpeg':
-                    $sourceImage = @imagecreatefromjpeg($sourceImagePath);
-                    break;
-                case 'image/png':
-                    $sourceImage = @imagecreatefrompng($sourceImagePath);
-                    break;
-                default:
-                    throw new \Exception('Tipe MIME tidak didukung.');
-            }
+        //     // Konversi ke WebP jika perlu
+        //     switch ($imageMimeType) {
+        //         case 'image/jpeg':
+        //             $sourceImage = @imagecreatefromjpeg($sourceImagePath);
+        //             break;
+        //         case 'image/png':
+        //             $sourceImage = @imagecreatefrompng($sourceImagePath);
+        //             break;
+        //         default:
+        //             throw new \Exception('Tipe MIME tidak didukung.');
+        //     }
 
-            if ($sourceImage !== false) {
-                imagewebp($sourceImage, $webpImagePath);
-                imagedestroy($sourceImage);
-                @unlink($sourceImagePath); // Hapus file asli
-                $input['image'] = pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
-            } else {
-                throw new \Exception('Gagal membaca gambar asli.');
-            }
+        //     if ($sourceImage !== false) {
+        //         imagewebp($sourceImage, $webpImagePath);
+        //         imagedestroy($sourceImage);
+        //         @unlink($sourceImagePath); // Hapus file asli
+        //         $input['image'] = pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
+        //     } else {
+        //         throw new \Exception('Gagal membaca gambar asli.');
+        //     }
+        // } else {
+        //     $input['image'] = null; // Jika tidak ada gambar
+        // }
+
+        // Upload dan konversi gambar menggunakan service
+        if ($request->hasFile('image')) {
+            $input['image'] = $this->imageService->handleImageUpload(
+                $request->file('image'),
+                'upload/users'
+            );
         } else {
-            $input['image'] = null; // Jika tidak ada gambar
+            $input['image'] = '';
+        }
+
+        if ($request->hasFile('banner')) {
+            $input['banner'] = $this->imageService->handleImageUpload(
+                $request->file('banner'),
+                'upload/users'
+            );
+        } else {
+            $input['banner'] = '';
         }
 
         // Hash password sebelum disimpan
@@ -161,19 +218,25 @@ class UsersController extends Controller
     {
         $this->validate($request, [
             'name' => 'required',
-            'email' => 'required|email|unique:users,email,' . $id,
+            'user' => 'required',
+            'email' => 'required|email',
             'password' => 'same:confirm-password',
             'roles' => 'required',
-            'image' => 'image|mimes:jpeg,png,jpg,gif,webp|max:4048'
+            'image' => 'image|mimes:jpeg,png,jpg,gif,webp|max:4048',
+            'banner' => 'image|mimes:jpeg,png,jpg,gif,webp|max:4048'
         ], [
             'name.required' => 'Nama wajib diisi.',
+            'user.required' => 'User wajib diisi.',
             'email.required' => 'Email wajib diisi.',
             'email.email' => 'Format email tidak valid.',
             'password.same' => 'Password dan konfirmasi password harus sama.',
             'roles.required' => 'Peran wajib dipilih.',
-            'image.image' => 'Gambar harus dalam format jpeg, jpg, atau png.',
-            'image.mimes' => 'Format gambar harus jpeg, jpg, atau png.',
-            'image.max' => 'Ukuran gambar tidak boleh lebih dari 4 MB.'
+            'image.image' => 'Gambar harus dalam format jpeg, jpg, atau png',
+            'image.mimes' => 'Format gambar harus jpeg, jpg, atau png',
+            'image.max' => 'Ukuran gambar tidak boleh lebih dari 4 MB',
+            'banner.image' => 'Gambar harus dalam format jpeg, jpg, atau png',
+            'banner.mimes' => 'Format gambar harus jpeg, jpg, atau png',
+            'banner.max' => 'Ukuran gambar tidak boleh lebih dari 4 MB'
         ]);
 
         $user = User::find($id);
@@ -187,46 +250,25 @@ class UsersController extends Controller
             $input = Arr::except($input, ['password']);
         }
 
-        // Proses gambar jika ada file baru
-        if ($image = $request->file('image')) {
-            $destinationPath = public_path('upload/users/');
-            $originalFileName = $image->getClientOriginalName();
-            $imageMimeType = $image->getMimeType();
+        // Upload dan konversi gambar menggunakan service
+        if ($request->hasFile('image')) {
+            $input['image'] = $this->imageService->handleImageUpload(
+                $request->file('image'),
+                'upload/users',
+                $user->image // Pass old image for deletion
+            );
+        } else {
+            $input['image'] = $user->image; // Gunakan gambar yang sudah ada
+        }
 
-            // Hapus gambar lama jika ada
-            if ($user->image && file_exists(public_path('upload/users/' . $user->image))) {
-                @unlink(public_path('upload/users/' . $user->image));
-            }
-
-            // Nama file baru
-            $imageName = date('YmdHis') . '_' . str_replace(' ', '_', $originalFileName);
-
-            // Pindahkan file ke folder tujuan
-            $image->move($destinationPath, $imageName);
-
-            $sourceImagePath = $destinationPath . $imageName;
-            $webpImagePath = $destinationPath . pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
-
-            // Konversi ke WebP jika perlu
-            switch ($imageMimeType) {
-                case 'image/jpeg':
-                    $sourceImage = @imagecreatefromjpeg($sourceImagePath);
-                    break;
-                case 'image/png':
-                    $sourceImage = @imagecreatefrompng($sourceImagePath);
-                    break;
-                default:
-                    throw new \Exception('Tipe MIME tidak didukung.');
-            }
-
-            if ($sourceImage !== false) {
-                imagewebp($sourceImage, $webpImagePath);
-                imagedestroy($sourceImage);
-                @unlink($sourceImagePath); // Hapus file asli
-                $input['image'] = pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
-            } else {
-                throw new \Exception('Gagal membaca gambar asli.');
-            }
+        if ($request->hasFile('banner')) {
+            $input['banner'] = $this->imageService->handleImageUpload(
+                $request->file('banner'),
+                'upload/users',
+                $user->banner // Pass old banner for deletion
+            );
+        } else {
+            $input['banner'] = $user->banner; // Gunakan gambar yang sudah ada
         }
 
         // Update data user
@@ -257,6 +299,13 @@ class UsersController extends Controller
             $imagePath = public_path('upload/users/' . $user->image);
             if (file_exists($imagePath)) {
                 @unlink($imagePath); // Menghapus file gambar
+            }
+        }
+
+        if ($user->banner) {
+            $banner = public_path('upload/users/' . $user->banner);
+            if (file_exists($banner)) {
+                @unlink($banner); // Menghapus file gambar
             }
         }
 

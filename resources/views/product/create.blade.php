@@ -113,6 +113,22 @@
                             <div class="tab-content mt-3" id="formTabsContent">
                                 <!-- General Tab -->
                                 <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
+
+                                    @can('user-access')
+                                    <div class="form-group mb-3">
+                                        <label for="user_id">Pengguna</label>
+                                        <span class="text-danger">*</span>
+                                        <select name="user_id" id="user_id" class="form-control select2" required>
+                                            <option value="">-- Pilih Pengguna --</option>
+                                            @foreach($users as $user)
+                                            <option value="{{ $user->id }}" {{ auth()->id() == $user->id ? 'selected' : '' }}>
+                                                {{ $user->name }}
+                                            </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    @endcan
+
                                     <div class="form-group mb-3">
                                         <label for="name">Nama Produk</label>
                                         <span class="text-danger">*</span>
@@ -238,6 +254,60 @@
                                                     {{ old('status_display', 'nonactive') == 'nonactive' ? 'checked' : '' }}> Non Active
                                             </label>
                                         </div>
+                                    </div>
+
+                                    <div class="form-group mb-3">
+                                        <label title="Status Diskon berpengaruh terhadap harga coret yg biasa muncul pada Halaman Depan yang diakses oleh pengguna umum">
+                                            Status Diskon <i class="fa fa-info-circle"></i>
+                                        </label>
+                                        <div>
+                                            <label class="me-3">
+                                                <input type="radio" name="status_discount" value="active" required
+                                                    {{ old('status_discount', 'nonactive') == 'active' ? 'checked' : '' }} onclick="toggleDiscount()"> Active
+                                            </label>
+                                            <label>
+                                                <input type="radio" name="status_discount" value="nonactive" required
+                                                    {{ old('status_discount', 'nonactive') == 'nonactive' ? 'checked' : '' }} onclick="toggleDiscount()"> Non Active
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="row" id="discount_section" style="display: none;">
+                                        <div class="form-group col-12 mb-3">
+                                            <label for="price_before_discount">Harga Coret</label>
+                                            <input type="number" name="price_before_discount" class="form-control" id="price_before_discount" value="{{ old('price_before_discount', 0) }}">
+                                        </div>
+                                    </div>
+
+                                    <script>
+                                        function toggleDiscount() {
+                                            var discountSection = document.getElementById("discount_section");
+                                            var statusDiscount = document.querySelector('input[name="status_discount"]:checked').value;
+
+                                            if (statusDiscount === "active") {
+                                                discountSection.style.display = "block";
+                                            } else {
+                                                discountSection.style.display = "none";
+                                            }
+                                        }
+
+                                        // Panggil fungsi saat halaman dimuat untuk memastikan status awal
+                                        document.addEventListener("DOMContentLoaded", function() {
+                                            toggleDiscount();
+                                        });
+                                    </script>
+
+
+                                    <div class="row">
+                                        <div class="form-group col-12 mb-3">
+                                            <label for="position">Urutan</label>
+                                            <input type="number" name="position" class="form-control" id="position" value="{{ old('position', 0) }}">
+
+                                        </div>
+                                        <!-- <div class="form-group col-6 mb-3">
+                                            <label for="reminder">Reminder Stok Minimum</label>
+                                            <input type="number" name="reminder" class="form-control" id="reminder" value="{{ old('reminder', 0) }}">
+                                        </div> -->
                                     </div>
 
                                     <div class="form-group mb-3">

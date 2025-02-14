@@ -47,7 +47,27 @@
                                         <label for="name">Nama Kategori Produk</label>
                                         <span class="text-danger">*</span>  
                                         <input type="text" name="name" class="form-control" id="name" required>
+                                        <input type="hidden" name="slug" class="form-control" id="slug" value="{{ old('slug') }}" required readonly>
                                     </div>
+                                    <script>
+                                        // Ambil elemen input untuk name dan slug
+                                        const nameInput = document.getElementById('name');
+                                        const slugInput = document.getElementById('slug');
+
+                                        // Fungsi untuk membuat slug
+                                        function generateSlug(value) {
+                                            return value
+                                                .toLowerCase() // Ubah menjadi huruf kecil
+                                                .trim() // Hapus spasi di awal dan akhir
+                                                .replace(/[\s\W-]+/g, '-') // Ganti spasi atau karakter non-alphanumeric dengan "-"
+                                                .replace(/^-+|-+$/g, ''); // Hapus dash di awal atau akhir
+                                        }
+
+                                        // Event listener untuk mengisi slug saat name diinput
+                                        nameInput.addEventListener('input', function() {
+                                            slugInput.value = generateSlug(nameInput.value);
+                                        });
+                                    </script>
                                     <div class="form-group mb-3">
                                         <label for="description">Deskripsi</label>
                                         <textarea class="form-control" name="description" id="description"></textarea>
