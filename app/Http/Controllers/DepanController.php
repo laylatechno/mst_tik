@@ -37,14 +37,24 @@ class DepanController extends Controller
         $data_sliders = Slider::select('id', 'name', 'image', 'description')->get();
         $data_services = Service::select('id', 'name', 'image', 'description')->get();
         $data_galleries = Gallery::select('id', 'name', 'image')->get();
+        $data_stores = User::select('id', 'name', 'image', 'user', 'about', 'address', 'wa_number', 'phone_number', 'banner')
+            ->where('status', 'active')
+            ->whereNotNull('position')
+            ->orderBy('position', 'asc')
+            ->first();
+
+        // Periksa apakah data ada sebelum mengakses propertinya
+  
 
         $data_product_categories = Category::select('id', 'name', 'image', 'slug')
             ->orderBy('position', 'asc')
             ->get();
 
         $data_products = Product::with('category:id,name,slug')
-            ->select('id', 'name', 'image', 'cost_price', 'price_before_discount', 'description', 'category_id', 'note', 'user_id','slug')
+            ->select('id', 'name', 'image', 'cost_price', 'price_before_discount', 'description', 'category_id', 'note', 'user_id', 'slug')
+            ->take(12) // Batasi hanya 12 produk
             ->get();
+
 
 
         $product_categories = Category::all();
@@ -101,9 +111,6 @@ class DepanController extends Controller
             ->get(); // Eksekusi query
 
 
-
-
-
         // **Mencatat Visitor**
         $agent = new Agent();
         $visitor = new Visitor();
@@ -120,6 +127,7 @@ class DepanController extends Controller
         return view('front.beranda', compact(
             'data_product_categories',
             'data_sliders',
+            'data_stores',
             'data_services',
             'data_galleries',
             'data_products',
@@ -140,22 +148,22 @@ class DepanController extends Controller
         $profil = Profil::first();
         $title = "Halaman Produk " . ($profil ? $profil->nama_profil : 'Nama Profil');
         $subtitle = "Menu Produk";
-    
+
         $data_product_categories = Category::select('id', 'name', 'image', 'slug')
             ->orderBy('position', 'asc')
             ->get();
-    
+
         // Ambil input pencarian, sortir, dan kategori
         $search = $request->input('search');
         $sort = $request->input('sort');
         $category_slug = $request->input('category');
-    
+
         // Cari kategori berdasarkan slug
         $category = Category::where('slug', $category_slug)->first();
-    
+
         // Query produk dengan filter kategori, pencarian, dan sortir
-        $data_products = Product::with('category:id,name')
-            ->select('id', 'name', 'image', 'cost_price', 'price_before_discount', 'description', 'category_id', 'note', 'user_id', 'sold')
+        $data_products = Product::with('category:id,name,slug')
+            ->select('id', 'name', 'image', 'cost_price', 'price_before_discount', 'description', 'category_id', 'note', 'user_id', 'sold','slug')
             ->when($category, function ($query) use ($category) {
                 return $query->where('category_id', $category->id);
             })
@@ -173,8 +181,11 @@ class DepanController extends Controller
                 }
                 return $query;
             })
-            ->get();
-    
+            ->inRandomOrder() // Tambahkan ini agar urutan acak setiap reload
+            ->paginate(20);
+
+
+
         return view('front.product', compact(
             'title',
             'subtitle',
@@ -185,19 +196,19 @@ class DepanController extends Controller
             'category_slug'
         ));
     }
-    
+
 
     public function product_detail($slug)
     {
         $title = "Halaman Produk Detail";
         $subtitle = "Menu Produk Detail";
-    
+
         // Ambil produk berdasarkan slug & sertakan gambar tambahan dari tabel product_images
         $product = Product::with('images')->where('slug', $slug)->firstOrFail();
-    
+
         // Produk lain (opsional)
         $product_other = Product::all();
-    
+
         return view('front.product_detail', compact(
             'title',
             'product',
@@ -205,28 +216,28 @@ class DepanController extends Controller
             'subtitle'
         ));
     }
-    
+
 
     public function store(Request $request)
     {
         $profil = Profil::first();
         $title = "Halaman Toko " . ($profil ? $profil->nama_profil : 'Nama Profil');
         $subtitle = "Menu Toko";
-    
+
         // Ambil hanya user dengan status 'active'
         $query = User::where('status', 'active');
-    
+
         // Filter pencarian berdasarkan beberapa kolom
         if ($request->has('search') && !empty($request->search)) {
             $query->where(function ($q) use ($request) {
                 $q->where('name', 'like', '%' . $request->search . '%')
-                  ->orWhere('user', 'like', '%' . $request->search . '%')
-                  ->orWhere('description', 'like', '%' . $request->search . '%')
-                  ->orWhere('address', 'like', '%' . $request->search . '%')
-                  ->orWhere('about', 'like', '%' . $request->search . '%');
+                    ->orWhere('user', 'like', '%' . $request->search . '%')
+                    ->orWhere('description', 'like', '%' . $request->search . '%')
+                    ->orWhere('address', 'like', '%' . $request->search . '%')
+                    ->orWhere('about', 'like', '%' . $request->search . '%');
             });
         }
-    
+
         // Sorting berdasarkan waktu pembuatan
         if ($request->has('sort')) {
             if ($request->sort == 'terlama') {
@@ -237,33 +248,39 @@ class DepanController extends Controller
         } else {
             $query->orderBy('created_at', 'desc'); // Default: terbaru dulu
         }
-    
-        $data_stores = $query->get();
-    
+
+        // Pagination dengan 1 store per halaman
+        $data_stores = $query->paginate(1);
+
         return view('front.store', compact(
             'data_stores',
             'title',
             'subtitle'
         ));
     }
-    
-    
+
+
+
 
     public function store_detail($user)
     {
         $title = "Halaman Toko Detail";
         $subtitle = "Menu Toko Detail";
-    
-        // Ambil produk berdasarkan user & sertakan gambar tambahan dari tabel store_images
+
+        // Ambil data store berdasarkan user
         $data_stores = User::with('links')->where('user', $user)->firstOrFail();
-    
-        // Produk lain (opsional)
-        $data_products = Product::where('user_id', $data_stores->id)->get();
-    
+
+        // Ambil produk berdasarkan user_id yang sesuai dan paginasi 2 produk per halaman
+        $data_products = Product::where('user_id', $data_stores->id)->paginate(2);
+
+        // Hitung total produk
+        $total_products = Product::where('user_id', $data_stores->id)->count();
+
         return view('front.store_detail', compact(
             'title',
             'data_stores',
             'data_products',
+            'total_products',
             'subtitle'
         ));
     }

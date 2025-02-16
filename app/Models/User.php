@@ -33,7 +33,7 @@ class User extends Authenticatable
         'color',
         'status'
     ];
-    
+
 
     /**
      * The attributes that should be hidden for serialization.
@@ -58,5 +58,10 @@ class User extends Authenticatable
     public function links()
     {
         return $this->hasMany(Link::class);
+    }
+
+    public function products()
+    {
+        return $this->hasMany(Product::class, 'user_id');
     }
 }

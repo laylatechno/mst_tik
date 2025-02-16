@@ -9,6 +9,7 @@ use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\SliderController;
 use App\Http\Controllers\AdjustmentController;
 use App\Http\Controllers\BackupController;
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\StockOpnameController;
 use App\Http\Controllers\CashController;
 use App\Http\Controllers\PurchaseController;
@@ -36,8 +37,9 @@ use App\Http\Controllers\TutorialController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\UsersController;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\HtmlMinifier;
+use Illuminate\Support\Facades\Route;
+ 
 
 
 Route::middleware([HtmlMinifier::class])->group(function () {
@@ -45,12 +47,19 @@ Route::middleware([HtmlMinifier::class])->group(function () {
 
 
 
+
+
+
     Route::get('/', [DepanController::class, 'index'])->name('beranda');
     Route::get('/produk', [DepanController::class, 'product'])->name('product');
-    
+
     Route::get('/product/{slug}', [DepanController::class, 'product_detail'])->name('product.product_detail');
     Route::get('/toko', [DepanController::class, 'store'])->name('store');
     Route::get('/toko/{user}', [DepanController::class, 'store_detail'])->name('store.store_detail');
+    Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
+    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+    Route::get('/cart/delete/{id}', [CartController::class, 'delete'])->name('cart.delete');
+    Route::get('/cart/reset', [CartController::class, 'reset'])->name('cart.reset');
 
 
 

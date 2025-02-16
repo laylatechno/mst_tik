@@ -30,10 +30,21 @@
   <link rel="stylesheet" href="{{ asset('template/front') }}/css/owl.carousel.min.css">
   <link rel="stylesheet" href="{{ asset('template/front') }}/css/magnific-popup.css">
   <link rel="stylesheet" href="{{ asset('template/front') }}/css/nice-select.css">
+
   <!-- Stylesheet -->
   <link rel="stylesheet" href="{{ asset('template/front') }}/style.css">
   <!-- Web App Manifest -->
   <link rel="manifest" href="{{ asset('template/front') }}/manifest.json">
+  <style>
+    .lazy-img {
+      filter: blur(10px);
+      transition: filter 0.3s ease-in-out;
+    }
+
+    .lazy-img.loaded {
+      filter: blur(0);
+    }
+  </style>
   <style>
     .sale-price-new {
       font-weight: bold;
@@ -101,6 +112,14 @@
       flex-direction: column;
       justify-content: space-between;
       /* Menjaga jarak elemen dalam card */
+    }
+
+
+
+
+    .pagination-two .page-link {
+      color: black !important;
+      /* Ubah warna teks menjadi merah */
     }
   </style>
 </head>
@@ -213,9 +232,13 @@
         <li><a href="/produk"><i class="ti ti-package"></i>Produk</a></li>
         <li><a href="/toko"><i class="ti ti-building-store"></i>Toko</a></li>
         <li>
-          <a href="/">
+          <a href="/cart">
             <i class="ti ti-basket-bolt"></i>Keranjang
-            <span id="cartCount" style="color:red;"><b>(99)</b></span>
+            @php
+            $cart = Session::get('cart', []);
+            $cartCount = count($cart);
+            @endphp
+            <span id="cartCount" style="color:red;"><b>({{ $cartCount }})</b></span>
           </a>
         </li>
 
@@ -224,6 +247,238 @@
       </ul>
     </div>
   </div>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css">
+  <!-- SweetAlert JS -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+
+
+
+  <script>
+    document.querySelectorAll('.add-to-cart-form').forEach(form => {
+      form.addEventListener('click', function(e) {
+        e.preventDefault();
+        const productId = form.getAttribute('data-product-id');
+        const formData = new FormData();
+        formData.append('product_id', productId);
+        formData.append('_token', '{{ csrf_token() }}');
+
+        fetch('{{ route('cart.add') }}', {
+              method: 'POST',
+              body: formData,
+            })
+          .then(response => response.json())
+          .then(data => {
+            Swal.fire({
+              title: 'Sukses!',
+              text: data.message,
+              icon: 'success',
+              confirmButtonText: 'OK'
+            }).then((result) => {
+              if (result.isConfirmed) {
+                location.reload();
+              }
+            });
+          })
+          .catch(error => {
+            Swal.fire({
+              title: 'Error!',
+              text: 'Terjadi kesalahan, silakan coba lagi.',
+              icon: 'error',
+              confirmButtonText: 'OK'
+            });
+            console.error('Error:', error);
+          });
+      });
+    });
+  </script>
+
+
+  <script>
+    (function() {
+      class PengoptimalGambar {
+        constructor(options = {}) {
+          this.maksLebarGambar = options.maksLebarGambar || 300;
+          this.maksTinggiGambar = options.maksTinggiGambar || 300;
+          this.kualitas = options.kualitas || 0.7;
+          this.mulai();
+        }
+
+        mulai() {
+          // Pilih semua elemen gambar
+          const allImages = document.querySelectorAll('.product-thumbnail img, .category-thumbnail');
+
+          allImages.forEach(img => {
+            const originalSrc = img.getAttribute('data-original') || img.getAttribute('data-src');
+
+
+            if (!originalSrc) {
+              console.warn('Missing data-original attribute:', img);
+              return;
+            }
+
+            const tempImage = new Image();
+            tempImage.crossOrigin = "anonymous"; // Tambahkan ini untuk menghindari error CORS
+
+            // Tambahkan loading spinner
+            const animasiLoading = this.buatAnimasiLoading();
+            img.parentNode.insertBefore(animasiLoading, img);
+            img.style.display = 'none';
+
+            tempImage.onload = () => {
+              this.optimasiGambar(tempImage, img, animasiLoading);
+            };
+
+            tempImage.onerror = () => {
+              console.error('Gagal memuat gambar:', originalSrc);
+              animasiLoading.remove();
+              img.src = originalSrc;
+              img.style.display = 'block';
+            };
+
+            // Mulai loading gambar
+            tempImage.src = originalSrc;
+          });
+        }
+
+        buatAnimasiLoading() {
+          const animasi = document.createElement('div');
+          animasi.className = 'animasi-loading';
+          animasi.innerHTML = `
+                    <div class="spinner" style="
+                        width: 40px;
+                        height: 40px;
+                        border: 4px solid #f3f3f3;
+                        border-top: 4px solid #3498db;
+                        border-radius: 50%;
+                        animation: putar 1s linear infinite;
+                        margin: 20px auto;
+                    "></div>
+                    <style>
+                        .animasi-loading {
+                            min-height: 100px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        }
+                        @keyframes putar {
+                            0% { transform: rotate(0deg); }
+                            100% { transform: rotate(360deg); }
+                        }
+                    </style>
+                `;
+          return animasi;
+        }
+
+        optimasiGambar(tempImage, targetImg, animasiLoading) {
+          try {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            let {
+              width,
+              height
+            } = this.hitungDimensi(tempImage.naturalWidth, tempImage.naturalHeight);
+
+            canvas.width = width;
+            canvas.height = height;
+            ctx.drawImage(tempImage, 0, 0, width, height);
+
+            const urlGambarOptimal = canvas.toDataURL('image/jpeg', this.kualitas);
+
+            targetImg.onload = () => {
+              animasiLoading.remove();
+              targetImg.style.display = 'block';
+            };
+
+            targetImg.src = urlGambarOptimal;
+          } catch (error) {
+            console.error('Error saat optimasi:', error);
+            targetImg.src = tempImage.src;
+            targetImg.style.display = 'block';
+            animasiLoading.remove();
+          }
+        }
+
+        hitungDimensi(lebar, tinggi) {
+          let lebarBaru = lebar;
+          let tinggiBaru = tinggi;
+
+          if (lebar > this.maksLebarGambar) {
+            lebarBaru = this.maksLebarGambar;
+            tinggiBaru = Math.round((tinggi * this.maksLebarGambar) / lebar);
+          }
+
+          if (tinggiBaru > this.maksTinggiGambar) {
+            tinggiBaru = this.maksTinggiGambar;
+            lebarBaru = Math.round((lebar * this.maksTinggiGambar) / tinggi);
+          }
+
+          return {
+            width: lebarBaru,
+            height: tinggiBaru
+          };
+        }
+      }
+
+      // Tunggu sampai DOM sepenuhnya dimuat
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initOptimizer);
+      } else {
+        initOptimizer();
+      }
+
+      function initOptimizer() {
+        new PengoptimalGambar({
+          maksLebarGambar: 300,
+          maksTinggiGambar: 300,
+          kualitas: 0.7
+        });
+      }
+    })();
+  </script>
+
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const lazyImages = document.querySelectorAll("img.lazy-img");
+
+      const lazyLoad = (image) => {
+        const src = image.getAttribute("data-original") || image.getAttribute("data-src");
+        if (!src) return;
+
+
+        const tempImage = new Image();
+        tempImage.src = src;
+        tempImage.crossOrigin = "anonymous"; // Hindari error CORS di beberapa server
+        tempImage.onload = () => {
+          image.src = src;
+          image.classList.add("loaded"); // Tambahkan efek transisi saat gambar muncul
+        };
+      };
+
+      if ("IntersectionObserver" in window) {
+        let observer = new IntersectionObserver((entries, observer) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              lazyLoad(entry.target);
+              observer.unobserve(entry.target);
+            }
+          });
+        });
+
+        lazyImages.forEach(img => observer.observe(img));
+      } else {
+        // Fallback untuk browser lama
+        lazyImages.forEach(img => lazyLoad(img));
+      }
+    });
+  </script>
+
+
   <!-- All JavaScript Files-->
   <script src="{{ asset('template/front') }}/js/bootstrap.bundle.min.js"></script>
   <script src="{{ asset('template/front') }}/js/jquery.min.js"></script>

@@ -30,9 +30,14 @@
         @foreach ($data_product_categories as $p)
         <div class="card collection-card">
           <a href="{{ url('produk?category=' . $p->slug) }}">
-
-            <img src="{{ $p->image ? '/upload/product_categories/' . $p->image : 'https://png.pngtree.com/png-clipart/20220124/original/pngtree-3d-camera-realistic-icon-png-image_7180126.png' }}" alt="{{ $p->name }}">
+            <img
+              class="category-thumbnail"
+              src="{{ $p->image ? '/upload/product_categories/' . $p->image : asset('template/front/img/kategori.png') }}"
+              alt="{{ $p->name }}"
+              loading="lazy"
+              data-original="{{ $p->image ? '/upload/product_categories/' . $p->image : asset('template/front/img/kategori.png') }}">
           </a>
+
           <div class="collection-title">
             <span>{{ $p->name }}</span>
           </div>
@@ -83,9 +88,17 @@
               <!-- Wishlist Button-->
               <!-- <a class="wishlist-btn" href="{{ asset('template/front') }}/#"><i class="ti ti-heart"> </i></a> -->
               <!-- Thumbnail -->
-              <a class="product-thumbnail d-block" href="/"><img class="mb-2" src="/upload/products/{{ $p->image }}" alt="">
-                <!-- Offer Countdown Timer: Please use event time this format: YYYY/MM/DD hh:mm:ss -->
-                <!-- <ul class="offer-countdown-timer d-flex align-items-center shadow-sm" data-countdown="2024/12/31 23:59:59">
+
+              <a class="product-thumbnail d-block" href="{{ route('product.product_detail', $p->slug) }}">
+                <img
+                  class="mb-2 lazy-img"
+                  src="https://placehold.co/300x200?text=Loading..."
+                  data-src="/upload/products/{{ $p->image }}"
+                  alt="{{ $p->name }}">
+              </a>
+
+              <!-- Offer Countdown Timer: Please use event time this format: YYYY/MM/DD hh:mm:ss -->
+              <!-- <ul class="offer-countdown-timer d-flex align-items-center shadow-sm" data-countdown="2024/12/31 23:59:59">
                                     <li><span class="days">0</span>d</li>
                                     <li><span class="hours">0</span>h</li>
                                     <li><span class="minutes">0</span>m</li>
@@ -124,11 +137,23 @@
               <!-- <div class="product-rating"><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i></div> -->
               <!-- Add to Cart -->
               <br>
-              <a class="btn btn-primary btn-sm" href="/"><i class="ti ti-shopping-cart"></i></a>
+              <form class="add-to-cart-form" data-product-id="{{ $p->id }}">
+                @csrf
+                <button class="btn btn-primary btn-sm" type="button"><i class="ti ti-shopping-cart"></i></button>
+              </form>
             </div>
           </div>
         </div>
         @endforeach
+        <div class="shop-pagination pt-3">
+          <div class="container">
+            <div class="card">
+              <div class="card-body py-3">
+                {{ $data_products->links('vendor.pagination.bootstrap-4') }}
+              </div>
+            </div>
+          </div>
+        </div>
 
 
       </div>
@@ -137,7 +162,7 @@
 
 
   <!-- CTA Area -->
-  <div class="container">
+  <div class="container pb-3">
     <div class="cta-text dir-rtl p-4 p-lg-5">
       <div class="row">
         <div class="col-9">

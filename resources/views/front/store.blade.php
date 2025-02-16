@@ -75,6 +75,15 @@
         </div>
       </div>
       @endforeach
+      <div class="shop-pagination pt-3">
+          <div class="container">
+            <div class="card">
+              <div class="card-body py-3">
+                {{ $data_stores->links('vendor.pagination.bootstrap-4') }}
+              </div>
+            </div>
+          </div>
+        </div>
 
 
 

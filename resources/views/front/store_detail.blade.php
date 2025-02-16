@@ -1,21 +1,26 @@
 @extends('front.layouts.app')
-
+<meta property="og:title" content="{{ $title }} - {{ $data_stores->name }}">
+<meta property="og:description" content="{{ $data_stores->description }}">
+<meta property="og:image" content="{{ asset('upload/users/' . $data_stores->image) }}">
+<meta property="og:url" content="{{ request()->fullUrl() }}">
+<meta property="og:type" content="website">
 <style>
   .video-container {
-  position: relative;
-  width: 100%; /* Full width sesuai container */
-  padding-top: 56.25%; /* Rasio 16:9 */
-  overflow: hidden;
-}
+    position: relative;
+    width: 100%;
+    /* Full width sesuai container */
+    padding-top: 56.25%;
+    /* Rasio 16:9 */
+    overflow: hidden;
+  }
 
-.video-container iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
-
+  .video-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
 </style>
 
 
@@ -66,8 +71,10 @@
             <div class="icon"><i class="ti ti-heart"></i></div><span>@ {{ $data_stores->user }}</span>
           </div>
           <div class="single-basic-info">
-            <div class="icon"><i class="ti ti-basket"></i></div><span>100 Produk</span>
+            <div class="icon"><i class="ti ti-basket"></i></div>
+            <span>{{ $total_products }} Produk</span>
           </div>
+
           <div class="single-basic-info">
             <div class="icon"><i class="ti ti-crown"></i></div><span>Terpercaya</span>
           </div>
@@ -118,24 +125,37 @@
               <h6>Selamat Datang di Toko : {{$data_stores->name}}</h6>
               <p>{!!$data_stores->description!!}</p>
 
-              <div class="contact-btn-wrap text-center">
-                <br>
-                <p class="mb-2">Bagikan agar orang lain tahu banyak tentang toko ini.</p>
-                <a class="btn btn-success w-100 my-2" href="/"><i class="ti ti-share me-1 h6"></i>Bagikan ke WhatsApp</a>
-                <a class="btn btn-primary w-100 my-2" href="/"><i class="ti ti-share me-1 h6"></i>Bagikan ke Facebook</a>
-                <a class="btn btn-warning w-100 my-2" href="/"><i class="ti ti-share me-1 h6"></i>Bagikan ke Twitter</a>
 
-
-              </div>
             </div>
           </div>
         </div>
         <div class="container py-2">
           <div class="card">
             <div class="card-body about-content-wrap dir-rtl">
-            <a class="btn btn-secondary w-100" href="{{ $data_stores->maps }}">
-                                        <i class="ti ti-map"></i> Buka Google Maps Toko
-                                    </a>
+              <p class="mb-2">Bagikan agar orang lain tahu banyak tentang toko ini.</p>
+              <!-- AddToAny BEGIN -->
+              <div class="a2a_kit a2a_kit_size_32 a2a_default_style">
+                <a class="a2a_dd" href="https://www.addtoany.com/share"></a>
+                <a class="a2a_button_facebook"></a>
+                <a class="a2a_button_whatsapp"></a>
+                <a class="a2a_button_telegram"></a>
+                <a class="a2a_button_x"></a>
+                <a class="a2a_button_copy_link"></a>
+              </div>
+              <script defer src="https://static.addtoany.com/menu/page.js"></script>
+              <!-- AddToAny END -->
+
+
+
+            </div>
+          </div>
+        </div>
+        <div class="container pb-2">
+          <div class="card">
+            <div class="card-body about-content-wrap dir-rtl">
+              <a class="btn btn-primary w-100" href="{{ $data_stores->maps }}">
+                <i class="ti ti-map"></i> Buka Google Maps Toko
+              </a>
 
 
 
@@ -143,7 +163,7 @@
           </div>
         </div>
 
-        
+
       </div>
       <div class="tab-pane fade show active" id="products" role="tabpanel" aria-labelledby="products-tab">
         <div class="container">
@@ -158,9 +178,15 @@
                   <!-- Wishlist Button-->
                   <!-- <a class="wishlist-btn" href="{{ asset('template/front') }}/#"><i class="ti ti-heart"> </i></a> -->
                   <!-- Thumbnail -->
-                  <a class="product-thumbnail d-block" href="{{ route('product.product_detail', $p->slug) }}">
-                    <img class="mb-2" src="/upload/products/{{ $p->image }}" alt="">
-                  </a>
+                    <a class="product-thumbnail d-block" href="{{ route('product.product_detail', $p->slug) }}">
+                                <img
+                                    class="mb-2"
+                                    src="/upload/products/{{ $p->image }}"
+                                    alt="{{ $p->name }}"
+                                    loading="lazy"
+                                    data-original="/upload/products/{{ $p->image }}">
+
+                            </a>
                   <!-- Offer Countdown Timer: Please use event time this format: YYYY/MM/DD hh:mm:ss -->
                   <!-- <ul class="offer-countdown-timer d-flex align-items-center shadow-sm" data-countdown="2024/12/31 23:59:59">
                                     <li><span class="days">0</span>d</li>
@@ -206,11 +232,24 @@
                   <!-- <div class="product-rating"><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i></div> -->
                   <!-- Add to Cart -->
                   <br>
-                  <a class="btn btn-primary btn-sm" href="/"><i class="ti ti-shopping-cart"></i></a>
+                  <form class="add-to-cart-form" data-product-id="{{ $p->id }}">
+                    @csrf
+                    <button class="btn btn-primary btn-sm" type="button"><i class="ti ti-shopping-cart"></i></button>
+                  </form>
                 </div>
               </div>
             </div>
             @endforeach
+            <div class="shop-pagination pt-3">
+              <div class="container">
+                <div class="card">
+                  <div class="card-body py-3">
+                    {{ $data_products->links('vendor.pagination.bootstrap-4') }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
@@ -223,7 +262,7 @@
                 <!-- Single User Review -->
                 <li class="single-user-review d-flex">
                   <div class="contact-btn-wrap text-center">
-                    <p class="mb-2">Kunjungi juga link lain untuk melengkapi referensi belanja anda.</p>
+                    <p class="mb-2">Kunjungi juga link lain dari toko ini untuk melengkapi referensi belanja anda.</p>
 
                     @foreach($data_stores->links as $link)
                     <a class="btn btn-danger w-100 my-2" href="{{ $link->link }}" target="_blank">
