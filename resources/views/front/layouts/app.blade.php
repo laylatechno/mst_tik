@@ -162,10 +162,12 @@
     <div class="offcanvas-body">
       <!-- Sidenav Profile-->
       <div class="sidenav-profile">
-        <br><br><br>
-        <div class="user-profile"><img id="logoImage"
+        
+        <div class="user-profile">
+          <br>
+          <img id="logoImage"
             src="{{ asset('/upload/profil/' . $profil->logo_dark) }}"
-            alt="Logo""></div>
+            alt="Logo"></div>
         <div class="user-info">
           <h5 class="user-name mb-1 text-white">{{ $profil->nama_profil }}</h5>
           <span style="color: white; font-size:12px;">{{ $profil->alamat }}</span>
