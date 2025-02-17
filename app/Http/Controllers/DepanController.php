@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Blog;
+use App\Models\BlogCategory;
 use Illuminate\Http\Request;
 use App\Models\Category;
 use App\Models\Gallery;
@@ -56,7 +57,7 @@ class DepanController extends Controller
             ->take(12) // Batasi hanya 12 produk
             ->get();
         $data_blogs = Blog::with('blog_category:id,name,slug')
-            ->select('id', 'title', 'image', 'writer', 'resume', 'description', 'posting_date','slug')
+            ->select('id', 'title', 'image', 'writer', 'resume', 'description', 'posting_date', 'slug')
             ->take(4) // Batasi hanya 12 produk
             ->get();
 
@@ -208,15 +209,15 @@ class DepanController extends Controller
     {
         $title = "Halaman Produk Detail";
         $subtitle = "Menu Produk Detail";
-    
+
         // Ambil produk berdasarkan slug & sertakan gambar tambahan dari tabel product_images
         $product = Product::with('images')->where('slug', $slug)->firstOrFail();
-    
+
         // Ambil produk lain yang memiliki user_id yang sama, kecuali produk yang sedang dilihat
         $product_other = Product::where('user_id', $product->user_id)
             ->where('id', '!=', $product->id) // Hindari produk yang sama
             ->get();
-    
+
         return view('front.product_detail', compact(
             'title',
             'product',
@@ -224,7 +225,7 @@ class DepanController extends Controller
             'subtitle'
         ));
     }
-    
+
 
 
     public function store(Request $request)
@@ -291,6 +292,74 @@ class DepanController extends Controller
             'data_products',
             'total_products',
             'subtitle'
+        ));
+    }
+
+
+    public function blog(Request $request)
+    {
+        $profil = Profil::first();
+        $title = "Halaman Blog " . ($profil ? $profil->nama_profil : 'Nama Profil');
+        $subtitle = "Menu Blog";
+
+        // Ambil kategori dari query parameter (jika ada)
+        $categorySlug = $request->query('category');
+        $search = $request->query('search');
+        $sort = $request->query('sort', 'terbaru');  // Default sort adalah 'terbaru'
+
+        // Ambil kategori blog
+        $data_blog_categories = BlogCategory::select('id', 'name', 'slug')->orderBy('position', 'asc')->get();
+
+        // Ambil blogs yang sesuai dengan kategori jika ada, jika tidak ambil semua
+        $blogsQuery = Blog::query();
+
+        // Jika kategori terpilih
+        if ($categorySlug) {
+            $category = BlogCategory::where('slug', $categorySlug)->first();
+            $blogsQuery->where('blog_category_id', $category->id);  // Gunakan blog_category_id sebagai foreign key
+        }
+
+        // Jika ada query pencarian
+        if ($search) {
+            $blogsQuery->where(function ($query) use ($search) {
+                $query->where('title', 'like', '%' . $search . '%')
+                    ->orWhere('description', 'like', '%' . $search . '%')
+                    ->orWhere('writer', 'like', '%' . $search . '%')
+                    ->orWhere('reference', 'like', '%' . $search . '%')
+                    ->orWhere('resume', 'like', '%' . $search . '%')
+                    ->orWhereHas('blog_category', function ($query) use ($search) {
+                        $query->where('name', 'like', '%' . $search . '%');
+                    });
+            });
+        }
+
+        // Sorting berdasarkan parameter
+        if ($sort == 'terlama') {
+            $blogsQuery->orderBy('created_at', 'asc');  // Terlama
+        } else {
+            $blogsQuery->orderBy('created_at', 'desc');  // Terbaru
+        }
+
+        // Paginate dengan 10 blog per halaman
+        $data_blogs = $blogsQuery->paginate(10);
+
+        return view('front.blog', compact('title', 'subtitle', 'data_blog_categories', 'data_blogs'));
+    }
+
+
+
+
+    public function blog_detail($slug)
+    {
+        $blog = Blog::where('slug', $slug)->firstOrFail();
+
+        $title = "Detail: " . $blog->title;
+        $subtitle = "Blog Detail";
+
+        return view('front.blog_detail', compact(
+            'title',
+            'subtitle',
+            'blog'
         ));
     }
 }

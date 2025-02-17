@@ -54,6 +54,8 @@ Route::middleware([HtmlMinifier::class])->group(function () {
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
     Route::get('/cart/delete/{id}', [CartController::class, 'delete'])->name('cart.delete');
     Route::get('/cart/reset', [CartController::class, 'reset'])->name('cart.reset');
+    Route::get('/blog', [DepanController::class, 'blog'])->name('blog');
+    Route::get('/blog/{slug}', [DepanController::class, 'blog_detail'])->name('blog.blog_detail');
 
 
     Route::get('/home', [HomeController::class, 'index'])->name('home');

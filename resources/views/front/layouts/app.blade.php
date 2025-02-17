@@ -247,7 +247,7 @@
           </a>
         </li>
 
-        <li><a href="/"><i class="ti ti-news"></i>Blog</a></li>
+        <li><a href="/blog"><i class="ti ti-news"></i>Blog</a></li>
         <li><a href="/"><i class="ti ti-login"></i>Login</a></li>
       </ul>
     </div>
