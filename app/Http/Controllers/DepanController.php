@@ -57,7 +57,7 @@ class DepanController extends Controller
             ->take(12) // Batasi hanya 12 produk
             ->get();
         $data_blogs = Blog::with('blog_category:id,name,slug')
-            ->select('id', 'title', 'image', 'writer', 'resume', 'description', 'posting_date', 'slug')
+            ->select('id', 'title', 'image', 'writer', 'resume', 'description', 'posting_date', 'slug','blog_category_id')
             ->take(4) // Batasi hanya 12 produk
             ->get();
 
@@ -351,15 +351,21 @@ class DepanController extends Controller
 
     public function blog_detail($slug)
     {
+        // Ambil blog berdasarkan slug
         $blog = Blog::where('slug', $slug)->firstOrFail();
-
+    
+        // Meningkatkan jumlah views
+        $blog->increment('views');
+    
         $title = "Detail: " . $blog->title;
         $subtitle = "Blog Detail";
-
+    
+        // Kirim data ke view
         return view('front.blog_detail', compact(
             'title',
             'subtitle',
             'blog'
         ));
     }
+    
 }

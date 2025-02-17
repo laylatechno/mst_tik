@@ -47,6 +47,7 @@
   </div>
 
   <div class="page-content-wrapper">
+
     <div class="product-slide-wrapper">
       <!-- Product Slides-->
       <div class="product-slides owl-carousel">
@@ -76,20 +77,39 @@
     </div>
 
     <div class="product-description pb-3">
-      <!-- Judul & Meta Data -->
-      <div class="product-title-meta-data bg-white mb-3 py-3">
-        <div class="container d-flex justify-content-between rtl-flex-d-row-r">
-          <div class="p-title-price">
-            <h5 class="mb-1">{{ $blog->title }}</h5>
-            <p class="sale-price mb-0 lh-1">{{ $blog->writer }} | {{ $blog->posting_date }}</p>
+      <div class="product-title-meta-data bg-white mb-3 py-3 dir-rtl">
+        <div class="container">
+          <h5 class="post-title">{{ $blog->title }}.</h5>
+          <a class="post-catagory mb-3 d-block" href="#">{{ $blog->blog_category->name ?? 'Uncategorized' }}</a>
+          <div class="post-meta-data d-flex align-items-center justify-content-between">
+            <a class="d-flex align-items-center" href="#">
+              <img src="{{ asset('template/front') }}/img/icon.png" alt="">{{ $blog->writer }}
+            </a>
+            <span class="d-flex align-items-center">
+              <svg class="bi bi-clock me-1" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"></path>
+                <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"></path>
+              </svg>
+              {{ Carbon\Carbon::parse($blog->posting_date)->translatedFormat('d F Y') }}
+            </span>
+            <!-- Menambahkan views dengan icon mata -->
+            <span class="d-flex align-items-center ms-2">
+              <svg class="bi bi-eye me-1" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 3c-3.318 0-6 3-6 3s2.682 3 6 3 6-3 6-3-2.682-3-6-3zM8 9c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"></path>
+              </svg>
+              {{ $blog->views }} Views
+            </span>
           </div>
         </div>
       </div>
 
+
+
+
       <!-- Deskripsi -->
       <div class="p-specification bg-white mb-3 py-3">
         <div class="container">
-          <h6>Deskripsi</h6>
+          <p><b>Resource : {{ $blog->reference }}</b></p>
           <p>{!! $blog->description !!}</p>
         </div>
       </div>
