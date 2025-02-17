@@ -1,31 +1,42 @@
 @extends('front.layouts.app')
 
+<style>
+    .lazy-slide {
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        filter: blur(10px);
+        /* Blur sebelum gambar muncul */
+        transition: filter 0.5s ease-in-out;
+    }
 
+    .lazy-slide.loaded {
+        filter: blur(0);
+    }
+</style>
 
 @section('content')
 
 <div class="page-content-wrapper">
-    <!-- Search Form-->
-    <!-- Search Form-->
+
 
     <!-- Hero Wrapper -->
     <div class="hero-wrapper">
         <div class="container">
             <div class="pt-3">
-                <!-- Hero Slides-->
+                <!-- Hero Slides -->
                 <div class="hero-slides owl-carousel">
                     @foreach ($data_sliders as $p)
-                    <!-- Single Hero Slide-->
-                    <div class="single-hero-slide" style="background-image: url('/upload/sliders/{{ $p->image }}')">
+                    <!-- Single Hero Slide -->
+                    <div class="single-hero-slide lazy-slide" data-bg="/upload/sliders/{{ $p->image }}">
                         <div class="slide-content h-100 d-flex align-items-center">
                             <div class="slide-text">
-                                <!-- <h4 class="text-white mb-0" data-animation="fadeInUp" data-delay="100ms" data-duration="1000ms">{{ $p->name }}</h4>
-                                <p class="text-white" data-animation="fadeInUp" data-delay="400ms" data-duration="1000ms">{{ $p->description }}</p><a class="btn btn-primary" href="{{ asset('template/front') }}/#" data-animation="fadeInUp" data-delay="800ms" data-duration="1000ms">Buy Now</a> -->
+                                <!-- <h4 class="text-white mb-0">{{ $p->name }}</h4>
+                            <p class="text-white">{{ $p->description }}</p> -->
                             </div>
                         </div>
                     </div>
                     @endforeach
-
                 </div>
             </div>
         </div>
@@ -43,22 +54,6 @@
     </div>
 
 
-    <!-- Product Catagories -->
-    <!-- <div class="product-catagories-wrapper py-3">
-        <div class="container">
-            <div class="row g-2 rtl-flex-d-row-r">
-
-                @foreach ($data_services as $p)
-                <div class="col-3">
-                    <div class="card catagory-card">
-                        <div class="card-body px-2"><a href="{{ asset('template/front') }}/catagory.html"><img src="/upload/services/{{ $p->image }}" alt=""><span>{{ $p->name }}</span></a></div>
-                    </div>
-                </div>
-                @endforeach
-            </div>
-        </div>
-    </div> -->
-
 
 
 
@@ -72,16 +67,14 @@
             <div class="collection-slide owl-carousel">
                 @foreach ($data_product_categories as $p)
                 <div class="card collection-card">
-                    <a href="{{ url('produk?category=' . $p->slug) }}">
-                        <img
-                            class="category-thumbnail"
-                            src="{{ $p->image ? '/upload/product_categories/' . $p->image : asset('template/front/img/kategori.png') }}"
-                            alt="{{ $p->name }}"
-                            loading="lazy"
-                            data-original="{{ $p->image ? '/upload/product_categories/' . $p->image : asset('template/front/img/kategori.png') }}">
+
+                    <a class="image-thumbnail d-block" href="{{ url('produk?category=' . $p->slug) }}">
+                        <img class="lazy-img"
+                            src="https://placehold.co/300x200?text=Loading..."
+                            data-src="{{ $p->image ? '/upload/product_categories/' . $p->image : asset('template/front/img/kategori.png') }}"
+                            data-original="{{ $p->image ? '/upload/product_categories/' . $p->image : asset('template/front/img/kategori.png') }}"
+                            alt="{{ $p->name }}">
                     </a>
-
-
 
                     <div class="collection-title">
                         <span>{{ $p->name }}</span>
@@ -114,6 +107,7 @@
 
 
     @include('front.products-category-top')
+
 
 
 
@@ -153,7 +147,7 @@
 
 
 
-  
+
     @include('front.blog-home')
 
 
@@ -176,16 +170,45 @@
         </div>
     </div>
 
-  
+
 
     @include('front.products-category-discount')
     @include('front.products-category-one')
     @include('front.products-category-two')
     @include('front.products-category-three')
 
-   
 
-  
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const lazySlides = document.querySelectorAll(".lazy-slide");
+
+            const lazyLoadSlide = (slide) => {
+                const bg = slide.getAttribute("data-bg");
+                if (bg) {
+                    slide.style.backgroundImage = `url('${bg}')`;
+                    slide.classList.add("loaded"); // Tambahkan efek transisi
+                }
+            };
+
+            if ("IntersectionObserver" in window) {
+                let observer = new IntersectionObserver((entries, observer) => {
+                    entries.forEach((entry) => {
+                        if (entry.isIntersecting) {
+                            lazyLoadSlide(entry.target);
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                });
+
+                lazySlides.forEach((slide) => observer.observe(slide));
+            } else {
+                // Fallback untuk browser lama
+                lazySlides.forEach((slide) => lazyLoadSlide(slide));
+            }
+        });
+    </script>
+
+
 
 </div>
 

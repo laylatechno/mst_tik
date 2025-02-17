@@ -162,7 +162,10 @@
     <div class="offcanvas-body">
       <!-- Sidenav Profile-->
       <div class="sidenav-profile">
-        <div class="user-profile"><img src="{{ asset('template/front') }}/img/bg-img/9.jpg" alt=""></div>
+        <br><br><br>
+        <div class="user-profile"><img id="logoImage"
+            src="{{ asset('/upload/profil/' . $profil->logo_dark) }}"
+            alt="Logo""></div>
         <div class="user-info">
           <h5 class="user-name mb-1 text-white">{{ $profil->nama_profil }}</h5>
           <span style="color: white; font-size:12px;">{{ $profil->alamat }}</span>
@@ -297,150 +300,6 @@
   </script>
 
 
-  <script>
-    (function() {
-      class PengoptimalGambar {
-        constructor(options = {}) {
-          this.maksLebarGambar = options.maksLebarGambar || 300;
-          this.maksTinggiGambar = options.maksTinggiGambar || 300;
-          this.kualitas = options.kualitas || 0.7;
-          this.mulai();
-        }
-
-        mulai() {
-          // Pilih semua elemen gambar
-          const allImages = document.querySelectorAll('.product-thumbnail img, .category-thumbnail');
-
-          allImages.forEach(img => {
-            const originalSrc = img.getAttribute('data-original') || img.getAttribute('data-src');
-
-
-            if (!originalSrc) {
-              console.warn('Missing data-original attribute:', img);
-              return;
-            }
-
-            const tempImage = new Image();
-            tempImage.crossOrigin = "anonymous"; // Tambahkan ini untuk menghindari error CORS
-
-            // Tambahkan loading spinner
-            const animasiLoading = this.buatAnimasiLoading();
-            img.parentNode.insertBefore(animasiLoading, img);
-            img.style.display = 'none';
-
-            tempImage.onload = () => {
-              this.optimasiGambar(tempImage, img, animasiLoading);
-            };
-
-            tempImage.onerror = () => {
-              console.error('Gagal memuat gambar:', originalSrc);
-              animasiLoading.remove();
-              img.src = originalSrc;
-              img.style.display = 'block';
-            };
-
-            // Mulai loading gambar
-            tempImage.src = originalSrc;
-          });
-        }
-
-        buatAnimasiLoading() {
-          const animasi = document.createElement('div');
-          animasi.className = 'animasi-loading';
-          animasi.innerHTML = `
-                    <div class="spinner" style="
-                        width: 40px;
-                        height: 40px;
-                        border: 4px solid #f3f3f3;
-                        border-top: 4px solid #3498db;
-                        border-radius: 50%;
-                        animation: putar 1s linear infinite;
-                        margin: 20px auto;
-                    "></div>
-                    <style>
-                        .animasi-loading {
-                            min-height: 100px;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                        }
-                        @keyframes putar {
-                            0% { transform: rotate(0deg); }
-                            100% { transform: rotate(360deg); }
-                        }
-                    </style>
-                `;
-          return animasi;
-        }
-
-        optimasiGambar(tempImage, targetImg, animasiLoading) {
-          try {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-
-            let {
-              width,
-              height
-            } = this.hitungDimensi(tempImage.naturalWidth, tempImage.naturalHeight);
-
-            canvas.width = width;
-            canvas.height = height;
-            ctx.drawImage(tempImage, 0, 0, width, height);
-
-            const urlGambarOptimal = canvas.toDataURL('image/jpeg', this.kualitas);
-
-            targetImg.onload = () => {
-              animasiLoading.remove();
-              targetImg.style.display = 'block';
-            };
-
-            targetImg.src = urlGambarOptimal;
-          } catch (error) {
-            console.error('Error saat optimasi:', error);
-            targetImg.src = tempImage.src;
-            targetImg.style.display = 'block';
-            animasiLoading.remove();
-          }
-        }
-
-        hitungDimensi(lebar, tinggi) {
-          let lebarBaru = lebar;
-          let tinggiBaru = tinggi;
-
-          if (lebar > this.maksLebarGambar) {
-            lebarBaru = this.maksLebarGambar;
-            tinggiBaru = Math.round((tinggi * this.maksLebarGambar) / lebar);
-          }
-
-          if (tinggiBaru > this.maksTinggiGambar) {
-            tinggiBaru = this.maksTinggiGambar;
-            lebarBaru = Math.round((lebar * this.maksTinggiGambar) / tinggi);
-          }
-
-          return {
-            width: lebarBaru,
-            height: tinggiBaru
-          };
-        }
-      }
-
-      // Tunggu sampai DOM sepenuhnya dimuat
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initOptimizer);
-      } else {
-        initOptimizer();
-      }
-
-      function initOptimizer() {
-        new PengoptimalGambar({
-          maksLebarGambar: 300,
-          maksTinggiGambar: 300,
-          kualitas: 0.7
-        });
-      }
-    })();
-  </script>
-
 
   <script>
     document.addEventListener("DOMContentLoaded", function() {
@@ -450,13 +309,13 @@
         const src = image.getAttribute("data-original") || image.getAttribute("data-src");
         if (!src) return;
 
-
         const tempImage = new Image();
         tempImage.src = src;
         tempImage.crossOrigin = "anonymous"; // Hindari error CORS di beberapa server
         tempImage.onload = () => {
           image.src = src;
           image.classList.add("loaded"); // Tambahkan efek transisi saat gambar muncul
+          optimizeImage(image, tempImage); // Optimalkan setelah lazy load selesai
         };
       };
 
@@ -476,6 +335,37 @@
         lazyImages.forEach(img => lazyLoad(img));
       }
     });
+
+    /** Optimasi Gambar */
+    function optimizeImage(img, imgObj) {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      const maksLebarGambar = 300;
+      const maksTinggiGambar = 300;
+      const kualitas = 0.7;
+
+      let {
+        width,
+        height
+      } = imgObj;
+      const aspectRatio = width / height;
+
+      if (width > maksLebarGambar || height > maksTinggiGambar) {
+        if (aspectRatio > 1) {
+          width = maksLebarGambar;
+          height = width / aspectRatio;
+        } else {
+          height = maksTinggiGambar;
+          width = height * aspectRatio;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      ctx.drawImage(imgObj, 0, 0, width, height);
+
+      img.src = canvas.toDataURL("image/jpeg", kualitas);
+    }
   </script>
 
 

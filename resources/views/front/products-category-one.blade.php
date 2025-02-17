@@ -10,14 +10,13 @@
                     <div class="card product-card">
                         <div class="card-body">
 
-                            <a class="product-thumbnail d-block" href="{{ route('product.product_detail', $p->slug) }}">
-                                <img class="mb-2 lazy-img"
-                                    src="https://placehold.co/300x200?text=Loading..."
-                                    data-src="/upload/products/{{ $p->image }}"
-                                    data-original="/upload/products/{{ $p->image }}"
-                                    alt="{{ $p->name }}">
-
-                            </a>
+                        <a class="d-block" href="{{ route('product.product_detail', $p->slug) }}">
+                            <img class="image-thumbnail lazy-img"
+                                src="https://placehold.co/300x200?text=Loading..."
+                                data-src="/upload/products/{{ $p->image }}"
+                                data-original="/upload/products/{{ $p->image }}"
+                                alt="{{ $p->name }}">
+                        </a>
                             <a class="product-title" href="/">{{ $p->name }}</a>
 
                             <p class="sale-price-new">

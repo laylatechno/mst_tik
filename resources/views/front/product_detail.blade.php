@@ -180,62 +180,51 @@
             <!-- Product Card -->
             <div class="col-6 col-md-4">
               <div class="card product-card">
-              <div class="card-body">
-                            <!-- Badge-->
-                            <!-- <span class="badge rounded-pill badge-warning">{{ $p->category->name ?? 'Tanpa Kategori' }}</span> -->
-                            <!-- Wishlist Button-->
-                            <!-- <a class="wishlist-btn" href="{{ asset('template/front') }}/#"><i class="ti ti-heart"> </i></a> -->
-                            <!-- Thumbnail -->
-                            <a class="product-thumbnail d-block" href="{{ route('product.product_detail', $p->slug) }}">
-                                <img class="mb-2" src="/upload/products/{{ $p->image }}" alt="">
-                            </a>
-                            <!-- Offer Countdown Timer: Please use event time this format: YYYY/MM/DD hh:mm:ss -->
-                            <!-- <ul class="offer-countdown-timer d-flex align-items-center shadow-sm" data-countdown="2024/12/31 23:59:59">
-                                    <li><span class="days">0</span>d</li>
-                                    <li><span class="hours">0</span>h</li>
-                                    <li><span class="minutes">0</span>m</li>
-                                    <li><span class="seconds">0</span>s</li>
-                                </ul> -->
-                            </a>
-                            <a class="store-badge" href="{{ url('produk?category=' . $p->category->slug) }}">
-                                {{ $p->category->name ?? 'Tanpa Kategori' }}
-                            </a>
+                <div class="card-body">
+                 
+                  <a class="d-block" href="{{ route('product.product_detail', $p->slug) }}">
+                    <img class="image-thumbnail lazy-img"
+                      src="https://placehold.co/300x200?text=Loading..."
+                      data-src="/upload/products/{{ $p->image }}"
+                      data-original="/upload/products/{{ $p->image }}"
+                      alt="{{ $p->name }}">
+                  </a>
+ 
+                  </a>
+                  <a class="store-badge" href="{{ url('produk?category=' . $p->category->slug) }}">
+                    {{ $p->category->name ?? 'Tanpa Kategori' }}
+                  </a>
 
-                            <a class="product-title" href="{{ route('product.product_detail', $p->slug) }}">
-                                {{ $p->name }}
-                            </a>
+                  <a class="product-title" href="{{ route('product.product_detail', $p->slug) }}">
+                    {{ $p->name }}
+                  </a>
 
 
+                  <p class="sale-price-new">
+                    Rp {{ number_format($p->cost_price, 0, ',', '.') }}
+                    @if($p->price_before_discount && $p->price_before_discount > 0)
+                    <br> <span class="old-price">Rp {{ number_format($p->price_before_discount, 0, ',', '.') }}</span>
+                    @endif
+                  </p>
 
+                  <a href="">
+                    <p class="custom-badge">{{ $p->user->user }} </p>
+                  </a>
 
-
-                            <!-- <p class="sale-price">$13<span>$42</span></p> -->
-
-                            <p class="sale-price-new">
-                                Rp {{ number_format($p->cost_price, 0, ',', '.') }}
-                                @if($p->price_before_discount && $p->price_before_discount > 0)
-                                <br> <span class="old-price">Rp {{ number_format($p->price_before_discount, 0, ',', '.') }}</span>
-                                @endif
-                            </p>
-
-                            <a href="">
-                                <p class="custom-badge">{{ $p->user->user }} </p>
-                            </a>
-
-                            <span class="product-note">
-                                {{ $p->note }}
-                            </span>
-                            <br>
+                  <span class="product-note">
+                    {{ $p->note }}
+                  </span>
+                  <br>
 
 
 
 
-                            <!-- Rating -->
-                            <!-- <div class="product-rating"><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i></div> -->
-                            <!-- Add to Cart -->
-                            <br>
-                            <a class="btn btn-primary btn-sm" href="/"><i class="ti ti-shopping-cart"></i></a>
-                        </div>
+                  <!-- Rating -->
+                  <!-- <div class="product-rating"><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i></div> -->
+                  <!-- Add to Cart -->
+                  <br>
+                  <a class="btn btn-primary btn-sm" href="/"><i class="ti ti-shopping-cart"></i></a>
+                </div>
               </div>
             </div>
             @endforeach
@@ -243,47 +232,29 @@
         </div>
       </div>
 
-      <div class="card product-details-card mb-2 direction-rtl">
-        <div class="card-body">
-          <h5 class="mb-3">Bagikan :</h5>
-          <div class="custom-container">
-            <!-- Register Form -->
-            <div class="register-form">
-              <div class="row">
-                {{-- <div class="col-12">
-                                    <a class="btn btn-primary btn-facebook mb-3 w-100"
-                                        href="https://www.facebook.com/sharer/sharer.php?u={{ route('produk_sale.produk_sale_detail', $produk->slug) }}">
-                <i class="bi bi-facebook me-1"></i> Bagikan Ke Facebook
-                </a>
-                <a class="btn btn-primary btn-twitter mb-3 w-100"
-                  href="https://twitter.com/intent/tweet?url={{ route('produk_sale.produk_sale_detail', $produk->slug) }}">
-                  <i class="bi bi-twitter me-1"></i> Bagikan Ke Twitter
-                </a>
-                <a class="btn btn-success btn-whatsapp mb-3 w-100"
-                  href="https://wa.me/?text={{ route('produk_sale.produk_sale_detail', $produk->slug) }}">
-                  <i class="bi bi-whatsapp me-1"></i> Bagikan Ke Whatsapp
-                </a>
-              </div> --}}
-
-              <div class="col-12">
-                <a class="btn btn-primary btn-facebook mb-3 w-100"
-                  href="https://www.facebook.com/sharer/sharer.php?u={{ request()->fullUrl() }}">
-                  <i class="bi bi-facebook me-1"></i> Bagikan Ke Facebook
-                </a>
-                <a class="btn btn-primary btn-twitter mb-3 w-100"
-                  href="https://twitter.com/intent/tweet?url={{ request()->fullUrl() }}">
-                  <i class="bi bi-twitter me-1"></i> Bagikan Ke Twitter
-                </a>
-                <a class="btn btn-success btn-whatsapp mb-3 w-100"
-                  href="https://wa.me/?text={{ request()->fullUrl() }}">
-                  <i class="bi bi-whatsapp me-1"></i> Bagikan Ke Whatsapp
-                </a>
+      <div class="container py-2">
+          <div class="card">
+            <div class="card-body about-content-wrap dir-rtl">
+              <p class="mb-2">Bagikan agar orang lain tahu banyak tentang toko ini.</p>
+              <!-- AddToAny BEGIN -->
+              <div class="a2a_kit a2a_kit_size_32 a2a_default_style">
+                <a class="a2a_dd" href="https://www.addtoany.com/share"></a>
+                <a class="a2a_button_facebook"></a>
+                <a class="a2a_button_whatsapp"></a>
+                <a class="a2a_button_telegram"></a>
+                <a class="a2a_button_x"></a>
+                <a class="a2a_button_copy_link"></a>
               </div>
+              <script defer src="https://static.addtoany.com/menu/page.js"></script>
+              <!-- AddToAny END -->
+
+
+
             </div>
           </div>
         </div>
-        <hr>
-      </div>
+
+       
     </div>
   </div>
 </div>

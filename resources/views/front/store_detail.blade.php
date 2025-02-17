@@ -178,15 +178,13 @@
                   <!-- Wishlist Button-->
                   <!-- <a class="wishlist-btn" href="{{ asset('template/front') }}/#"><i class="ti ti-heart"> </i></a> -->
                   <!-- Thumbnail -->
-                    <a class="product-thumbnail d-block" href="{{ route('product.product_detail', $p->slug) }}">
-                                <img
-                                    class="mb-2"
-                                    src="/upload/products/{{ $p->image }}"
-                                    alt="{{ $p->name }}"
-                                    loading="lazy"
-                                    data-original="/upload/products/{{ $p->image }}">
-
-                            </a>
+                  <a class="d-block" href="{{ route('product.product_detail', $p->slug) }}">
+                    <img class="image-thumbnail lazy-img"
+                      src="https://placehold.co/300x200?text=Loading..."
+                      data-src="/upload/products/{{ $p->image }}"
+                      data-original="/upload/products/{{ $p->image }}"
+                      alt="{{ $p->name }}">
+                  </a>
                   <!-- Offer Countdown Timer: Please use event time this format: YYYY/MM/DD hh:mm:ss -->
                   <!-- <ul class="offer-countdown-timer d-flex align-items-center shadow-sm" data-countdown="2024/12/31 23:59:59">
                                     <li><span class="days">0</span>d</li>

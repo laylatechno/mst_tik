@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Blog;
 use Illuminate\Http\Request;
 use App\Models\Category;
 use App\Models\Gallery;
@@ -44,7 +45,7 @@ class DepanController extends Controller
             ->first();
 
         // Periksa apakah data ada sebelum mengakses propertinya
-  
+
 
         $data_product_categories = Category::select('id', 'name', 'image', 'slug')
             ->orderBy('position', 'asc')
@@ -53,6 +54,10 @@ class DepanController extends Controller
         $data_products = Product::with('category:id,name,slug')
             ->select('id', 'name', 'image', 'cost_price', 'price_before_discount', 'description', 'category_id', 'note', 'user_id', 'slug')
             ->take(12) // Batasi hanya 12 produk
+            ->get();
+        $data_blogs = Blog::with('blog_category:id,name,slug')
+            ->select('id', 'title', 'image', 'writer', 'resume', 'description', 'posting_date','slug')
+            ->take(4) // Batasi hanya 12 produk
             ->get();
 
 
@@ -127,6 +132,7 @@ class DepanController extends Controller
         return view('front.beranda', compact(
             'data_product_categories',
             'data_sliders',
+            'data_blogs',
             'data_stores',
             'data_services',
             'data_galleries',
@@ -163,7 +169,7 @@ class DepanController extends Controller
 
         // Query produk dengan filter kategori, pencarian, dan sortir
         $data_products = Product::with('category:id,name,slug')
-            ->select('id', 'name', 'image', 'cost_price', 'price_before_discount', 'description', 'category_id', 'note', 'user_id', 'sold','slug')
+            ->select('id', 'name', 'image', 'cost_price', 'price_before_discount', 'description', 'category_id', 'note', 'user_id', 'sold', 'slug')
             ->when($category, function ($query) use ($category) {
                 return $query->where('category_id', $category->id);
             })
@@ -202,13 +208,15 @@ class DepanController extends Controller
     {
         $title = "Halaman Produk Detail";
         $subtitle = "Menu Produk Detail";
-
+    
         // Ambil produk berdasarkan slug & sertakan gambar tambahan dari tabel product_images
         $product = Product::with('images')->where('slug', $slug)->firstOrFail();
-
-        // Produk lain (opsional)
-        $product_other = Product::all();
-
+    
+        // Ambil produk lain yang memiliki user_id yang sama, kecuali produk yang sedang dilihat
+        $product_other = Product::where('user_id', $product->user_id)
+            ->where('id', '!=', $product->id) // Hindari produk yang sama
+            ->get();
+    
         return view('front.product_detail', compact(
             'title',
             'product',
@@ -216,6 +224,7 @@ class DepanController extends Controller
             'subtitle'
         ));
     }
+    
 
 
     public function store(Request $request)

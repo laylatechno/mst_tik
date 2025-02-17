@@ -29,13 +29,12 @@
       <div class="collection-slide owl-carousel">
         @foreach ($data_product_categories as $p)
         <div class="card collection-card">
-          <a href="{{ url('produk?category=' . $p->slug) }}">
-            <img
-              class="category-thumbnail"
-              src="{{ $p->image ? '/upload/product_categories/' . $p->image : asset('template/front/img/kategori.png') }}"
-              alt="{{ $p->name }}"
-              loading="lazy"
-              data-original="{{ $p->image ? '/upload/product_categories/' . $p->image : asset('template/front/img/kategori.png') }}">
+          <a class="image-thumbnail d-block" href="{{ url('produk?category=' . $p->slug) }}">
+            <img class="lazy-img"
+              src="https://placehold.co/300x200?text=Loading..."
+              data-src="{{ $p->image ? '/upload/product_categories/' . $p->image : asset('template/front/img/kategori.png') }}"
+              data-original="{{ $p->image ? '/upload/product_categories/' . $p->image : asset('template/front/img/kategori.png') }}"
+              alt="{{ $p->name }}">
           </a>
 
           <div class="collection-title">
@@ -89,11 +88,11 @@
               <!-- <a class="wishlist-btn" href="{{ asset('template/front') }}/#"><i class="ti ti-heart"> </i></a> -->
               <!-- Thumbnail -->
 
-              <a class="product-thumbnail d-block" href="{{ route('product.product_detail', $p->slug) }}">
-                <img
-                  class="mb-2 lazy-img"
+              <a class="d-block" href="{{ route('product.product_detail', $p->slug) }}">
+                <img class="image-thumbnail lazy-img"
                   src="https://placehold.co/300x200?text=Loading..."
                   data-src="/upload/products/{{ $p->image }}"
+                  data-original="/upload/products/{{ $p->image }}"
                   alt="{{ $p->name }}">
               </a>
 
