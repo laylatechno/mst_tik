@@ -11,10 +11,11 @@ use App\Models\Product;
 use App\Models\Slider;
 use App\Models\Profil;
 use App\Models\Service;
-use App\Models\Testimony;
-use App\Models\User;
 use App\Models\Visitor;
 use Jenssegers\Agent\Agent;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Hash;
+use App\Models\User;
 
 class DepanController extends Controller
 {
@@ -233,10 +234,10 @@ class DepanController extends Controller
         $profil = Profil::first();
         $title = "Halaman Toko " . ($profil ? $profil->nama_profil : 'Nama Profil');
         $subtitle = "Menu Toko";
-
-        // Ambil hanya user dengan status 'active'
-        $query = User::where('status', 'active');
-
+    
+        // Ambil hanya user dengan status 'active' dan id != 1
+        $query = User::where('status', 'active')->where('id', '!=', 1);
+    
         // Filter pencarian berdasarkan beberapa kolom
         if ($request->has('search') && !empty($request->search)) {
             $query->where(function ($q) use ($request) {
@@ -247,7 +248,7 @@ class DepanController extends Controller
                     ->orWhere('about', 'like', '%' . $request->search . '%');
             });
         }
-
+    
         // Sorting berdasarkan waktu pembuatan
         if ($request->has('sort')) {
             if ($request->sort == 'terlama') {
@@ -258,16 +259,16 @@ class DepanController extends Controller
         } else {
             $query->orderBy('created_at', 'desc'); // Default: terbaru dulu
         }
-
-        // Pagination dengan 1 store per halaman
-        $data_stores = $query->paginate(1);
-
+    
+        $data_stores = $query->paginate(10);
+    
         return view('front.store', compact(
             'data_stores',
             'title',
             'subtitle'
         ));
     }
+    
 
 
 
@@ -366,6 +367,69 @@ class DepanController extends Controller
             'subtitle',
             'blog'
         ));
+    }
+
+
+    public function register(Request $request)
+    {
+        $profil = Profil::first();
+        $title = "Halaman Pendaftaran " . ($profil ? $profil->nama_profil : 'Nama Profil');
+        $subtitle = "Menu Pendaftaran";
+        return view('front.register', compact('title', 'subtitle'));
+    }
+
+
+    public function register_action(Request $request)
+    {
+        // Validasi input
+        $validator = Validator::make($request->all(), [
+            'user' => 'required|unique:users,user',
+            'email' => 'required|email|unique:users,email',
+            'wa_number' => 'required',
+            'password' => 'required|min:6',
+            'confirm-password' => 'required|same:password',
+            'about' => 'nullable'
+        ]);
+    
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+    
+        // Transformasi nomor WhatsApp
+        $wa_number = $request->wa_number;
+        if (substr($wa_number, 0, 1) === '0') {
+            $wa_number = '62' . substr($wa_number, 1);
+        }
+    
+        // Buat user baru
+        try {
+            $user = new User();
+            $user->user = $request->user;
+            $user->name = $request->name;
+            $user->email = $request->email;
+            $user->wa_number = $wa_number;
+            $user->password = Hash::make($request->password);
+            $user->about = $request->about;
+            $user->status = 'nonactive';
+            $user->save();
+
+            
+            $profil = Profil::where('id', 1)->first();
+    
+            return response()->json([
+                'success' => true,
+                'message' => 'Pendaftaran member berhasil dilakukan, silahkan tunggu informasi selanjutnya melalui email atau nomor WhatsApp terdaftar member. Untuk pertanyaan lain bisa hubungi Nomor : ' . $profil->no_wa
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
     }
     
 }

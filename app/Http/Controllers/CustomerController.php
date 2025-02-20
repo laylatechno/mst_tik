@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\LogHistori;
 use App\Models\Customer;
 use App\Models\CustomerCategory;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -48,7 +49,15 @@ class CustomerController extends Controller
     {
         $title = "Halaman Pelanggan";
         $subtitle = "Menu Pelanggan";
-        $data_customers = Customer::all();
+        $user = auth()->user(); // Ambil user yang sedang login 
+
+        
+        if ($user->can('user-access')) {
+            $data_customers = Customer::with('user')->get();
+        } else {
+            // Jika tidak, hanya tampilkan supplier dengan user_id yang sesuai dengan user yang login
+            $data_customers = Customer::where('user_id', $user->id)->with('user')->get();
+        }
         return view('customer.index', compact('data_customers', 'title', 'subtitle'));
     }
 
@@ -63,7 +72,8 @@ class CustomerController extends Controller
         $title = "Halaman Tambah Pelanggan";
         $subtitle = "Menu Tambah Pelanggan";
         $data_customer_categories = CustomerCategory::all();
-        return view('customer.create', compact('title', 'subtitle', 'data_customer_categories'));
+        $users = User::all();
+        return view('customer.create', compact('title', 'subtitle', 'data_customer_categories', 'users'));
     }
 
 
@@ -78,19 +88,42 @@ class CustomerController extends Controller
     {
         $this->validate($request, [
             'name' => 'required|unique:customers,name',
+            'email' => 'nullable|email',
+            'phone' => 'nullable|string|max:20',
+            'customer_category_id' => 'required|exists:customer_categories,id', // Validasi kategori pelanggan
+            'user_id' => 'nullable|exists:users,id',
         ], [
             'name.required' => 'Nama wajib diisi.',
             'name.unique' => 'Nama sudah terdaftar.',
+            'email.email' => 'Format email tidak valid.',
+            'phone.max' => 'Nomor telepon terlalu panjang.',
+            'customer_category_id.required' => 'Kategori pelanggan wajib dipilih.',
+            'customer_category_id.exists' => 'Kategori pelanggan tidak valid.',
+            'user_id.exists' => 'Pengguna tidak valid.',
         ]);
 
-        $customer = Customer::create($request->all());
-
+        // Ambil user_id berdasarkan kondisi
         $loggedInUserId = Auth::id();
-        // Simpan log histori untuk operasi Create dengan user_id yang sedang login
+        $userIdToSave = $request->filled('user_id') && Auth::user()->can('user-access')
+            ? $request->user_id
+            : $loggedInUserId;
+
+        // Simpan data customer
+        $customer = Customer::create([
+            'name' => $request->name,
+            'email' => $request->email ?? null,
+            'phone' => $request->phone ?? null,
+            'customer_category_id' => $request->customer_category_id, // Tambahkan kategori pelanggan
+            'user_id' => $userIdToSave,
+        ]);
+
+        // Simpan log histori untuk operasi Create
         $this->simpanLogHistori('Create', 'Customer', $customer->id, $loggedInUserId, null, json_encode($customer));
+
         return redirect()->route('customers.index')
             ->with('success', 'Pelanggan berhasil dibuat.');
     }
+
 
 
 
@@ -123,8 +156,8 @@ class CustomerController extends Controller
         $subtitle = "Menu Edit Pelanggan";
         $data_customer_categories = CustomerCategory::all();
         $data_customers = Customer::with('category')->findOrFail($id); // Memuat relasi category
-
-        return view('customer.edit', compact('data_customers', 'title', 'subtitle', 'data_customer_categories'));
+        $users = User::all();
+        return view('customer.edit', compact('data_customers', 'title', 'subtitle', 'data_customer_categories','users'));
     }
 
 
@@ -141,8 +174,17 @@ class CustomerController extends Controller
         // Validasi input
         $this->validate($request, [
             'name' => 'required',
+            'email' => 'nullable|email',
+            'phone' => 'nullable|string|max:20',
+            'customer_category_id' => 'required|exists:customer_categories,id', // Validasi kategori pelanggan
+            'user_id' => 'nullable|exists:users,id',
         ], [
             'name.required' => 'Nama wajib diisi.',
+            'email.email' => 'Format email tidak valid.',
+            'phone.max' => 'Nomor telepon terlalu panjang.',
+            'customer_category_id.required' => 'Kategori pelanggan wajib dipilih.',
+            'customer_category_id.exists' => 'Kategori pelanggan tidak valid.',
+            'user_id.exists' => 'Pengguna tidak valid.',
         ]);
 
         // Cari data berdasarkan ID
@@ -155,23 +197,33 @@ class CustomerController extends Controller
         }
 
         // Menyimpan data lama sebelum update
-        $oldCustomersnData = $customer->toArray();
+        $oldCustomerData = $customer->toArray();
 
-        // Melakukan update data
-        $customer->update($request->all());
-
-        // Mendapatkan ID pengguna yang sedang login
+        // Ambil user_id berdasarkan kondisi
         $loggedInUserId = Auth::id();
+        $userIdToSave = $request->filled('user_id') && Auth::user()->can('user-access')
+            ? $request->user_id
+            : $loggedInUserId;
+
+        // Update data customer
+        $customer->update([
+            'name' => $request->name,
+            'email' => $request->email ?? null,
+            'phone' => $request->phone ?? null,
+            'customer_category_id' => $request->customer_category_id, // Update kategori pelanggan
+            'user_id' => $userIdToSave,
+        ]);
 
         // Mendapatkan data baru setelah update
-        $newCustomersnData = $customer->fresh()->toArray();
+        $newCustomerData = $customer->fresh()->toArray();
 
         // Menyimpan log histori untuk operasi Update
-        $this->simpanLogHistori('Update', 'Customer', $customer->id, $loggedInUserId, json_encode($oldCustomersnData), json_encode($newCustomersnData));
+        $this->simpanLogHistori('Update', 'Customer', $customer->id, $loggedInUserId, json_encode($oldCustomerData), json_encode($newCustomerData));
 
         return redirect()->route('customers.index')
-            ->with('success', 'Pelanggan berhasil diperbaharui');
+            ->with('success', 'Pelanggan berhasil diperbarui.');
     }
+
 
 
 

@@ -47,37 +47,40 @@
                             <div class="alert alert-success">{{ session('success') }}</div>
                             @endif
 
-                            <table id="scroll_hor"
-                                class="table border table-striped table-bordered display nowrap"
-                                style="width: 100%">
+                      
+                            <table id="scroll_hor" class="table border table-striped table-bordered display nowrap" style="width: 100%">
                                 <thead>
                                     <tr>
-                                        <th width="5%">No</th>
+                                        <th>No</th>
+                                        @can('user-access')
+                                        <th>Nama User</th> 
+                                        @endcan
                                         <th>Nama Supplier</th>
                                         <th>Email</th>
-                                        <th>No Telp</th>
-                                        <th>Alamat</th>
-                                        <th width="280px">Action</th>
+                                       
+                                        
+                                        <th>Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($data_suppliers as $p)
+                                    @foreach ($data_suppliers as $supplier)
                                     <tr>
                                         <td>{{ $loop->iteration }}</td>
-                                        <td>{{ $p->name }}</td>
-                                        <td>{{ $p->email ? : 'No Data' }}</td>
-                                        <td>{{ $p->phone ? : 'No Data' }}</td>
-                                        <td>{{ $p->address ? substr($p->address, 0, 10) : 'No Data' }}</td>
-
-
+                                        @can('user-access')
+                                        <td>{{ $supplier->user->name ?? 'Tidak Diketahui' }}</td>  
+                                        @endcan
+                                        <td>{{ $supplier->name }}</td>
+                                        <td>{{ $supplier->email }}</td>
+                                       
+                                         
                                         <td>
-                                            <a class="btn btn-warning btn-sm" href="{{ route('suppliers.show', $p->id) }}"><i class="fa fa-eye"></i> Show</a>
+                                            <a class="btn btn-warning btn-sm" href="{{ route('suppliers.show', $supplier->id) }}"><i class="fa fa-eye"></i> Show</a>
                                             @can('supplier-edit')
-                                            <a class="btn btn-primary btn-sm" href="{{ route('suppliers.edit', $p->id) }}"><i class="fa fa-edit"></i> Edit</a>
+                                            <a class="btn btn-primary btn-sm" href="{{ route('suppliers.edit', $supplier->id) }}"><i class="fa fa-edit"></i> Edit</a>
                                             @endcan
                                             @can('supplier-delete')
-                                            <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete({{ $p->id }})"><i class="fa fa-trash"></i> Delete</button>
-                                            <form id="delete-form-{{ $p->id }}" method="POST" action="{{ route('suppliers.destroy', $p->id) }}" style="display:none;">
+                                            <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete({{ $supplier->id }})"><i class="fa fa-trash"></i> Delete</button>
+                                            <form id="delete-form-{{ $supplier->id }}" method="POST" action="{{ route('suppliers.destroy', $supplier->id) }}" style="display:none;">
                                                 @csrf
                                                 @method('DELETE')
                                             </form>
@@ -87,6 +90,7 @@
                                     @endforeach
                                 </tbody>
                             </table>
+
                         </div>
                     </div>
                 </div>

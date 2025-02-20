@@ -14,6 +14,7 @@ use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Link;
+use App\Models\Product;
 use App\Services\ImageService;
 
 class UsersController extends Controller
@@ -289,11 +290,18 @@ class UsersController extends Controller
     public function destroy($id): RedirectResponse
     {
         $user = User::find($id);
-
+    
         if (!$user) {
             return redirect()->route('users.index')->with('error', 'User tidak ditemukan');
         }
-
+    
+        // Cek apakah user masih memiliki produk terkait
+        $hasProducts = Product::where('user_id', $id)->exists();
+    
+        if ($hasProducts) {
+            return redirect()->route('users.index')->with('error', 'User tidak bisa dihapus karena masih memiliki produk terkait.');
+        }
+    
         // Hapus gambar jika ada
         if ($user->image) {
             $imagePath = public_path('upload/users/' . $user->image);
@@ -301,20 +309,21 @@ class UsersController extends Controller
                 @unlink($imagePath); // Menghapus file gambar
             }
         }
-
+    
         if ($user->banner) {
             $banner = public_path('upload/users/' . $user->banner);
             if (file_exists($banner)) {
-                @unlink($banner); // Menghapus file gambar
+                @unlink($banner); // Menghapus file banner
             }
         }
-
+    
         // Simpan log histori
         $this->simpanLogHistori('Delete', 'User', $id, Auth::id(), json_encode($user->toArray()), null);
-
+    
         // Hapus data pengguna
         $user->delete();
-
+    
         return redirect()->route('users.index')->with('success', 'User berhasil dihapus');
     }
+    
 }

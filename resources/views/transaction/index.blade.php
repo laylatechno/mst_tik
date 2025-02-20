@@ -53,6 +53,9 @@
                                 <thead>
                                     <tr>
                                         <th width="5%">No</th>
+                                        @can('user-access')
+                                        <th>Nama User</th> 
+                                        @endcan
                                         <th>Tanggal</th>
                                         <th>Nama Transaksi</th>
                                         <th>Jumlah</th>
@@ -65,6 +68,9 @@
                                     @foreach ($data_transactions as $p)
                                     <tr>
                                         <td>{{ $loop->iteration }}</td>
+                                        @can('user-access')
+                                        <td>{{ $p->user->name ?? 'Tidak Diketahui' }}</td>  
+                                        @endcan
                                         <td>{{ $p->date }}</td>
                                         <td>{{ $p->name }}</td>
                                         <td>{{ number_format($p->amount, 0, ',', '.') }}</td>

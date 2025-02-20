@@ -59,20 +59,30 @@ class ProductController extends Controller
     {
         $title = "Halaman Produk";
         $subtitle = "Menu Produk";
-
+        $user = auth()->user(); // Ambil data user yang sedang login
+    
         // Ambil data hanya yang diperlukan untuk dropdown dan tabel
-        $data_units = Unit::select('id', 'name')->get(); // Ambil hanya kolom penting
+        $data_units = Unit::select('id', 'name')->get();
         $data_categories = Category::select('id', 'name')->get();
         $data_customer_categories = CustomerCategory::select('id', 'name')->get();
-
+    
         // Optimasi query produk dengan eager loading
-        $data_products = Product::with(['category:id,name', 'unit:id,name']) // Load relasi hanya kolom yang dibutuhkan
-            ->select('id', 'name', 'code_product', 'barcode', 'description', 'purchase_price', 'cost_price', 'stock', 'image', 'category_id', 'unit_id', 'status_active', 'status_display') // Pilih kolom spesifik
-            ->get();
-
+        $query = Product::with(['category:id,name', 'unit:id,name', 'user:id,name']) // Tambahkan relasi user
+            ->select('id', 'name', 'code_product', 'barcode', 'description', 'purchase_price', 'cost_price', 'stock', 'image', 'category_id', 'unit_id', 'status_active', 'status_display', 'user_id');
+    
+        // Jika user tidak memiliki permission 'data-users-select2', hanya tampilkan produknya sendiri
+        if (!$user->can('data-users-select2')) {
+            $query->where('user_id', $user->id);
+        }
+    
+        $data_products = $query->get();
+    
         // Kirim data ke view
         return view('product.index', compact('data_products', 'data_units', 'data_categories', 'data_customer_categories', 'title', 'subtitle'));
     }
+    
+
+
 
 
     public function getProductPrice(Request $request)
@@ -239,49 +249,7 @@ class ProductController extends Controller
         } else {
             $data['image'] = '';
         }
-
-        // Proses image jika ada file yang diupload
-        // if ($image = $request->file('image')) {
-        //     $destinationPath = 'upload/products/';
-        //     $originalFileName = $image->getClientOriginalName();
-        //     $imageMimeType = $image->getMimeType();
-
-        //     // Memastikan file adalah gambar
-        //     if (strpos($imageMimeType, 'image/') === 0) {
-        //         $imageName = date('YmdHis') . '_' . str_replace(' ', '_', $originalFileName);
-        //         $image->move($destinationPath, $imageName);
-
-        //         $sourceImagePath = public_path($destinationPath . $imageName);
-        //         $webpImagePath = $destinationPath . pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
-
-        //         // Mengubah gambar ke format webp
-        //         switch ($imageMimeType) {
-        //             case 'image/jpeg':
-        //                 $sourceImage = @imagecreatefromjpeg($sourceImagePath);
-        //                 break;
-        //             case 'image/png':
-        //                 $sourceImage = @imagecreatefrompng($sourceImagePath);
-        //                 break;
-        //             default:
-        //                 throw new \Exception('Tipe MIME tidak didukung.');
-        //         }
-
-        //         // Jika gambar berhasil dibaca, konversi ke WebP dan hapus gambar asli
-        //         if ($sourceImage !== false) {
-        //             imagewebp($sourceImage, $webpImagePath);
-        //             imagedestroy($sourceImage);
-        //             @unlink($sourceImagePath); // Menghapus file gambar asli
-        //             $data['image'] = pathinfo($imageName, PATHINFO_FILENAME) . '.webp';  // Menggunakan $data, bukan $input
-        //         } else {
-        //             throw new \Exception('Gagal membaca gambar asli.');
-        //         }
-        //     } else {
-        //         throw new \Exception('Tipe MIME gambar tidak didukung.');
-        //     }
-        // } else {
-        //     $data['image'] = ''; // Jika tidak ada image yang diupload
-        // }
-
+ 
         // Menyimpan data produk ke database
         $product = Product::create($data);
 
@@ -355,6 +323,7 @@ class ProductController extends Controller
         $data_categories = Category::all(); // Ambil semua kategori
         $data_customer_categories = CustomerCategory::all(); // Ambil semua kategori konsumen
         $data_prices = ProductPrice::where('product_id', $data_product->id)->get(); // Ambil harga berdasarkan ID produk yang sedang diedit
+        $users = User::all(); // Ambil semua pengguna
 
         // Kirim data ke view
         return view('product.edit', compact(
@@ -364,7 +333,8 @@ class ProductController extends Controller
             'data_customer_categories',
             'data_units',
             'data_categories',
-            'data_prices'
+            'data_prices',
+            'users'
         ));
     }
 

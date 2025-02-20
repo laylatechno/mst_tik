@@ -53,6 +53,9 @@
                                 <thead>
                                     <tr>
                                         <th width="5%">No</th>
+                                        @can('user-access')
+                                        <th>Nama User</th> <!-- Hanya tampil jika ada user_id = 1 -->
+                                        @endcan
                                         <th>Nama Supplier</th>
                                         <th>Email</th>
                                         <th>No Telp</th>
@@ -65,6 +68,9 @@
                                     @foreach ($data_customers as $p)
                                     <tr>
                                         <td>{{ $loop->iteration }}</td>
+                                        @can('user-access')
+                                        <td>{{ $p->user->name ?? 'Tidak Diketahui' }}</td>  
+                                        @endcan
                                         <td>{{ $p->name }}</td>
                                         <td>{{ $p->email }}</td>
                                         <td>{{ $p->phone }}</td>

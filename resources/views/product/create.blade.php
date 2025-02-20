@@ -475,8 +475,6 @@
 </script>
 
 
-
-
 <script>
     $(document).ready(function() {
         $('#unit_id').select2();

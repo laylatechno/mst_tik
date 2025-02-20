@@ -2,6 +2,8 @@
 <html lang="en">
 
 <head>
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, shrink-to-fit=no">
   <meta name="keywords" content="{{$profil->keyword}}">
@@ -162,12 +164,13 @@
     <div class="offcanvas-body">
       <!-- Sidenav Profile-->
       <div class="sidenav-profile">
-        
+
         <div class="user-profile">
           <br>
           <img id="logoImage"
             src="{{ asset('/upload/profil/' . $profil->logo_dark) }}"
-            alt="Logo"></div>
+            alt="Logo">
+        </div>
         <div class="user-info">
           <h5 class="user-name mb-1 text-white">{{ $profil->nama_profil }}</h5>
           <span style="color: white; font-size:12px;">{{ $profil->alamat }}</span>
@@ -182,7 +185,7 @@
       <!-- Sidenav Nav-->
       <ul class="sidenav-nav ps-0">
         <li><a href="/"><i class="ti ti-home"></i>Beranda</a></li>
-        <li><a href="/"><i class="ti ti-bell-ringing lni-tada-effect"></i>Informasi Penting<span class="ms-1 badge badge-warning">3</span></a></li>
+        <li><a href="/blog"><i class="ti ti-bell-ringing lni-tada-effect"></i>Blog<span class="ms-1 badge badge-warning">*</span></a></li>
         <li><a href="/toko"><i class="ti ti-building-store"></i>Toko</a></li>
         <li>
           @php
@@ -211,15 +214,7 @@
       </ul>
     </div>
   </div>
-  <!-- PWA Install Alert -->
-  <div class="toast pwa-install-alert shadow bg-white" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000" data-bs-autohide="true">
-    <div class="toast-body">
-      <div class="content d-flex align-items-center mb-2"><img src="{{ asset('template/front') }}/img/icons/icon-72x72.png" alt="">
-        <h6 class="mb-0">Tambahkan Ke Halaman Depan</h6>
-        <button class="btn-close ms-auto" type="button" data-bs-dismiss="toast" aria-label="Close"></button>
-      </div><span class="mb-0 d-block">Click the<strong class="mx-1">Tambahkan Ke Halaman Depan</strong>button &amp; enjoy it like a regular app.</span>
-    </div>
-  </div>
+
 
 
 
@@ -248,7 +243,14 @@
         </li>
 
         <li><a href="/blog"><i class="ti ti-news"></i>Blog</a></li>
-        <li><a href="/"><i class="ti ti-login"></i>Login</a></li>
+        <li>
+          @auth
+          <a href="{{ route('home') }}"><i class="ti ti-crown"></i>Dashboard</a>
+          @else
+          <a href="/login"><i class="ti ti-login"></i>Login Toko</a>
+          @endauth
+        </li>
+
       </ul>
     </div>
   </div>

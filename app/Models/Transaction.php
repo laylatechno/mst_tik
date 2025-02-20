@@ -18,5 +18,9 @@ class Transaction extends Model
 {
     return $this->hasOne(Profit::class, 'transaction_id');
 }
+public function user()
+{
+    return $this->belongsTo(User::class, 'user_id');
+}
 
 }

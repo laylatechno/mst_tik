@@ -20,6 +20,11 @@
     </div>
   </div>
 
+  <div class="container">
+    <a class="btn btn-success btn-sm mt-3" href="/daftar">
+      Daftar Toko <i class="ti ti-arrow-right ms-1"></i>
+    </a>
+  </div>
 
   <div class="container">
     <div class="search-form pt-3 rtl-flex-d-row-r">
@@ -75,15 +80,13 @@
         </div>
       </div>
       @endforeach
-      <div class="shop-pagination pt-3">
-          <div class="container">
-            <div class="card">
-              <div class="card-body py-3">
-                {{ $data_stores->links('vendor.pagination.bootstrap-4') }}
-              </div>
+      <div class="shop-pagination">
+          <div class="card">
+            <div class="card-body py-3">
+              {{ $data_stores->links('vendor.pagination.bootstrap-4') }}
             </div>
           </div>
-        </div>
+      </div>
 
 
 

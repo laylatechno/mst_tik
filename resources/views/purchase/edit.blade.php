@@ -157,6 +157,20 @@
                         <form id="form-edit-purchase" enctype="multipart/form-data">
                             @csrf
                             @method('PUT') {{-- Laravel Method Spoofing untuk method PUT --}}
+                            @can('user-access')
+                            <div class="form-group mb-3">
+                                <label for="user_id">Pengguna</label>
+                                <span class="text-danger">*</span>
+                                <select name="user_id" id="user_id" class="form-control select2" required>
+                                    <option value="">-- Pilih Pengguna --</option>
+                                    @foreach($users as $user)
+                                    <option value="{{ $user->id }}" {{ $purchase->user_id == $user->id ? 'selected' : '' }}>
+                                        {{ $user->name }}
+                                    </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @endcan
 
                             <h5 class="card-title mb-0"><b style="color: blue;">Kode Pembelian : <input type="hidden"
                                         id="no_purchase" name="no_purchase"
@@ -386,8 +400,18 @@
 @endsection
 
 @push('script')
+ 
 <script src="{{ asset('template/back') }}/dist/libs/select2/dist/js/select2.full.min.js"></script>
 <script src="{{ asset('template/back') }}/dist/libs/select2/dist/js/select2.min.js"></script>
+<script src="{{ asset('template/back') }}/dist/js/forms/select2.init.js"></script>
+
+<script>
+    $(document).ready(function() {
+        $('#user_id').select2();
+
+    });
+</script>
+
 
 
 <script>

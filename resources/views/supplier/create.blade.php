@@ -1,5 +1,8 @@
 @extends('layouts.app')
-
+@push('css')
+<link rel="stylesheet" href="{{ asset('template/back') }}/dist/libs/select2/dist/css/select2.min.css">
+ 
+@endpush
 @section('content')
 <div class="container-fluid">
     <div class="card bg-light-info shadow-none position-relative overflow-hidden" style="border: solid 0.5px #ccc;">
@@ -30,42 +33,57 @@
                 <div class="card">
                     <div class="card-body">
                         @if ($errors->any())
-                            <div class="alert alert-danger">
-                                <strong>Whoops!</strong> Ada beberapa masalah dengan data yang anda masukkan.
-                                <ul>
-                                    @foreach ($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
+                        <div class="alert alert-danger">
+                            <strong>Whoops!</strong> Ada beberapa masalah dengan data yang anda masukkan.
+                            <ul>
+                                @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
                         @endif
 
                         <form method="POST" action="{{ route('suppliers.store') }}">
-                                @csrf
-                                <div class="row">
-                                    <div class="form-group mb-3">
-                                        <label for="name">Nama Supplier</label>
-                                        <span class="text-danger">*</span>  
-                                        <input type="text" name="name" class="form-control" id="name" required>
-                                    </div>
-                                    <div class="form-group mb-3">
-                                        <label for="email">Email</label>
-                                        <input type="email" name="email" class="form-control" id="email" >
-                                    </div>
-                                    <div class="form-group mb-3">
-                                        <label for="phone">No Telp</label>
-                                        <input type="number" name="phone" class="form-control" id="phone" >
-                                    </div>
-                                    <div class="form-group mb-3">
-                                        <label for="address">Alamat</label>
-                                        <textarea class="form-control" name="address" id="address"></textarea>
-                                    </div>
-                                    <div class="col-xs-12 col-sm-12 col-md-12 mt-3">
-                                        <button type="submit" class="btn btn-primary btn-sm mb-3"><i class="fa fa-save"></i> Simpan</button>
-                                        <a class="btn btn-warning btn-sm mb-3" href="{{ route('suppliers.index') }}"><i class="fa fa-undo"></i> Kembali</a>
-                                    </div>
+                            @csrf
+                            <div class="row">
+                                @can('user-access')
+                                <div class="form-group mb-3">
+                                    <label for="user_id">Pengguna</label>
+                                    <span class="text-danger">*</span>
+                                    <select name="user_id" id="user_id" class="form-control select2" required>
+                                        <option value="">-- Pilih Pengguna --</option>
+                                        @foreach($users as $user)
+                                        <option value="{{ $user->id }}" {{ auth()->id() == $user->id ? 'selected' : '' }}>
+                                            {{ $user->name }}
+                                        </option>
+                                        @endforeach
+                                    </select>
                                 </div>
-                            </form>
+                                @endcan
+
+                                <div class="form-group mb-3">
+                                    <label for="name">Nama Supplier</label>
+                                    <span class="text-danger">*</span>
+                                    <input type="text" name="name" class="form-control" id="name" required>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="email">Email</label>
+                                    <input type="email" name="email" class="form-control" id="email">
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="phone">No Telp</label>
+                                    <input type="number" name="phone" class="form-control" id="phone">
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="address">Alamat</label>
+                                    <textarea class="form-control" name="address" id="address"></textarea>
+                                </div>
+                                <div class="col-xs-12 col-sm-12 col-md-12 mt-3">
+                                    <button type="submit" class="btn btn-primary btn-sm mb-3"><i class="fa fa-save"></i> Simpan</button>
+                                    <a class="btn btn-warning btn-sm mb-3" href="{{ route('suppliers.index') }}"><i class="fa fa-undo"></i> Kembali</a>
+                                </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -73,3 +91,18 @@
     </section>
 </div>
 @endsection
+
+@push('script')
+
+<script src="{{ asset('template/back') }}/dist/libs/select2/dist/js/select2.full.min.js"></script>
+<script src="{{ asset('template/back') }}/dist/libs/select2/dist/js/select2.min.js"></script>
+<script src="{{ asset('template/back') }}/dist/js/forms/select2.init.js"></script>
+
+<script>
+    
+    $(document).ready(function() {
+        $('#user_id').select2();
+      
+    });
+</script>
+@endpush

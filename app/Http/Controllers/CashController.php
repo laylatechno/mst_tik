@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\LogHistori;
 use App\Models\Cash;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -47,7 +48,13 @@ class CashController extends Controller
     {
         $title = "Halaman Cash";
         $subtitle = "Menu Cash";
-        $data_cashs = Cash::all();
+        $user = auth()->user(); // Ambil user yang sedang login 
+        if ($user->can('user-access')) {
+            $data_cashs = Cash::with('user')->get();
+        } else {
+            // Jika tidak, hanya tampilkan supplier dengan user_id yang sesuai dengan user yang login
+            $data_cashs = Cash::where('user_id', $user->id)->with('user')->get();
+        }
         return view('cash.index', compact('data_cashs', 'title', 'subtitle'));
     }
 
@@ -61,7 +68,8 @@ class CashController extends Controller
     {
         $title = "Halaman Tambah Cash";
         $subtitle = "Menu Tambah Cash";
-        return view('cash.create', compact('title', 'subtitle'));
+        $users = User::all();
+        return view('cash.create', compact('title', 'subtitle', 'users'));
     }
 
 
@@ -84,11 +92,18 @@ class CashController extends Controller
         // Menghapus separator ',' dan '.' pada amount
         $amount = str_replace([',', '.'], '', $request->input('amount'));
 
-        // Membuat data baru
+        // Ambil user_id berdasarkan kondisi
+        $loggedInUserId = Auth::id();
+        $userIdToSave = $request->filled('user_id') && Auth::user()->can('user-access')
+            ? $request->user_id
+            : $loggedInUserId;
+
+        // Membuat data baru dengan user_id
         $cash = Cash::create(array_merge(
-            $request->except('amount'),
-            ['amount' => $amount]
+            $request->except('amount', 'user_id'),
+            ['amount' => $amount, 'user_id' => $userIdToSave]
         ));
+
 
         $loggedInUserId = Auth::id();
         // Simpan log histori untuk operasi Create dengan user_id yang sedang login
@@ -128,8 +143,8 @@ class CashController extends Controller
         $title = "Halaman Edit Cash";
         $subtitle = "Menu Edit Cash";
         $data_cashs = Cash::findOrFail($id); // Data menu item yang sedang diedit
-
-        return view('cash.edit', compact('data_cashs', 'title', 'subtitle'));
+        $users = User::all();
+        return view('cash.edit', compact('data_cashs', 'title', 'subtitle', 'users'));
     }
 
 
@@ -149,41 +164,48 @@ class CashController extends Controller
         ], [
             'name.required' => 'Nama wajib diisi.',
         ]);
-    
+
         // Cari data berdasarkan ID
         $cash = Cash::find($id);
-    
+
         // Jika data tidak ditemukan
         if (!$cash) {
             return redirect()->route('cash.index')
                 ->with('error', 'Data Cash tidak ditemukan.');
         }
-    
+
         // Menyimpan data lama sebelum update
         $oldCashsnData = $cash->toArray();
-    
+
         // Menghapus separator ',' dan '.' pada amount
         $amount = str_replace([',', '.'], '', $request->input('amount'));
-    
+
+        // Ambil user_id berdasarkan kondisi
+        $loggedInUserId = Auth::id();
+        $userIdToSave = $request->filled('user_id') && Auth::user()->can('user-access')
+            ? $request->user_id
+            : $cash->user_id; // Jika tidak punya izin, user_id tetap sama
+
         // Melakukan update data
         $cash->update(array_merge(
-            $request->except('amount'),
-            ['amount' => $amount]
+            $request->except('amount', 'user_id'),
+            ['amount' => $amount, 'user_id' => $userIdToSave]
         ));
-    
+
+
         // Mendapatkan ID pengguna yang sedang login
         $loggedInUserId = Auth::id();
-    
+
         // Mendapatkan data baru setelah update
         $newCashsnData = $cash->fresh()->toArray();
-    
+
         // Menyimpan log histori untuk operasi Update
         $this->simpanLogHistori('Update', 'Cash', $cash->id, $loggedInUserId, json_encode($oldCashsnData), json_encode($newCashsnData));
-    
+
         return redirect()->route('cash.index')
             ->with('success', 'Cash berhasil diperbaharui');
     }
-    
+
 
 
 

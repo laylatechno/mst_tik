@@ -34,7 +34,7 @@
             <div class="position-relative z-index-5">
                 <div class="row">
                     <div class="col-xl-7 col-xxl-8">
-                        <a href="" class="text-nowrap logo-img d-block px-4 py-9 w-100">
+                        <a href="/" class="text-nowrap logo-img d-block px-4 py-9 w-100">
                             <img src="/upload/profil/{{ $profil->logo }}" width="100" alt="">
                         </a>
                         <div class="d-none d-xl-flex align-items-center justify-content-center" style="height: calc(100vh - 80px);">
@@ -67,7 +67,7 @@
                                 <form method="POST" action="{{ route('login') }}">
                                     @csrf
                                     <div class="mb-3">
-                                        <label for="email" class="form-label">Username</label>
+                                        <label for="email" class="form-label">Email</label>
                                         <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus>
 
                                         @error('email')
@@ -114,20 +114,24 @@
                                                 {{ __('Remember Me') }}
                                             </label>
                                         </div>
-                                        @if (Route::has('password.request'))
+                                        <!-- @if (Route::has('password.request'))
                                         <a class="btn btn-link" href="{{ route('password.request') }}">
                                             {{ __('Forgot Password?') }}
                                         </a>
-                                        @endif
+                                        @endif -->
                                         <!-- <a class="text-primary fw-medium" href="{{ asset('template/back') }}/./authentication-forgot-password.html">{{ __('Forgot Password') }}</a> -->
                                     </div>
                                     <button type="submit" class="btn btn-primary w-100 py-8 mb-4 rounded-2"><i class="fas fa-sign-in-alt"></i>
                                         {{ __('Login') }}
                                     </button>
-                                    <!-- <div class="d-flex align-items-center justify-content-center">
+                                    <div class="d-flex align-items-center justify-content-center">
                                         <p class="fs-4 mb-0 fw-medium">{{ __('Don\'t have account?') }}</p>
-                                        <a class="text-primary fw-medium ms-2" href="{{ asset('template/back') }}/./authentication-register.html">{{ __('Create an account') }}</a>
-                                    </div> -->
+                                        <a class="text-primary fw-medium ms-2" href="/daftar">{{ __('Create an account') }}</a>
+                                    </div>
+                                    <br>
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <a class="text-warning fw-medium ms-2" href="/">{{ __('To Front Page') }}</a>
+                                    </div>
                                 </form>
                             </div>
                         </div>

@@ -27,4 +27,11 @@ class StockOpname extends Model
         return $this->belongsToMany(Product::class, 'stock_opname_detail', 'stock_opname_id', 'product_id')
             ->withPivot('physical_stock', 'difference', 'description_detail');
     }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    
 }

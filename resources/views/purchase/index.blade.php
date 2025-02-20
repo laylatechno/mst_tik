@@ -87,6 +87,9 @@
                                 <thead>
                                     <tr>
                                         <th width="5px">No</th>
+                                        @can('user-access')
+                                        <th>Nama User</th> 
+                                        @endcan
                                         <th>No Pembelian</th>
                                         <th>Tanggal Pembelian</th>
                                         <th>Supplier</th>
@@ -101,6 +104,9 @@
                                     @foreach ($data_purchases as $p)
                                     <tr>
                                         <td>{{ $loop->iteration }}</td>
+                                        @can('user-access')
+                                        <td>{{ $p->user->name ?? 'Tidak Diketahui' }}</td>  
+                                        @endcan
                                         <td>{{ $p->no_purchase }}</td>
 
                                         <!-- Tanggal Pembelian dengan Hari -->

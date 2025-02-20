@@ -49,14 +49,17 @@ Route::middleware([HtmlMinifier::class])->group(function () {
 
     Route::get('/product/{slug}', [DepanController::class, 'product_detail'])->name('product.product_detail');
     Route::get('/toko', [DepanController::class, 'store'])->name('store');
-    Route::get('/toko/{user}', [DepanController::class, 'store_detail'])->name('store.store_detail');
+
+
     Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
     Route::get('/cart/delete/{id}', [CartController::class, 'delete'])->name('cart.delete');
     Route::get('/cart/reset', [CartController::class, 'reset'])->name('cart.reset');
     Route::get('/blog', [DepanController::class, 'blog'])->name('blog');
     Route::get('/blog/{slug}', [DepanController::class, 'blog_detail'])->name('blog.blog_detail');
-
+    Route::get('/daftar', [DepanController::class, 'register'])->name('register');
+    Route::post('/proses_daftar', [DepanController::class, 'register_action']);
+ 
 
     Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::group(['middleware' => ['auth']], function () {
@@ -152,4 +155,9 @@ Route::middleware([HtmlMinifier::class])->group(function () {
         Route::resource('/backupdatabase', BackupController::class);
         Route::get('/backup/manual', [BackupController::class, 'manualBackup'])->name('backup.manual');
     });
+
+    Route::get('/{user}', [DepanController::class, 'store_detail'])
+    ->where('user', '[a-zA-Z0-9-_]+')
+    ->name('store.store_detail');
+
 });

@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @push('css')
+<link rel="stylesheet" href="{{ asset('template/back') }}/dist/libs/select2/dist/css/select2.min.css">
 @endpush
 
 @section('content')
@@ -46,9 +47,21 @@
                             <form method="POST" action="{{ route('cash.update', $data_cashs->id) }}">
                                 @csrf
                                 @method('PUT')
-
-
                                 <div class="row">
+                                @can('user-access')
+                                    <div class="form-group mb-3">
+                                        <label for="user_id">Pengguna</label>
+                                        <span class="text-danger">*</span>
+                                        <select name="user_id" id="user_id" class="form-control select2" required>
+                                            <option value="">-- Pilih Pengguna --</option>
+                                            @foreach($users as $user)
+                                            <option value="{{ $user->id }}" {{ $data_cashs->user_id == $user->id ? 'selected' : '' }}>
+                                                {{ $user->name }}
+                                            </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    @endcan
                                     <div class="form-group mb-3">
                                         <label for="name">Nama Kas</label>
                                         <input type="text" name="name" class="form-control" id="name" value="{{ $data_cashs->name }}" required>
@@ -86,4 +99,14 @@
 
 @push('script')
 
+<script src="{{ asset('template/back') }}/dist/libs/select2/dist/js/select2.full.min.js"></script>
+<script src="{{ asset('template/back') }}/dist/libs/select2/dist/js/select2.min.js"></script>
+<script src="{{ asset('template/back') }}/dist/js/forms/select2.init.js"></script>
+
+<script>
+    $(document).ready(function() {
+        $('#user_id').select2();
+
+    });
+</script>
 @endpush

@@ -175,6 +175,24 @@
                             <div class="tab-content mt-3" id="formTabsContent">
                                 <!-- General Tab -->
                                 <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
+
+                                    @can('user-access')
+                                    <div class="form-group mb-3">
+                                        <label for="user_id">Pengguna</label>
+                                        <span class="text-danger">*</span>
+                                        <select name="user_id" id="user_id" class="form-control select2" required>
+                                            <option value="">-- Pilih Pengguna --</option>
+                                            @foreach($users as $user)
+                                            <option value="{{ $user->id }}" {{ $data_product->user_id == $user->id ? 'selected' : '' }}>
+                                                {{ $user->name }}
+                                            </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    @endcan
+
+
+
                                     <div class="form-group mb-3">
                                         <label for="name">Nama Produk</label>
                                         <span class="text-danger">*</span>
@@ -276,11 +294,11 @@
                                         <div>
                                             <label class="me-3">
                                                 <input type="radio" name="status_active" value="active" required
-                                                    {{ old('status_active', $product->status_active ?? 'nonactive') == 'active' ? 'checked' : '' }}> Active
+                                                    {{ old('status_active', $data_product->status_active ?? '') == 'active' ? 'checked' : '' }}> Active
                                             </label>
                                             <label>
                                                 <input type="radio" name="status_active" value="nonactive" required
-                                                    {{ old('status_active', $product->status_active ?? 'nonactive') == 'nonactive' ? 'checked' : '' }}> Non Active
+                                                    {{ old('status_active', $data_product->status_active ?? '') == 'nonactive' ? 'checked' : '' }}> Non Active
                                             </label>
                                         </div>
                                     </div>
@@ -292,14 +310,31 @@
                                         <div>
                                             <label class="me-3">
                                                 <input type="radio" name="status_display" value="active" required
-                                                    {{ old('status_display', $product->status_display ?? 'nonactive') == 'active' ? 'checked' : '' }}> Active
+                                                    {{ old('status_display', $data_product->status_display ?? '') == 'active' ? 'checked' : '' }}> Active
                                             </label>
                                             <label>
                                                 <input type="radio" name="status_display" value="nonactive" required
-                                                    {{ old('status_display', $product->status_display ?? 'nonactive') == 'nonactive' ? 'checked' : '' }}> Non Active
+                                                    {{ old('status_display', $data_product->status_display ?? '') == 'nonactive' ? 'checked' : '' }}> Non Active
                                             </label>
                                         </div>
                                     </div>
+
+                                    <div class="form-group col-6 mb-3">
+                                        <label title="Status Diskon berpengaruh terhadap harga coret yg biasa muncul pada Halaman Depan yang diakses oleh pengguna umum">
+                                            Status Diskon <i class="fa fa-info-circle"></i>
+                                        </label>
+                                        <div>
+                                            <label class="me-3">
+                                                <input type="radio" name="status_discount" value="active" required
+                                                    {{ old('status_discount', $data_product->status_discount ?? '') == 'active' ? 'checked' : '' }}> Active
+                                            </label>
+                                            <label>
+                                                <input type="radio" name="status_discount" value="nonactive" required
+                                                    {{ old('status_discount', $data_product->status_discount ?? '') == 'nonactive' ? 'checked' : '' }}> Non Active
+                                            </label>
+                                        </div>
+                                    </div>
+
 
 
                                     <div class="form-group mb-3">
@@ -498,9 +533,6 @@
 <script src="{{ asset('template/back') }}/dist/libs/select2/dist/js/select2.full.min.js"></script>
 <script src="{{ asset('template/back') }}/dist/libs/select2/dist/js/select2.min.js"></script>
 <script src="{{ asset('template/back') }}/dist/js/forms/select2.init.js"></script>
-
-
-
 <script>
     $(document).ready(function() {
         $('#unit_id').select2();
@@ -508,6 +540,9 @@
         $('#customer_category_id').select2();
     });
 </script>
+
+
+
 
 
 

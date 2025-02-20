@@ -160,6 +160,8 @@
                                 }
                             </script>
 
+                            
+
                             <table id="scroll_hor" class="table border table-striped table-bordered display nowrap" style="width: 100%">
                                 <thead>
                                     <tr>
@@ -170,6 +172,9 @@
                                         <th>Nama</th>
                                         <th>Kode Produk</th>
                                         <th>Barcode</th>
+                                        @can('data-users-select2')
+                                        <th>Nama User</th>  
+                                        @endcan
                                         <th>Status Aktif</th>
                                         <th>Harga Beli</th>
                                         <th>Harga Jual</th>
@@ -190,15 +195,14 @@
                                         <td>
                                             {!! !empty($p->barcode) ? \App\Helpers\BarcodeHelper::generateBarcode($p->barcode) : '<span>No Data</span>' !!}
                                         </td>
-
+                                        @can('data-users-select2')
+                                        <td>{{ $p->user->name ?? 'Tidak Diketahui' }}</td>  
+                                        @endcan
                                         <td>
                                             <span class="badge {{ $p->status_active == 'active' ? 'bg-success' : 'bg-danger' }}">
                                                 {{ ucfirst($p->status_active) }}
                                             </span>
                                         </td>
-
-
-
                                         <td>Rp {{ number_format($p->purchase_price, 0, ',', '.') }}</td>
                                         <td>Rp {{ number_format($p->cost_price, 0, ',', '.') }}</td>
                                         <td>{{ $p->stock }}</td>
@@ -229,6 +233,7 @@
                                     @endforeach
                                 </tbody>
                             </table>
+
                         </div>
 
                     </div>

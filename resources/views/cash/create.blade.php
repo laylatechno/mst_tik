@@ -1,5 +1,7 @@
 @extends('layouts.app')
-
+@push('css')
+<link rel="stylesheet" href="{{ asset('template/back') }}/dist/libs/select2/dist/css/select2.min.css">
+@endpush
 @section('content')
 <div class="container-fluid">
     <div class="card bg-light-info shadow-none position-relative overflow-hidden" style="border: solid 0.5px #ccc;">
@@ -43,6 +45,20 @@
                         <form method="POST" action="{{ route('cash.store') }}">
                             @csrf
                             <div class="row">
+                                @can('user-access')
+                                <div class="form-group mb-3">
+                                    <label for="user_id">Pengguna</label>
+                                    <span class="text-danger">*</span>
+                                    <select name="user_id" id="user_id" class="form-control select2" required>
+                                        <option value="">-- Pilih Pengguna --</option>
+                                        @foreach($users as $user)
+                                        <option value="{{ $user->id }}" {{ auth()->id() == $user->id ? 'selected' : '' }}>
+                                            {{ $user->name }}
+                                        </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                @endcan
                                 <div class="form-group mb-3">
                                     <label for="name">Nama Kas</label>
                                     <input type="text" name="name" class="form-control" id="name" required>
@@ -50,7 +66,7 @@
 
                                 <div class="form-group mb-3">
                                     <label for="amount">Saldo</label>
-                                    <input type="text" name="amount" class="form-control" id="amount"  oninput="formatPrice(this)">
+                                    <input type="text" name="amount" class="form-control" id="amount" oninput="formatPrice(this)" value="0">
                                 </div>
                                 <script>
                                     function formatPrice(input) {
@@ -74,3 +90,17 @@
     </section>
 </div>
 @endsection
+@push('script')
+
+<script src="{{ asset('template/back') }}/dist/libs/select2/dist/js/select2.full.min.js"></script>
+<script src="{{ asset('template/back') }}/dist/libs/select2/dist/js/select2.min.js"></script>
+<script src="{{ asset('template/back') }}/dist/js/forms/select2.init.js"></script>
+
+<script>
+    
+    $(document).ready(function() {
+        $('#user_id').select2();
+      
+    });
+</script>
+@endpush

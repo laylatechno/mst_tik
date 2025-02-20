@@ -43,7 +43,7 @@
 
 
   <div class="container">
-    <div class="search-form pt-3 rtl-flex-d-row-r">
+    <div class="search-form rtl-flex-d-row-r">
       <form action="{{ route('blog') }}" method="GET">
         <input class="form-control" type="search" name="search" placeholder="Cari berita.." value="{{ request('search') }}">
         <button type="submit"><i class="ti ti-search"></i></button>
@@ -64,11 +64,9 @@
 
 
   <!-- Menampilkan Blog berdasarkan Kategori -->
-  <div class="weekly-best-seller-area pt-2">
+  <div class="weekly-best-seller-area pt-3">
     <div class="container">
-      <div class="section-heading d-flex align-items-center justify-content-between dir-rtl">
-        <h6>Informasi Terbaru</h6>
-      </div>
+    
       <div class="row g-2">
         @forelse ($data_blogs as $p)
         <div class="col-12">
@@ -93,15 +91,15 @@
         @empty
         <p>No blog posts available in this category.</p>
         @endforelse
-        <div class="shop-pagination pt-3">
-          <div class="container">
+        <div class="shop-pagination pt-2">
+           
             <div class="card">
               <div class="card-body py-3">
                 {{-- Pagination untuk data_blog_categories --}}
                 {{ $data_blogs->links('vendor.pagination.bootstrap-4') }}
               </div>
             </div>
-          </div>
+         
         </div>
 
       </div>

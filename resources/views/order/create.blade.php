@@ -241,6 +241,20 @@
                         <form id="form-order" action="{{ route('orders.store') }}" method="post" enctype="multipart/form-data">
 
                             @csrf
+                            @can('user-access')
+                            <div class="form-group mb-3">
+                                <label for="user_id">Pengguna</label>
+                                <span class="text-danger">*</span>
+                                <select name="user_id" id="user_id" class="form-control select2" required>
+                                    <option value="">-- Pilih Pengguna --</option>
+                                    @foreach($users as $user)
+                                    <option value="{{ $user->id }}" {{ auth()->id() == $user->id ? 'selected' : '' }}>
+                                        {{ $user->name }}
+                                    </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @endcan
                             <h5 class="card-title mb-0"><b style="color: blue;">Kode Penjualan :
                                     <input type="hidden" id="no_order" name="no_order" value="{{ $no_order }}">{{ $no_order }}</input></b></h5>
                             <hr>

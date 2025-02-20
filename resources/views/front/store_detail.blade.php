@@ -45,61 +45,62 @@
     </div>
   </div>
 
-  <div class="page-content-wrapper pb-3">
-    <!-- Vendor Details Wrap -->
-    <div class="vendor-details-wrap bg-img bg-overlay py-4" style="background-image: url('/upload/users/{{ $data_stores->banner }}')">
-      <div class="container">
-        <div class="d-flex align-items-start">
-          <!-- Vendor Profile-->
-          <div class="vendor-profile shadow me-3">
-            <figure class="m-0"><img src="/upload/users/{{ $data_stores->image }}" alt=""></figure>
+  <div class="container">
+    <div class="page-content-wrapper pb-3">
+      <!-- Vendor Details Wrap -->
+      <div class="vendor-details-wrap bg-img bg-overlay py-4" style="background-image: url('/upload/users/{{ $data_stores->banner }}')">
+        <div class="container">
+          <div class="d-flex align-items-start">
+            <!-- Vendor Profile-->
+            <div class="vendor-profile shadow me-3">
+              <figure class="m-0"><img src="/upload/users/{{ $data_stores->image }}" alt=""></figure>
+            </div>
+            <!-- Vendor Info-->
+            <div class="vendor-info">
+              <p class="mb-1 text-white"><i class="ti ti-briefcase me-1"></i>{{ $data_stores->about }}</p>
+              <p class="mb-1 text-white"><i class="ti ti-map-pin me-1"></i>{{ $data_stores->address }}</p>
+              <div class="ratings lh-1">
+                <a href="https://wa.me/{{ $data_stores->wa_number }}" target="_blank">
+                  <span style="color: yellow;">{{ $data_stores->wa_number }}</span>
+                </a>
+              </div>
+            </div>
           </div>
-          <!-- Vendor Info-->
-          <div class="vendor-info">
-            <p class="mb-1 text-white"><i class="ti ti-briefcase me-1"></i>{{ $data_stores->about }}</p>
-            <p class="mb-1 text-white"><i class="ti ti-map-pin me-1"></i>{{ $data_stores->address }}</p>
-            <div class="ratings lh-1">
-              <a href="https://wa.me/{{ $data_stores->wa_number }}" target="_blank">
-                <span style="color: yellow;">{{ $data_stores->wa_number }}</span>
-              </a>
+          <!-- Vendor Basic Info-->
+          <div class="vendor-basic-info d-flex align-items-center justify-content-between mt-4">
+            <div class="single-basic-info">
+              <div class="icon"><i class="ti ti-heart"></i></div><span>@ {{ $data_stores->user }}</span>
+            </div>
+            <div class="single-basic-info">
+              <div class="icon"><i class="ti ti-basket"></i></div>
+              <span>{{ $total_products }} Produk</span>
+            </div>
+
+            <div class="single-basic-info">
+              <div class="icon"><i class="ti ti-crown"></i></div><span>Terpercaya</span>
             </div>
           </div>
         </div>
-        <!-- Vendor Basic Info-->
-        <div class="vendor-basic-info d-flex align-items-center justify-content-between mt-4">
-          <div class="single-basic-info">
-            <div class="icon"><i class="ti ti-heart"></i></div><span>@ {{ $data_stores->user }}</span>
-          </div>
-          <div class="single-basic-info">
-            <div class="icon"><i class="ti ti-basket"></i></div>
-            <span>{{ $total_products }} Produk</span>
-          </div>
-
-          <div class="single-basic-info">
-            <div class="icon"><i class="ti ti-crown"></i></div><span>Terpercaya</span>
-          </div>
+      </div>
+      <!-- Vendor Tabs -->
+      <div class="vendor-tabs">
+        <div class="container">
+          <ul class="nav nav-tabs mb-3" id="vendorTab" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">Tentang</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="products-tab" data-bs-toggle="tab" data-bs-target="#products" type="button" role="tab" aria-controls="products" aria-selected="false">Produk</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="links-tab" data-bs-toggle="tab" data-bs-target="#links" type="button" role="tab" aria-controls="links" aria-selected="false">Link</button>
+            </li>
+          </ul>
         </div>
       </div>
-    </div>
-    <!-- Vendor Tabs -->
-    <div class="vendor-tabs">
-      <div class="container">
-        <ul class="nav nav-tabs mb-3" id="vendorTab" role="tablist">
-          <li class="nav-item" role="presentation">
-            <button class="nav-link" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">Tentang</button>
-          </li>
-          <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="products-tab" data-bs-toggle="tab" data-bs-target="#products" type="button" role="tab" aria-controls="products" aria-selected="false">Produk</button>
-          </li>
-          <li class="nav-item" role="presentation">
-            <button class="nav-link" id="links-tab" data-bs-toggle="tab" data-bs-target="#links" type="button" role="tab" aria-controls="links" aria-selected="false">Link</button>
-          </li>
-        </ul>
-      </div>
-    </div>
-    <div class="tab-content" id="vendorTabContent">
-      <div class="tab-pane fade" id="home" role="tabpanel" aria-labelledby="home-tab">
-        <div class="container pb-2">
+      <div class="tab-content" id="vendorTabContent">
+        <div class="tab-pane fade" id="home" role="tabpanel" aria-labelledby="home-tab">
+
           <div class="card">
             <div class="card-body about-content-wrap dir-rtl">
 
@@ -118,9 +119,8 @@
 
             </div>
           </div>
-        </div>
-        <div class="container">
-          <div class="card">
+
+          <div class="card mt-2">
             <div class="card-body about-content-wrap dir-rtl">
               <h6>Selamat Datang di Toko : {{$data_stores->name}}</h6>
               <p>{!!$data_stores->description!!}</p>
@@ -128,9 +128,8 @@
 
             </div>
           </div>
-        </div>
-        <div class="container py-2">
-          <div class="card">
+
+          <div class="card mt-2">
             <div class="card-body about-content-wrap dir-rtl">
               <p class="mb-2">Bagikan agar orang lain tahu banyak tentang toko ini.</p>
               <!-- AddToAny BEGIN -->
@@ -149,9 +148,8 @@
 
             </div>
           </div>
-        </div>
-        <div class="container pb-2">
-          <div class="card">
+
+          <div class="card mt-2">
             <div class="card-body about-content-wrap dir-rtl">
               <a class="btn btn-primary w-100" href="{{ $data_stores->maps }}">
                 <i class="ti ti-map"></i> Buka Google Maps Toko
@@ -161,12 +159,11 @@
 
             </div>
           </div>
+
+
+
         </div>
-
-
-      </div>
-      <div class="tab-pane fade show active" id="products" role="tabpanel" aria-labelledby="products-tab">
-        <div class="container">
+        <div class="tab-pane fade show active" id="products" role="tabpanel" aria-labelledby="products-tab">
           <div class="row g-2 rtl-flex-d-row-r">
             @foreach ($data_products as $p)
             <!-- Product Card -->
@@ -238,35 +235,33 @@
               </div>
             </div>
             @endforeach
-            <div class="shop-pagination pt-3">
-              <div class="container">
-                <div class="card">
-                  <div class="card-body py-3">
-                    {{ $data_products->links('vendor.pagination.bootstrap-4') }}
-                  </div>
+            <div class="shop-pagination pt-2">
+              <div class="card">
+                <div class="card-body py-2">
+                  {{ $data_products->links('vendor.pagination.bootstrap-4') }}
                 </div>
               </div>
             </div>
 
           </div>
         </div>
-      </div>
-      <div class="tab-pane fade" id="links" role="tabpanel" aria-labelledby="links-tab">
-        <!-- Rating & Review Wrapper -->
-        <div class="rating-and-review-wrapper bg-white py-3 mb-3 dir-rtl">
-          <div class="container">
+        <div class="tab-pane fade" id="links" role="tabpanel" aria-labelledby="links-tab">
+          <!-- Rating & Review Wrapper -->
+          <div class="rating-and-review-wrapper bg-white py-3 mb-3 dir-rtl">
             <div class="rating-review-content">
               <ul class="ps-0">
                 <!-- Single User Review -->
-                <li class="single-user-review d-flex">
+                <li class="single-user-review">
                   <div class="contact-btn-wrap text-center">
                     <p class="mb-2">Kunjungi juga link lain dari toko ini untuk melengkapi referensi belanja anda.</p>
+                    <div class="container">
+                      @foreach($data_stores->links as $link)
+                      <a class="btn btn-danger w-100 my-2" href="{{ $link->link }}" target="_blank">
+                        <i class="ti ti-link me-1 h6"></i>{{ $link->name }}
+                      </a>
+                      @endforeach
+                    </div>
 
-                    @foreach($data_stores->links as $link)
-                    <a class="btn btn-danger w-100 my-2" href="{{ $link->link }}" target="_blank">
-                      <i class="ti ti-link me-1 h6"></i>{{ $link->name }}
-                    </a>
-                    @endforeach
 
                   </div>
                 </li>
@@ -275,10 +270,10 @@
               </ul>
             </div>
           </div>
+
+
+
         </div>
-
-
-
       </div>
     </div>
   </div>

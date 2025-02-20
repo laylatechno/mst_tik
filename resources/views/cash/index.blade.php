@@ -53,6 +53,9 @@
                                 <thead>
                                     <tr>
                                         <th width="5%">No</th>
+                                        @can('user-access')
+                                        <th>Nama User</th> <!-- Hanya tampil jika ada user_id = 1 -->
+                                        @endcan
                                         <th>Nama Kas</th>
                                         <th>Saldo</th>
                                         <th width="280px">Action</th>
@@ -62,6 +65,9 @@
                                     @foreach ($data_cashs as $p)
                                     <tr>
                                         <td>{{ $loop->iteration }}</td>
+                                        @can('user-access')
+                                        <td>{{ $p->user->name ?? 'Tidak Diketahui' }}</td>  
+                                        @endcan
                                         <td>{{ $p->name }}</td>
                                         <td>Rp. {{ number_format($p->amount, 0, ',', '.') }}</td>
 

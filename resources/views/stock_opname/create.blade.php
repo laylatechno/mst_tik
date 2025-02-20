@@ -4,6 +4,7 @@
 <link rel="stylesheet" href="{{ asset('template/back') }}/dist/libs/select2/dist/css/select2.min.css">
 @endpush
 
+
 @section('content')
 <div class="container-fluid">
 
@@ -49,6 +50,20 @@
                         <form action="{{ route('stock_opname.store') }}" method="POST" enctype="multipart/form-data">
                             @csrf
 
+                            @can('user-access')
+                            <div class="form-group mb-3">
+                                <label for="user_id">Pengguna</label>
+                                <span class="text-danger">*</span>
+                                <select name="user_id" id="user_id" class="form-control select2" required>
+                                    <option value="">-- Pilih Pengguna --</option>
+                                    @foreach($users as $user)
+                                    <option value="{{ $user->id }}" {{ auth()->id() == $user->id ? 'selected' : '' }}>
+                                        {{ $user->name }}
+                                    </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @endcan
                             <div class="form-group mb-3">
                                 <label for="opname_date">Tanggal Stock Opname</label>
                                 <input type="date" name="opname_date" id="opname_date" class="form-control" value="{{ old('opname_date', now()->toDateString()) }}" required>
@@ -149,7 +164,7 @@
 
 
 
-                            <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i>  Simpan</button>
+                            <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Simpan</button>
                             <a href="{{ route('stock_opname.index') }}" class="btn btn-danger" style="color:white;"><i
                                     class="fas fa-step-backward"></i> Kembali</a>
                         </form>
@@ -162,6 +177,20 @@
 @endsection
 
 @push('script')
+
+<script src="{{ asset('template/back') }}/dist/libs/select2/dist/js/select2.full.min.js"></script>
+<script src="{{ asset('template/back') }}/dist/libs/select2/dist/js/select2.min.js"></script>
+<script src="{{ asset('template/back') }}/dist/js/forms/select2.init.js"></script>
+
+<script>
+    
+    $(document).ready(function() {
+        $('#user_id').select2();
+      
+    });
+</script>
+
+
 <script>
     // Fungsi untuk mengisi semua kolom 'Stock Real' dengan nilai dari 'Stock Sistem'
     function fillAllPhysicalStocks() {

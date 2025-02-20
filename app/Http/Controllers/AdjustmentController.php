@@ -7,7 +7,7 @@ use App\Models\LogHistori;
 use App\Models\Product;
 use App\Models\AdjustmentDetail;
 use App\Models\Adjustment;
-
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
@@ -60,9 +60,10 @@ class AdjustmentController extends Controller
         // Ambil data hanya yang diperlukan untuk dropdown dan tabel
         $data_adjustment = Adjustment::all(); // Ambil hanya kolom penting
 
+        $users = User::all();
 
 
-        return view('adjustment.index', compact('data_adjustment', 'title', 'subtitle'));
+        return view('adjustment.index', compact('data_adjustment', 'title', 'subtitle','users'));
     }
 
 
@@ -83,10 +84,10 @@ class AdjustmentController extends Controller
 
         // Ambil data untuk dropdown select
         $data_products = Product::all();
-
+        $users = User::all();
 
         // Kirim data ke view
-        return view('adjustment.create', compact('title', 'subtitle', 'data_products'));
+        return view('adjustment.create', compact('title', 'subtitle', 'data_products','users'));
     }
 
 
@@ -104,79 +105,82 @@ class AdjustmentController extends Controller
 
 
 
-    public function store(Request $request)
-    {
-
-
-        $request->validate([
-            'adjustment_date' => 'required|date',
-            'description' => 'nullable|string',
-            'product_id' => 'required|array',
-            'quantity' => 'required|array',
-            'reason' => 'required|array',
-            'total' => 'required|array',
-            'image' => 'nullable|mimes:jpg,jpeg,png,gif|max:4048', // Validasi untuk gambar
-        ], [
-            // Pesan error kustom
-            'adjustment_date.required' => 'Tanggal penyesuaian wajib diisi.',
-            'adjustment_date.date' => 'Tanggal penyesuaian harus berupa format tanggal yang valid.',
-            'description.string' => 'Deskripsi harus berupa teks.',
-            'product_id.required' => 'Produk harus dipilih.',
-            'product_id.array' => 'Data produk tidak valid.',
-            'quantity.required' => 'Jumlah produk wajib diisi.',
-            'quantity.array' => 'Data jumlah produk tidak valid.',
-            'reason.required' => 'Alasan penyesuaian wajib diisi.',
-            'reason.array' => 'Data alasan penyesuaian tidak valid.',
-            'total.required' => 'Total wajib diisi.',
-            'total.array' => 'Data total tidak valid.',
-            'image.mimes' => 'Gambar yang dimasukkan hanya diperbolehkan berekstensi JPG, JPEG, PNG, atau GIF.',
-            'image.max' => 'Ukuran gambar tidak boleh lebih dari 4 MB.',
-        ]);
-
-
-
-
-        $imageName = null;
-            if ($request->hasFile('image')) {
-                $imageName = $this->imageService->handleImageUpload(
-                    $request->file('image'),
-                    'upload/adjustments'
-                );
-            }
-
-        // Proses penyimpanan dalam transaksi database
-        DB::transaction(function () use ($request, $imageName) {
-            // Simpan adjustment utama
-            $adjustment = Adjustment::create([
-                'adjustment_number' => 'ADJ-' . now()->format('YmdHis'),
-                'adjustment_date' => $request->adjustment_date,
-                'user_id' => auth()->id(),
-                'description' => $request->description,
-                'image' => $imageName, // Simpan nama file gambar
-                'total' => array_sum(array_map(function ($qty, $price) {
-                    return $qty * $price;
-                }, $request->quantity, array_map('intval', $request->cost_price))),
-            ]);
-
-            // Simpan detail adjustment dan update stok produk
-            foreach ($request->product_id as $index => $productId) {
-                AdjustmentDetail::create([
-                    'adjustment_id' => $adjustment->id,
-                    'product_id' => $productId,
-                    'quantity' => $request->quantity[$index],
-                    'reason' => $request->reason[$index],
-                ]);
-
-                // Update stok produk
-                $product = Product::find($productId);
-                $product->stock += $request->quantity[$index];
-                $product->save();
-            }
-        });
-
-        return redirect()->route('adjustments.index')->with('success', 'Data berhasil disimpan dan stok diperbarui!');
-    }
-
+     public function store(Request $request)
+     {
+         $request->validate([
+             'adjustment_date' => 'required|date',
+             'description' => 'nullable|string',
+             'product_id' => 'required|array',
+             'quantity' => 'required|array',
+             'reason' => 'required|array',
+             'cost_price' => 'required|array', // Pastikan cost_price ada
+             'image' => 'nullable|mimes:jpg,jpeg,png,gif|max:4048', // Validasi untuk gambar
+         ], [
+             'adjustment_date.required' => 'Tanggal penyesuaian wajib diisi.',
+             'adjustment_date.date' => 'Tanggal penyesuaian harus berupa format tanggal yang valid.',
+             'description.string' => 'Deskripsi harus berupa teks.',
+             'product_id.required' => 'Produk harus dipilih.',
+             'product_id.array' => 'Data produk tidak valid.',
+             'quantity.required' => 'Jumlah produk wajib diisi.',
+             'quantity.array' => 'Data jumlah produk tidak valid.',
+             'reason.required' => 'Alasan penyesuaian wajib diisi.',
+             'reason.array' => 'Data alasan penyesuaian tidak valid.',
+             'cost_price.required' => 'Harga pokok wajib diisi.',
+             'cost_price.array' => 'Data harga pokok tidak valid.',
+             'image.mimes' => 'Gambar harus berformat JPG, JPEG, PNG, atau GIF.',
+             'image.max' => 'Ukuran gambar tidak boleh lebih dari 4 MB.',
+         ]);
+     
+         // Menentukan user_id yang akan disimpan
+         $loggedInUserId = Auth::id();
+         $userIdToSave = $request->filled('user_id') && Auth::user()->can('user-access')
+             ? $request->user_id
+             : $loggedInUserId;
+     
+         // Menangani gambar (jika ada)
+         $imageName = null;
+         if ($request->hasFile('image')) {
+             $imageName = $this->imageService->handleImageUpload(
+                 $request->file('image'),
+                 'upload/adjustments'
+             );
+         }
+     
+         // Proses penyimpanan dalam transaksi database
+         DB::transaction(function () use ($request, $imageName, $userIdToSave) {
+             // Simpan adjustment utama
+             $adjustment = Adjustment::create([
+                 'adjustment_number' => 'ADJ-' . now()->format('YmdHis'),
+                 'adjustment_date' => $request->adjustment_date,
+                 'user_id' => $userIdToSave, // Simpan user_id yang sesuai
+                 'description' => $request->description,
+                 'image' => $imageName, // Simpan nama file gambar
+                 'total' => array_sum(array_map(function ($qty, $price) {
+                     return $qty * $price;
+                 }, $request->quantity, array_map('intval', $request->cost_price))),
+             ]);
+     
+             // Simpan detail adjustment dan update stok produk
+             foreach ($request->product_id as $index => $productId) {
+                 AdjustmentDetail::create([
+                     'adjustment_id' => $adjustment->id,
+                     'product_id' => $productId,
+                     'quantity' => $request->quantity[$index],
+                     'reason' => $request->reason[$index],
+                 ]);
+     
+                 // Update stok produk
+                 $product = Product::find($productId);
+                 if ($product) {
+                     $product->stock += $request->quantity[$index];
+                     $product->save();
+                 }
+             }
+         });
+     
+         return redirect()->route('adjustments.index')->with('success', 'Data berhasil disimpan dan stok diperbarui!');
+     }
+     
 
 
 

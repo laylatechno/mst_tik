@@ -50,7 +50,19 @@ class OrderController extends Controller
         $subtitle = "Menu Penjualan";
 
         // Eager loading customer dan user
-        $data_orders = Order::with(['customer', 'user'])->orderBy('id', 'desc')->get();
+        $user = auth()->user(); // Ambil user yang sedang login
+
+        if ($user->can('user-access')) {
+            // Jika user memiliki izin, tampilkan semua data order
+            $data_orders = Order::with(['customer', 'user'])->orderBy('id', 'desc')->get();
+        } else {
+            // Jika tidak, hanya tampilkan data order yang dibuat oleh user tersebut
+            $data_orders = Order::where('user_id', $user->id)
+                ->with(['customer', 'user'])
+                ->orderBy('id', 'desc')
+                ->get();
+        }
+
 
         $data_products = Product::all();
 
@@ -90,15 +102,19 @@ class OrderController extends Controller
         $title = "Halaman Tambah Penjualan";
         $subtitle = "Menu Tambah Penjualan";
 
-        // Mengambil data yang diperlukan
-        $data_users = User::all();
+
         $data_products = Product::where('stock', '>', 0)
             ->where('status_active', 'active')
             ->get();
 
         $data_customers = Customer::all();
         $data_orders = Order::all();
-        $data_cashes = Cash::all();
+        $user = auth()->user();
+        if ($user->can('user-access')) {
+            $data_cashes = Cash::all();
+        } else {
+            $data_cashes = Cash::where('user_id', $user->id)->get();
+        }
 
         // Mendapatkan kode pembelian terbaru dari database
         $latestOrder = Order::latest()->first();
@@ -121,9 +137,10 @@ class OrderController extends Controller
             // Menggabungkan kode pembelian baru
             $no_order = $alias . '-' . date('Ymd') . '-' . $nomor_urut_format . '-ORD';
         }
+        $users = User::all();
 
         // Menampilkan view dengan data yang diperlukan
-        return view('order.create', compact('data_cashes', 'data_orders', 'data_products', 'data_users', 'data_customers', 'title', 'subtitle', 'no_order'));
+        return view('order.create', compact('data_cashes', 'data_orders', 'data_products', 'data_customers', 'title', 'subtitle', 'no_order', 'users'));
     }
 
 
@@ -139,12 +156,15 @@ class OrderController extends Controller
             'total_cost' => 'required|numeric',
             'product_id' => 'required|array',
             'quantity' => 'required|array',
-            'image' => 'mimes:jpg,jpeg,png,gif|max:4048', // Max 4 MB
+            'cash_id' => 'required|exists:cash,id', // Pastikan cash_id valid
+            'image' => 'mimes:jpg,jpeg,png,gif|max:4048',
         ], [
+            'cash_id.required' => 'Cash ID harus diisi.',
+            'cash_id.exists' => 'Cash ID tidak valid.',
             'image.mimes' => 'Bukti yang dimasukkan hanya diperbolehkan berekstensi JPG, JPEG, PNG dan GIF',
             'image.max' => 'Ukuran image tidak boleh lebih dari 4 MB',
         ]);
-
+    
         // Menangani gambar (jika ada)
         $imageName = null;
         if ($request->hasFile('image')) {
@@ -153,15 +173,43 @@ class OrderController extends Controller
                 'upload/orders'
             );
         }
-
+    
+        // Ambil user yang sedang login
+        $loggedInUser = Auth::user();
+    
+        // Ambil data cash berdasarkan cash_id
+        $cash = Cash::find($request->cash_id);
+    
+        // Jika cash tidak ditemukan, kembalikan error
+        if (!$cash) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cash ID tidak ditemukan.'
+            ], 400);
+        }
+    
+        // Cek apakah user memiliki akses ke cash_id yang dipilih
+        if (!$loggedInUser->can('user-access') && $cash->user_id !== $loggedInUser->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki akses ke kas ini.'
+            ], 403);
+        }
+    
+        // Ambil user_id berdasarkan kondisi
+        $loggedInUserId = Auth::id();
+        $userIdToSave = $request->filled('user_id') && Auth::user()->can('user-access')
+            ? $request->user_id
+            : $loggedInUserId;
+    
         // Simpan data pembelian ke dalam database
         $order = new Order();
-        $order->image = $imageName ?? ''; // Perbaikan disini, bukan $request->image
+        $order->image = $imageName ?? '';
         $order->type_payment = $request->type_payment;
         $order->order_date = $request->order_date;
         $order->no_order = $request->no_order;
         $order->customer_id = $request->customer_id;
-        $order->user_id = Auth::id(); // Ganti dengan field yang sesuai dengan pic
+        $order->user_id = $userIdToSave;
         $order->cash_id = $request->cash_id;
         $order->total_cost = str_replace(['.', ','], '', $request->total_cost);
         $order->status = $request->status;
@@ -172,15 +220,15 @@ class OrderController extends Controller
         $order->return_payment = $request->return_payment;
         $order->description = $request->description;
         $order->save();
-
+    
         // Mendapatkan ID dari order yang baru saja disimpan
         $orderId = $order->id;
-
+    
         // Simpan detail order ke dalam database
         $productIds = $request->product_id;
         $quantitys = $request->quantity;
         $orderprice = $request->cost_price;
-
+    
         foreach ($productIds as $key => $productId) {
             $hargaBeliWithoutSeparator = str_replace(['.', ','], '', $orderprice[$key]);
             $detail = new OrderItem();
@@ -191,9 +239,7 @@ class OrderController extends Controller
             $detail->total_price = $quantitys[$key] * $hargaBeliWithoutSeparator;
             $detail->save();
         }
-
-
-
+    
         // Proses pembayaran dan pembaruan stok hanya jika status pembelian 'Lunas'
         if ($order->status === 'Lunas') {
             // Update stock produk: kurangi stok produk berdasarkan quantity yang dipesan
@@ -205,11 +251,10 @@ class OrderController extends Controller
                     $product->save();
                 }
             }
-
+    
             // Tambahkan saldo cash berdasarkan cash_id (hanya update saldo, tanpa pengecekan saldo)
-            $cash = Cash::find($request->cash_id); // Menemukan data cash berdasarkan cash_id
             if ($cash) {
-                $cash->amount += $order->total_cost; // Tambahkan saldo cash sesuai total_cost dari order
+                $cash->amount += $order->total_cost;
                 $cash->save();
             } else {
                 // Jika cash_id tidak ditemukan, batalkan transaksi dan kirimkan error
@@ -217,9 +262,9 @@ class OrderController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'Cash ID tidak ditemukan. Silakan periksa input data Anda.'
-                ], 400);  // 400 adalah kode status HTTP untuk permintaan yang salah
+                ], 400);
             }
-
+    
             // Simpan data ke tabel profit_loss
             $profitLoss = new Profit();
             $profitLoss->cash_id = $order->cash_id;
@@ -229,15 +274,10 @@ class OrderController extends Controller
             $profitLoss->amount = $order->total_cost;
             $profitLoss->save();
         }
-
-
-
-        // Mendapatkan ID user yang sedang login
-        $loggedInUserId = Auth::id();
-
+    
         // Simpan log histori untuk operasi Create dengan user_id yang sedang login
         $this->simpanLogHistori('Create', 'Order', $order->id, $loggedInUserId, null, json_encode($order));
-
+    
         // Kembalikan respons sukses
         return response()->json([
             'success' => true,
@@ -246,6 +286,7 @@ class OrderController extends Controller
             'print_option' => true, // Memberikan informasi bahwa pencetakan struk tersedia
         ], 200);
     }
+    
 
     /**
      * Display the specified resource.
@@ -278,10 +319,15 @@ class OrderController extends Controller
         $data_products = Product::where('stock', '>', 0)
             ->where('status_active', 'active')
             ->get();
-        $data_cashes = Cash::all();
-
+        $user = auth()->user();
+        if ($user->can('user-access')) {
+            $data_cashes = Cash::all();
+        } else {
+            $data_cashes = Cash::where('user_id', $user->id)->get();
+        }
+        $users = User::all();
         // Kirim data ke view
-        return view('order.edit', compact('order', 'title', 'subtitle', 'data_customers', 'data_products', 'data_cashes'));
+        return view('order.edit', compact('order', 'title', 'subtitle', 'data_customers', 'data_products', 'data_cashes', 'users'));
     }
 
 
@@ -304,10 +350,23 @@ class OrderController extends Controller
             'cash_id' => 'nullable|exists:cash,id',
             'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
-
+    
         $order = Order::findOrFail($id);
         $oldData = $order->toArray();
-
+    
+        // Validasi cash_id berdasarkan hak akses user
+        if (!Auth::user()->can('user-access')) {
+            // Jika bukan user-access, pastikan cash_id yang dipilih adalah miliknya
+            $allowedCashIds = Cash::where('user_id', Auth::id())->pluck('id')->toArray();
+            
+            if (!in_array($request->cash_id, $allowedCashIds)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda tidak memiliki akses ke kas yang dipilih.'
+                ], 403);
+            }
+        }
+    
         // Proses upload gambar
         if ($request->hasFile('image')) {
             $order->image = $this->imageService->handleImageUpload(
@@ -316,7 +375,13 @@ class OrderController extends Controller
                 $order->image // Pass old image for deletion
             );
         }
-
+    
+        // Ambil user_id berdasarkan kondisi
+        $loggedInUserId = Auth::id();
+        $userIdToSave = $request->filled('user_id') && Auth::user()->can('user-access')
+            ? $request->user_id
+            : $loggedInUserId;
+    
         $order->update([
             'description' => $request->description,
             'type_payment' => $request->type_payment,
@@ -330,20 +395,20 @@ class OrderController extends Controller
             'amount_discount' => $request->amount_discount,
             'input_payment' => $request->input_payment,
             'return_payment' => $request->return_payment,
-            'user_id' => Auth::id(),
+            'user_id' => $userIdToSave,
         ]);
-
+    
         // Update atau tambahkan order item
         $newProductIds = $request->product_id;
         $existingItems = $order->orderItems()->get();
-
+    
         foreach ($newProductIds as $key => $productId) {
             $quantity = $request->quantity[$key];
             $order_price = str_replace(['.', ','], '', $request->order_price[$key]);
             $total_price = $quantity * $order_price;
-
+    
             $existingItem = $existingItems->firstWhere('product_id', $productId);
-
+    
             if ($existingItem) {
                 $existingItem->update([
                     'quantity' => $quantity,
@@ -360,11 +425,11 @@ class OrderController extends Controller
                 ]);
             }
         }
-
+    
         $existingItems->whereNotIn('product_id', $newProductIds)->each(function ($item) {
             $item->delete();
         });
-
+    
         // Simpan ke tabel profit_loss jika status adalah "Lunas"
         if ($order->status === 'Lunas') {
             Profit::updateOrCreate(
@@ -377,9 +442,7 @@ class OrderController extends Controller
                 ]
             );
         }
-
-
-
+    
         // Simpan log histori
         $newData = $order->refresh()->toArray();
         $loggedInUserId = Auth::id();
@@ -391,9 +454,10 @@ class OrderController extends Controller
             json_encode($oldData),
             json_encode($newData)
         );
-
+    
         return response()->json(['success' => true, 'message' => 'Penjualan berhasil diperbarui.']);
     }
+    
 
 
 

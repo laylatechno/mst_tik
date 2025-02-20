@@ -48,7 +48,18 @@ class PurchaseController extends Controller
         $subtitle = "Menu Pembelian";
 
         // Eager loading supplier dan user
-        $data_purchases = Purchase::with(['supplier', 'user'])->orderBy('id', 'desc')->get();
+        $user = auth()->user(); // Ambil user yang sedang login
+
+        if ($user->can('user-access')) {
+            // Jika user memiliki izin, tampilkan semua data pembelian
+            $data_purchases = Purchase::with(['supplier', 'user'])->orderBy('id', 'desc')->get();
+        } else {
+            // Jika tidak, hanya tampilkan data pembelian yang dibuat oleh user tersebut
+            $data_purchases = Purchase::where('user_id', $user->id)
+                ->with(['supplier', 'user'])
+                ->orderBy('id', 'desc')
+                ->get();
+        }
 
         $data_products = Product::all();
 
@@ -74,12 +85,17 @@ class PurchaseController extends Controller
         $title = "Halaman Tambah Pembelian";
         $subtitle = "Menu Tambah Pembelian";
 
-        // Mengambil data yang diperlukan
-        $data_users = User::all();
+      
         $data_products = Product::all();
         $data_suppliers = Supplier::all();
         $data_purchases = Purchase::all();
-        $data_cashes = Cash::all();
+         // Ambil data untuk dropdown select
+         $user = auth()->user();
+         if ($user->can('user-access')) {
+             $data_cashes = Cash::all();
+         } else {
+             $data_cashes = Cash::where('user_id', $user->id)->get();
+         }
 
         // Mendapatkan kode pembelian terbaru dari database
         $latestPurchase = Purchase::latest()->first();
@@ -103,8 +119,9 @@ class PurchaseController extends Controller
             $no_purchase = $alias . '-' . date('Ymd') . '-' . $nomor_urut_format . '-PCS';
         }
 
+        $users = User::all();
         // Menampilkan view dengan data yang diperlukan
-        return view('purchase.create', compact('data_cashes', 'data_purchases', 'data_products', 'data_users', 'data_suppliers', 'title', 'subtitle', 'no_purchase'));
+        return view('purchase.create', compact('data_cashes', 'data_purchases', 'data_products',  'data_suppliers', 'title', 'subtitle', 'no_purchase', 'users'));
     }
 
 
@@ -121,11 +138,13 @@ class PurchaseController extends Controller
             'product_id' => 'required|array',
             'quantity' => 'required|array',
             'image' => 'mimes:jpg,jpeg,png,gif|max:4048',
+            'cash_id' => 'required|exists:cash,id',
         ], [
             'image.mimes' => 'Bukti yang dimasukkan hanya diperbolehkan berekstensi JPG, JPEG, PNG dan GIF',
             'image.max' => 'Ukuran image tidak boleh lebih dari 4 MB',
+            'cash_id.exists' => 'Cash ID tidak valid.',
         ]);
-
+    
         try {
             // Handle image upload
             $imageName = null;
@@ -135,7 +154,22 @@ class PurchaseController extends Controller
                     'upload/purchases'
                 );
             }
-
+    
+            // Ambil user_id berdasarkan kondisi
+            $loggedInUserId = Auth::id();
+            $userIdToSave = $request->filled('user_id') && Auth::user()->can('user-access')
+                ? $request->user_id
+                : $loggedInUserId;
+    
+            // Validasi cash_id hanya boleh sesuai dengan user_id kecuali user-access
+            $cash = Cash::find($request->cash_id);
+            if (!$cash || ($cash->user_id !== $userIdToSave && !Auth::user()->can('user-access'))) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda tidak memiliki akses ke Cash ID ini.',
+                ], 403);
+            }
+    
             // Simpan data pembelian
             $purchase = new Purchase();
             $purchase->image = $imageName ?? '';
@@ -143,13 +177,13 @@ class PurchaseController extends Controller
             $purchase->purchase_date = $request->purchase_date;
             $purchase->no_purchase = $request->no_purchase;
             $purchase->supplier_id = $request->supplier_id;
-            $purchase->user_id = Auth::id();
+            $purchase->user_id = $userIdToSave;
             $purchase->cash_id = $request->cash_id;
             $purchase->total_cost = str_replace(['.', ','], '', $request->total_cost);
             $purchase->status = $request->status;
             $purchase->description = $request->description;
             $purchase->save();
-
+    
             // Simpan detail purchase
             foreach ($request->product_id as $key => $productId) {
                 $hargaBeliWithoutSeparator = str_replace(['.', ','], '', $request->purchase_price[$key]);
@@ -161,34 +195,25 @@ class PurchaseController extends Controller
                     'total_price' => $request->quantity[$key] * $hargaBeliWithoutSeparator,
                 ]);
             }
-
+    
             // Cek saldo cash
-            $cash = Cash::find($request->cash_id);
-            if ($cash && $cash->amount < $request->total_cost) {
+            if ($cash->amount < $request->total_cost) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Saldo cash tidak mencukupi untuk transaksi ini.',
                 ], 400);
             }
-
+    
             // Proses jika status Lunas
             if ($purchase->status === 'Lunas') {
                 // Update stock
                 foreach ($request->product_id as $key => $productId) {
                     Product::find($productId)?->increment('stock', $request->quantity[$key]);
                 }
-
+    
                 // Update cash
-                if ($cash) {
-                    $cash->decrement('amount', $purchase->total_cost);
-                } else {
-                    $purchase->delete();
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Cash ID tidak ditemukan.'
-                    ], 400);
-                }
-
+                $cash->decrement('amount', $purchase->total_cost);
+    
                 // Simpan profit loss
                 Profit::create([
                     'cash_id' => $request->cash_id,
@@ -198,16 +223,16 @@ class PurchaseController extends Controller
                     'amount' => $purchase->total_cost,
                 ]);
             }
-
+    
             // Simpan log
             $this->simpanLogHistori('Create', 'Purchase', $purchase->id, Auth::id(), null, json_encode($purchase));
-
+    
             return response()->json(['success' => true, 'message' => 'Pembelian berhasil disimpan'], 200);
-
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
+    
 
 
 
@@ -247,13 +272,19 @@ class PurchaseController extends Controller
         // Ambil data lainnya yang dibutuhkan untuk dropdown
         $data_suppliers = Supplier::all();
         $data_products = Product::all();
-        $data_cashes = Cash::all();
+        $user = auth()->user();
+        if ($user->can('user-access')) {
+            $data_cashes = Cash::all();
+        } else {
+            $data_cashes = Cash::where('user_id', $user->id)->get();
+        }
+        $users = User::all();
 
         // Kirim data ke view
-        return view('purchase.edit', compact('purchase', 'title', 'subtitle', 'data_suppliers', 'data_products', 'data_cashes'));
+        return view('purchase.edit', compact('purchase', 'title', 'subtitle', 'data_suppliers', 'data_products', 'data_cashes','users'));
     }
 
-    
+
 
     public function update(Request $request, string $id)
     {
@@ -264,98 +295,75 @@ class PurchaseController extends Controller
             'quantity' => 'required|array',
             'purchase_price' => 'required|array',
             'total_cost' => 'required|numeric',
-            'status' => 'required', // Pastikan status juga divalidasi
+            'status' => 'required',
             'description' => 'nullable|string',
             'type_payment' => 'nullable|string',
             'no_purchase' => 'nullable|string',
-            'cash_id' => 'nullable|exists:cash,id', // Pastikan cash_id valid
-            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048', // Validasi untuk gambar
+            'cash_id' => 'nullable|exists:cash,id',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
-
-        // Cari pembelian
+    
         $purchase = Purchase::findOrFail($id);
-        // Simpan data lama sebelum diupdate
         $oldData = $purchase->toArray();
-
-        // Proses upload gambar jika ada
-        // if ($image = $request->file('image')) {
-        //     $destinationPath = 'upload/purchases/';
-        //     $originalFileName = $image->getClientOriginalName();
-        //     $imageMimeType = $image->getMimeType();
-
-        //     // Hapus gambar lama jika ada
-        //     if ($purchase->image && file_exists(public_path($destinationPath . $purchase->image))) {
-        //         @unlink(public_path($destinationPath . $purchase->image));
-        //     }
-
-        //     // Proses upload gambar baru
-        //     $imageName = date('YmdHis') . '_' . str_replace(' ', '_', $originalFileName);
-        //     $image->move(public_path($destinationPath), $imageName);
-
-        //     // Path gambar yang telah diupload
-        //     $sourceImagePath = public_path($destinationPath . $imageName);
-        //     $webpImagePath = $destinationPath . pathinfo($imageName, PATHINFO_FILENAME) . '.webp';
-
-        //     // Konversi gambar ke WebP
-        //     switch ($imageMimeType) {
-        //         case 'image/jpeg':
-        //             $sourceImage = @imagecreatefromjpeg($sourceImagePath);
-        //             break;
-        //         case 'image/png':
-        //             $sourceImage = @imagecreatefrompng($sourceImagePath);
-        //             break;
-        //         default:
-        //             throw new \Exception('Tipe MIME tidak didukung.');
-        //     }
-
-        //     // Jika gambar berhasil dibaca, konversi ke WebP
-        //     if ($sourceImage !== false) {
-        //         imagewebp($sourceImage, public_path($webpImagePath));
-        //         imagedestroy($sourceImage);
-        //         @unlink($sourceImagePath); // Menghapus file gambar asli
-        //         $purchase->image = pathinfo($imageName, PATHINFO_FILENAME) . '.webp'; // Update nama gambar di database
-        //     } else {
-        //         throw new \Exception('Gagal membaca gambar asli.');
-        //     }
-        // }
-
+        $loggedInUserId = Auth::id();
+    
+        // Validasi apakah cash_id yang dipilih adalah milik user ini (kecuali admin/user-access)
+        if ($request->filled('cash_id')) {
+            $cash = Cash::where('id', $request->cash_id)
+                ->where(function ($query) use ($loggedInUserId) {
+                    $query->where('user_id', $loggedInUserId)
+                        ->orWhereHas('user', function ($q) {
+                            $q->whereHas('roles', function ($roleQuery) {
+                                $roleQuery->where('name', 'user-access');
+                            });
+                        });
+                })
+                ->first();
+    
+            if (!$cash) {
+                return response()->json(['success' => false, 'message' => 'Anda tidak memiliki akses ke Kas ini.']);
+            }
+        }
+    
         if ($request->hasFile('image')) {
             $purchase->image = $this->imageService->handleImageUpload(
                 $request->file('image'),
                 'upload/purchases',
-                $purchase->image // Pass old image for deletion
+                $purchase->image
             );
         }
-
+    
         // Ambil status untuk pengecekan
         $status = $request->status;
-
-        // Jika status "Lunas", lakukan pengurangan saldo kas dan penambahan stok produk
+    
         if ($status === 'Lunas') {
             $cashId = $request->cash_id;
-            $cashAmount = Cash::find($cashId)->amount; // Ambil jumlah saldo kas yang dipilih
-
-            // Validasi jika saldo kas tidak mencukupi
+            $cashAmount = Cash::find($cashId)->amount;
+    
             if ($purchase->total_cost > $cashAmount) {
                 return response()->json(['success' => false, 'message' => 'Saldo Kas tidak mencukupi.']);
             }
-
-            // Kurangi saldo kas sesuai dengan total biaya pembelian
+    
+            // Update saldo kas
             $newCashAmount = $cashAmount - $purchase->total_cost;
-            Cash::find($cashId)->update(['amount' => $newCashAmount]); // Update saldo kas
-
-            // Proses penambahan stok produk
+            Cash::find($cashId)->update(['amount' => $newCashAmount]);
+    
+            // Tambahkan stok produk
             foreach ($request->product_id as $key => $productId) {
                 $quantity = $request->quantity[$key];
                 $product = Product::find($productId);
-
+    
                 if ($product) {
-                    // Tambah stok produk
                     $product->increment('stock', $quantity);
                 }
             }
         }
-
+    
+        // Tentukan user_id yang akan disimpan
+        $userIdToSave = $request->filled('user_id') && Auth::user()->can('user-access')
+            ? $request->user_id
+            : $loggedInUserId;
+    
         // Update data pembelian
         $purchase->update([
             'description' => $request->description,
@@ -365,39 +373,28 @@ class PurchaseController extends Controller
             'cash_id' => $request->cash_id,
             'supplier_id' => $request->supplier_id,
             'no_purchase' => $request->no_purchase,
-            'user_id' => Auth::id(),
+            'user_id' => $userIdToSave,
             'total_cost' => str_replace(['.', ','], '', $request->total_cost),
         ]);
-
-        // Ambil semua `product_id` dari request
+    
         $newProductIds = $request->product_id;
-
-        // Ambil semua item lama dari database
         $existingItems = $purchase->purchaseItems()->get();
-
-        // Inisialisasi untuk menghitung total biaya pembelian
         $total_cost = 0;
-
-        // Proses update dan tambah item
+    
         foreach ($newProductIds as $key => $productId) {
             $quantity = $request->quantity[$key];
             $purchase_price = str_replace(['.', ','], '', $request->purchase_price[$key]);
-
-            // Hitung total price untuk setiap item pembelian
             $total_price = $quantity * $purchase_price;
-
-            // Periksa apakah item ini sudah ada di database
+    
             $existingItem = $existingItems->firstWhere('product_id', $productId);
-
+    
             if ($existingItem) {
-                // Jika item sudah ada, perbarui
                 $existingItem->update([
                     'quantity' => $quantity,
                     'purchase_price' => $purchase_price,
                     'total_price' => $total_price,
                 ]);
             } else {
-                // Jika item belum ada, tambahkan baru
                 PurchaseItem::create([
                     'purchase_id' => $purchase->id,
                     'product_id' => $productId,
@@ -406,25 +403,21 @@ class PurchaseController extends Controller
                     'total_price' => $total_price,
                 ]);
             }
-
-            // Tambahkan total_price ke total cost pembelian
+    
             $total_cost += $total_price;
         }
-
-        // Hapus item yang tidak ada di request tetapi ada di database
+    
+        // Hapus item yang tidak ada di request
         $existingItems->whereNotIn('product_id', $newProductIds)->each(function ($item) {
             $item->delete();
         });
-
-        // Update total cost pembelian setelah semua item diproses
+    
+        // Update total cost pembelian
         $purchase->update(['total_cost' => $total_cost]);
-
+    
         $newData = $purchase->refresh()->toArray();
-
-
-
-         // Simpan ke tabel profit_loss jika status adalah "Lunas"
-         if ($purchase->status === 'Lunas') {
+    
+        if ($purchase->status === 'Lunas' && $cash) {
             Profit::updateOrCreate(
                 ['purchase_id' => $purchase->id],
                 [
@@ -435,9 +428,8 @@ class PurchaseController extends Controller
                 ]
             );
         }
-
+    
         // Simpan log histori
-        $loggedInUserId = Auth::id();
         $this->simpanLogHistori(
             'Update',
             'Purchase',
@@ -446,9 +438,10 @@ class PurchaseController extends Controller
             json_encode($oldData),
             json_encode($newData)
         );
-
+    
         return response()->json(['success' => true, 'message' => 'Pembelian berhasil diperbarui.']);
     }
+    
 
 
 

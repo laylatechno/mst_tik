@@ -48,7 +48,7 @@
   </div>
 
   <div class="container">
-    <div class="search-form pt-3 rtl-flex-d-row-r">
+    <div class="search-form rtl-flex-d-row-r">
       <form action="{{ route('product') }}" method="GET">
         <input class="form-control" type="search" name="search" placeholder="Cari produk.." value="{{ request('search') }}">
         <button type="submit"><i class="ti ti-search"></i></button>
@@ -73,9 +73,6 @@
   <!-- Top Products -->
   <div class="top-products-area py-3">
     <div class="container">
-      <div class="section-heading d-flex align-items-center justify-content-between dir-rtl">
-        <h6>Produk Pilihan</h6><a class="btn btn-sm btn-light" href="/l">Lihat Semua<i class="ms-1 ti ti-arrow-right"></i></a>
-      </div>
       <div class="row g-2">
         @foreach ($data_products as $p)
         <!-- Product Card -->
@@ -144,14 +141,12 @@
           </div>
         </div>
         @endforeach
-        <div class="shop-pagination pt-3">
-          <div class="container">
+        <div class="shop-pagination pt-2">
             <div class="card">
               <div class="card-body py-3">
                 {{ $data_products->links('vendor.pagination.bootstrap-4') }}
               </div>
             </div>
-          </div>
         </div>
 
 

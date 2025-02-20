@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\LogHistori;
 use App\Models\Supplier;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -44,12 +45,24 @@ class SupplierController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index(Request $request): View
-    {
-        $title = "Halaman Supplier";
-        $subtitle = "Menu Supplier";
-        $data_suppliers = Supplier::all();
-        return view('supplier.index', compact('data_suppliers', 'title', 'subtitle'));
+{
+    $title = "Halaman Supplier";
+    $subtitle = "Menu Supplier";
+    $user = auth()->user();  
+
+    if ($user->can('user-access')) {
+        $data_suppliers = Supplier::with('user')->get();
+    } else {
+        // Jika tidak, hanya tampilkan supplier dengan user_id yang sesuai dengan user yang login
+        $data_suppliers = Supplier::where('user_id', $user->id)->with('user')->get();
     }
+
+ 
+
+    return view('supplier.index', compact('data_suppliers', 'title', 'subtitle' ));
+}
+
+
 
 
     /**
@@ -61,7 +74,8 @@ class SupplierController extends Controller
     {
         $title = "Halaman Tambah Supplier";
         $subtitle = "Menu Tambah Supplier";
-        return view('supplier.create', compact('title', 'subtitle'));
+        $users = User::all();
+        return view('supplier.create', compact('title', 'subtitle','users'));
     }
 
 
@@ -75,20 +89,42 @@ class SupplierController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $this->validate($request, [
-            'name' => 'required|unique:suppliers,name',
+            'name' => 'required',
+            'email' => 'nullable|email',  
+            'address' => 'nullable|string|max:255',  
+            'phone' => 'nullable|string|max:20',  
+            'user_id' => 'nullable|exists:users,id',  
         ], [
             'name.required' => 'Nama wajib diisi.',
-            'name.unique' => 'Nama sudah terdaftar.',
+            'email.email' => 'Format email tidak valid.',
+            'address.max' => 'Alamat terlalu panjang.',
+            'phone.max' => 'Nomor telepon terlalu panjang.',
+            'user_id.exists' => 'Pengguna tidak valid.',
         ]);
-
-        $supplier = Supplier::create($request->all());
-
+    
+        // Ambil user_id berdasarkan kondisi
         $loggedInUserId = Auth::id();
-        // Simpan log histori untuk operasi Create dengan user_id yang sedang login
+        $userIdToSave = $request->filled('user_id') && Auth::user()->can('user-access') 
+            ? $request->user_id // Gunakan user_id dari input jika user punya permission
+            : $loggedInUserId; // Jika tidak, pakai ID user yang login
+    
+        // Simpan data supplier
+        $supplier = Supplier::create([
+            'name' => $request->name,
+            'email' => $request->email ?? null,  
+            'address' => $request->address ?? null,
+            'phone' => $request->phone ?? null,
+            'user_id' => $userIdToSave,
+        ]);
+    
+        // Simpan log histori untuk operasi Create
         $this->simpanLogHistori('Create', 'Supplier', $supplier->id, $loggedInUserId, null, json_encode($supplier));
+    
         return redirect()->route('suppliers.index')
             ->with('success', 'Supplier berhasil dibuat.');
     }
+    
+    
 
 
 
@@ -119,9 +155,10 @@ class SupplierController extends Controller
     {
         $title = "Halaman Edit Supplier";
         $subtitle = "Menu Edit Supplier";
-        $data_suppliers = Supplier::findOrFail($id); // Data menu item yang sedang diedit
+        $data_suppliers = Supplier::findOrFail($id);  
+        $users = User::all();
 
-        return view('supplier.edit', compact('data_suppliers', 'title', 'subtitle'));
+        return view('supplier.edit', compact('data_suppliers', 'title', 'subtitle','users'));
     }
 
 
@@ -138,37 +175,57 @@ class SupplierController extends Controller
         // Validasi input
         $this->validate($request, [
             'name' => 'required',
+            'email' => 'nullable|email',  
+            'address' => 'nullable|string|max:255',  
+            'phone' => 'nullable|string|max:20',  
+            'user_id' => 'nullable|exists:users,id',  
         ], [
             'name.required' => 'Nama wajib diisi.',
+            'email.email' => 'Format email tidak valid.',
+            'address.max' => 'Alamat terlalu panjang.',
+            'phone.max' => 'Nomor telepon terlalu panjang.',
+            'user_id.exists' => 'Pengguna tidak valid.',
         ]);
-
+    
         // Cari data berdasarkan ID
         $supplier = Supplier::find($id);
-
+    
         // Jika data tidak ditemukan
         if (!$supplier) {
             return redirect()->route('suppliers.index')
                 ->with('error', 'Data Supplier tidak ditemukan.');
         }
-
+    
         // Menyimpan data lama sebelum update
-        $oldSuppliersnData = $supplier->toArray();
-
-        // Melakukan update data
-        $supplier->update($request->all());
-
+        $oldSupplierData = $supplier->toArray();
+    
         // Mendapatkan ID pengguna yang sedang login
         $loggedInUserId = Auth::id();
-
+    
+        // Tentukan user_id berdasarkan kondisi
+        $userIdToSave = $request->filled('user_id') && Auth::user()->can('user-access') 
+            ? $request->user_id  
+            : $loggedInUserId;  
+    
+        // Melakukan update data
+        $supplier->update([
+            'name' => $request->name,
+            'email' => $request->email ?? null,
+            'address' => $request->address ?? null,
+            'phone' => $request->phone ?? null,
+            'user_id' => $userIdToSave,
+        ]);
+    
         // Mendapatkan data baru setelah update
-        $newSuppliersnData = $supplier->fresh()->toArray();
-
+        $newSupplierData = $supplier->fresh()->toArray();
+    
         // Menyimpan log histori untuk operasi Update
-        $this->simpanLogHistori('Update', 'Supplier', $supplier->id, $loggedInUserId, json_encode($oldSuppliersnData), json_encode($newSuppliersnData));
-
+        $this->simpanLogHistori('Update', 'Supplier', $supplier->id, $loggedInUserId, json_encode($oldSupplierData), json_encode($newSupplierData));
+    
         return redirect()->route('suppliers.index')
-            ->with('success', 'Supplier berhasil diperbaharui');
+            ->with('success', 'Supplier berhasil diperbaharui.');
     }
+    
 
 
 

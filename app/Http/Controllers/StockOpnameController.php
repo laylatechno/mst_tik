@@ -9,6 +9,7 @@ use App\Models\CustomerCategory;
 use App\Models\Product;
 use App\Models\StockOpnameDetail;
 use App\Models\Unit;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -59,8 +60,16 @@ class StockOpnameController extends Controller
         $title = "Halaman Stock Opname";
         $subtitle = "Menu Stock Opname";
 
-        // Ambil data hanya yang diperlukan untuk dropdown dan tabel
-        $data_stock_opname = StockOpname::all(); // Ambil hanya kolom penting
+     
+        $user = auth()->user(); // Ambil user yang sedang login 
+
+        
+        if ($user->can('user-access')) {
+            $data_stock_opname = StockOpname::with('user')->get();
+        } else {
+            // Jika tidak, hanya tampilkan supplier dengan user_id yang sesuai dengan user yang login
+            $data_stock_opname = StockOpname::where('user_id', $user->id)->with('user')->get();
+        }
 
 
 
@@ -86,9 +95,9 @@ class StockOpnameController extends Controller
         // Ambil data untuk dropdown select
         $data_products = Product::all();
 
-
+        $users = User::all();
         // Kirim data ke view
-        return view('stock_opname.create', compact('title', 'subtitle', 'data_products'));
+        return view('stock_opname.create', compact('title', 'subtitle', 'data_products','users'));
     }
 
 
@@ -106,81 +115,77 @@ class StockOpnameController extends Controller
 
 
 
-    public function store(Request $request)
-    {
-        // Validasi input
-        $request->validate([
-            'opname_date' => 'required|date', // Tanggal opname wajib diisi dan harus berupa format tanggal yang valid
-            'description' => 'nullable|string', // Deskripsi bersifat opsional dan jika diisi, harus berupa string
-            'products' => 'required|array', // Produk wajib diisi dalam bentuk array
-            'products.*.product_id' => 'required|exists:products,id', // Setiap produk harus memiliki product_id yang valid dan ada di tabel products
-            'products.*.system_stock' => 'required|integer|min:0', // Setiap produk harus memiliki system_stock yang valid, berupa angka bulat dan minimal 0
-            'products.*.physical_stock' => 'required|integer|min:0', // Setiap produk harus memiliki physical_stock yang valid, berupa angka bulat dan minimal 0
-            'image' => 'nullable|mimes:jpg,jpeg,png,gif|max:4048', // Gambar bersifat opsional, jika diunggah harus memiliki ekstensi JPG, JPEG, PNG, atau GIF, dan ukuran maksimal 4 MB
-        ], [
-            // Pesan error kustom
-            'opname_date.required' => 'Tanggal opname wajib diisi.', // Pesan error jika tanggal opname tidak diisi
-            'opname_date.date' => 'Tanggal opname harus berupa format tanggal yang valid.', // Pesan error jika format tanggal tidak valid
-
-            'description.string' => 'Deskripsi harus berupa teks.', // Pesan error jika deskripsi bukan string
-
-            'products.required' => 'Produk wajib dipilih.', // Pesan error jika produk tidak dipilih
-            'products.array' => 'Produk harus dalam bentuk array.', // Pesan error jika produk bukan array
-
-            'products.*.product_id.required' => 'ID produk wajib diisi.', // Pesan error jika product_id tidak diisi
-            'products.*.product_id.exists' => 'Produk yang dipilih tidak valid.', // Pesan error jika product_id tidak ada di tabel products
-
-            'products.*.system_stock.required' => 'Stok sistem wajib diisi.', // Pesan error jika system_stock tidak diisi
-            'products.*.system_stock.integer' => 'Stok sistem harus berupa angka.', // Pesan error jika system_stock bukan angka
-            'products.*.system_stock.min' => 'Stok sistem tidak boleh kurang dari 0.', // Pesan error jika system_stock kurang dari 0
-
-            'products.*.physical_stock.required' => 'Stok fisik wajib diisi.', // Pesan error jika physical_stock tidak diisi
-            'products.*.physical_stock.integer' => 'Stok fisik harus berupa angka.', // Pesan error jika physical_stock bukan angka
-            'products.*.physical_stock.min' => 'Stok fisik tidak boleh kurang dari 0.', // Pesan error jika physical_stock kurang dari 0
-
-            'image.mimes' => 'Bukti yang dimasukkan hanya diperbolehkan berekstensi JPG, JPEG, PNG, dan GIF.', // Pesan error jika ekstensi gambar tidak sesuai
-            'image.max' => 'Ukuran gambar tidak boleh lebih dari 4 MB.', // Pesan error jika ukuran gambar lebih dari 4 MB
-        ]);
-
-
-        $data = $request->only(['opname_date', 'description']);
-
-        // Menangani gambar (jika ada)
-        if ($request->hasFile('image')) {
-            $data['image'] = $this->imageService->handleImageUpload(
-                $request->file('image'),
-                'upload/stock_opname'
-            );
-        } else {
-            $data['image'] = '';
-        }
-
-        // Buat Stock Opname
-        $stockOpname = StockOpname::create([
-            'opname_number' => 'SO-' . time(),
-            'opname_date' => $data['opname_date'],
-            'description' => $data['description'],
-            'image' => $data['image'] ?? null, // Tambahkan field image
-        ]);
-
-        // Tambahkan detail produk
-        foreach ($request->products as $product) {
-            if (!isset($product['product_id'])) {
-                continue; // Lewati jika produk tidak dipilih
-            }
-
-            StockOpnameDetail::create([
-                'stock_opname_id' => $stockOpname->id,
-                'product_id' => $product['product_id'],
-                'system_stock' => $product['system_stock'],
-                'physical_stock' => $product['physical_stock'],
-                'difference' => $product['physical_stock'] - $product['system_stock'],
-                'description_detail' => $product['description_detail'] ?? null,
-            ]);
-        }
-
-        return redirect()->route('stock_opname.index')->with('success', 'Stock Opname berhasil disimpan.');
-    }
+     public function store(Request $request)
+     {
+         // Validasi input
+         $request->validate([
+             'opname_date' => 'required|date',
+             'description' => 'nullable|string',
+             'products' => 'required|array',
+             'products.*.product_id' => 'required|exists:products,id',
+             'products.*.system_stock' => 'required|integer|min:0',
+             'products.*.physical_stock' => 'required|integer|min:0',
+             'image' => 'nullable|mimes:jpg,jpeg,png,gif|max:4048',
+             'user_id' => 'nullable|exists:users,id', // Pastikan user_id valid jika ada
+         ], [
+             'opname_date.required' => 'Tanggal opname wajib diisi.',
+             'opname_date.date' => 'Tanggal opname harus berupa format tanggal yang valid.',
+             'products.required' => 'Produk wajib dipilih.',
+             'products.*.product_id.required' => 'ID produk wajib diisi.',
+             'products.*.product_id.exists' => 'Produk yang dipilih tidak valid.',
+             'products.*.system_stock.required' => 'Stok sistem wajib diisi.',
+             'products.*.physical_stock.required' => 'Stok fisik wajib diisi.',
+             'image.mimes' => 'Bukti hanya diperbolehkan berekstensi JPG, JPEG, PNG, dan GIF.',
+             'image.max' => 'Ukuran gambar tidak boleh lebih dari 4 MB.',
+             'user_id.exists' => 'User yang dipilih tidak valid.',
+         ]);
+     
+         $data = $request->only(['opname_date', 'description']);
+     
+         // Menentukan user_id yang akan disimpan
+         $loggedInUserId = Auth::id();
+         $userIdToSave = $request->filled('user_id') && Auth::user()->can('user-access')
+             ? $request->user_id
+             : $loggedInUserId;
+     
+         // Menangani gambar (jika ada)
+         if ($request->hasFile('image')) {
+             $data['image'] = $this->imageService->handleImageUpload(
+                 $request->file('image'),
+                 'upload/stock_opname'
+             );
+         } else {
+             $data['image'] = '';
+         }
+     
+         // Buat Stock Opname
+         $stockOpname = StockOpname::create([
+             'opname_number' => 'SO-' . time(),
+             'opname_date' => $data['opname_date'],
+             'description' => $data['description'],
+             'image' => $data['image'] ?? null,
+             'user_id' => $userIdToSave, // Simpan user_id
+         ]);
+     
+         // Tambahkan detail produk
+         foreach ($request->products as $product) {
+             if (!isset($product['product_id'])) {
+                 continue;
+             }
+     
+             StockOpnameDetail::create([
+                 'stock_opname_id' => $stockOpname->id,
+                 'product_id' => $product['product_id'],
+                 'system_stock' => $product['system_stock'],
+                 'physical_stock' => $product['physical_stock'],
+                 'difference' => $product['physical_stock'] - $product['system_stock'],
+                 'description_detail' => $product['description_detail'] ?? null,
+             ]);
+         }
+     
+         return redirect()->route('stock_opname.index')->with('success', 'Stock Opname berhasil disimpan.');
+     }
+     
 
 
 
@@ -241,10 +246,11 @@ class StockOpnameController extends Controller
 
         // Ambil data produk yang tersedia
         $data_products = Product::all();
-
+        $users = User::all();
         // Kirim data ke view
         return view('stock_opname.edit', compact(
             'data_stock_opname',
+            'users',
             'title',
             'subtitle',
             'data_products'
@@ -292,14 +298,21 @@ class StockOpnameController extends Controller
             'image.mimes' => 'Bukti yang dimasukkan hanya diperbolehkan berekstensi JPG, JPEG, PNG, dan GIF.',
             'image.max' => 'Ukuran gambar tidak boleh lebih dari 4 MB.',
         ]);
-
+    
         // Temukan data stock opname
         $data_stock_opname = StockOpname::findOrFail($id);
-
+    
+        // Tentukan user_id yang akan disimpan
+        $loggedInUserId = Auth::id();
+        $userIdToSave = $request->filled('user_id') && Auth::user()->can('user-access')
+            ? $request->user_id
+            : $loggedInUserId;
+    
         // Update data utama
         $data = $request->only(['opname_date', 'description']);
+        $data['user_id'] = $userIdToSave; // Tambahkan user_id ke dalam data yang diperbarui
         $data_stock_opname->update($data);
-
+    
         // Handle image upload menggunakan ImageService
         if ($request->hasFile('image')) {
             try {
@@ -313,7 +326,7 @@ class StockOpnameController extends Controller
                 return redirect()->back()->with('error', 'Gagal mengupload gambar: ' . $e->getMessage());
             }
         }
-
+    
         // Update detail produk
         foreach ($request->input('products') as $productData) {
             $data_stock_opname->stockOpnameDetails()->updateOrCreate(
@@ -326,9 +339,10 @@ class StockOpnameController extends Controller
                 ]
             );
         }
-
+    
         return redirect()->route('stock_opname.index')->with('success', 'Stock Opname berhasil diperbarui.');
     }
+    
 
 
 

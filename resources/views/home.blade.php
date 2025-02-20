@@ -7,6 +7,10 @@
 
 @endpush
 <div class="container-fluid">
+
+    @can('dashboard-content')
+
+
     <!--  Owl carousel -->
     <div class="owl-carousel counter-carousel owl-theme">
         <div class="item">
@@ -236,7 +240,6 @@
         </div>
     </div>
 
-
     <!-- Row 1 -->
     <div class="col-lg-12 d-flex align-items-stretch">
         <div class="card w-100">
@@ -268,9 +271,6 @@
             </div>
         </div>
     </div>
-
-
-
 
     <!--  Row 2 -->
     <div class="row">
@@ -372,7 +372,6 @@
 
     </div>
 
-
     <!--  Row 3 -->
     <div class="row">
         <div class="col-lg-4 d-flex align-items-strech">
@@ -472,6 +471,8 @@
 
 
     </div>
+
+    @endcan
 </div>
 
 
@@ -489,12 +490,12 @@
 <script src="{{ asset('template/back') }}/dist/js/custom.js"></script> -->
 <!--  current page js files -->
 <script src="{{ asset('template/back') }}/dist/libs/owl.carousel/dist/owl.carousel.min.js"></script>
-<script src="{{ asset('template/back') }}/dist/libs/apexcharts/dist/apexcharts.min.js"></script>
-<script src="{{ asset('template/back') }}/dist/js/dashboard.js"></script>   
+
+<script src="{{ asset('template/back') }}/dist/js/dashboard.js"></script>
 
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+<!-- <script src="{{ asset('template/back') }}/dist/libs/apexcharts/dist/apexcharts.min.js"></script> -->
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {

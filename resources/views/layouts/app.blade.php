@@ -20,7 +20,7 @@
 
     <title>{{ $title }}</title>
     <!-- Owl Carousel  -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 
     @stack('css')
 
@@ -173,18 +173,22 @@
                                     <i class="ti ti-menu-2"></i>
                                 </a>
                             </li>
-                            <li class="nav-item nav-icon-hover-bg rounded-circle d-none d-lg-flex">
+                            <!-- <li class="nav-item nav-icon-hover-bg rounded-circle d-none d-lg-flex">
                                 <a class="nav-link" href="javascript:void(0)" data-bs-toggle="modal"
                                     data-bs-target="#exampleModal">
                                     <i class="ti ti-search"></i>
                                 </a>
-                            </li>
+                            </li> -->
                         </ul>
 
                         <ul class="navbar-nav quick-links d-none d-lg-flex align-items-center">
-                            <li class="nav-item dropdown-hover d-none d-lg-block">
+                            <!-- <li class="nav-item dropdown-hover d-none d-lg-block">
                                 <a class="nav-link" href="{{ asset('template/back') }}/main/app-calendar.html">Kalender</a>
+                            </li> -->
+                            <li class="nav-item dropdown-hover d-none d-lg-block">
+                                <a class="nav-link" target="_blank" href="https://wa.me/{{$profil->no_wa}}">Kontak</a>
                             </li>
+
                             <li class="nav-item dropdown-hover d-none d-lg-block">
                                 <a class="nav-link" target="_blank" href="/">Halaman Depan</a>
                             </li>
@@ -391,13 +395,16 @@
                     document.documentElement.setAttribute("data-color-theme", e);
                 }
             </script>
+            @can('user-access')
+
+
             <button
                 class="btn btn-primary p-3 rounded-circle d-flex align-items-center justify-content-center customizer-btn"
                 type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasExample"
                 aria-controls="offcanvasExample">
                 <i class="icon ti ti-settings fs-7"></i>
             </button>
-
+            @endcan
             <div class="offcanvas customizer offcanvas-end" tabindex="-1" id="offcanvasExample"
                 aria-labelledby="offcanvasExampleLabel">
                 <div class="d-flex align-items-center justify-content-between p-3 border-bottom">
@@ -552,10 +559,10 @@
                 Layout: "vertical", // vertical | horizontal
                 Direction: "ltr", // ltr | rtl
                 SidebarType: "{{ request()->is('orders/create') || request()->is('orders/*/edit') ? 'mini-sidebar' : $profil->sidebar_type }}", // full | mini-sidebar
-                BoxedLayout: {{ $profil -> boxed_layout}}, // true | false
+                BoxedLayout: {{$profil-> boxed_layout}}, // true | false
                 Theme: "{{ $profil->theme }}", // light | dark
                 ColorTheme: "{{ $profil->theme_color }}", // Blue_Theme | Aqua_Theme | Purple_Theme | Green_Theme | Cyan_Theme | Orange_Theme
-                cardBorder: {{ $profil -> card_border}}, // true | false
+                cardBorder: {{$profil-> card_border}}, // true | false
             }
 
             function handleColorTheme(e) {
@@ -604,11 +611,10 @@
     <script src="{{ asset('template/back') }}/dist/js/vendor.min.js"></script>
     <script src="{{ asset('template/back') }}/dist/js/theme/app.min.js"></script>
     <script src="{{ asset('template/back') }}/dist/js/theme/theme.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- <script src="{{ asset('template/back') }}/dist/libs/simplebar/dist/simplebar.min.js"></script> -->
     <!-- <script src="{{ asset('template/back') }}/dist/js/theme/app.init.js"></script> -->
-
     <!-- solar icons -->
     <!-- <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script> -->
 

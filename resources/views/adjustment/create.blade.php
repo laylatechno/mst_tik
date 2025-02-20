@@ -49,6 +49,22 @@
                         <form action="{{ route('adjustments.store') }}" method="POST" enctype="multipart/form-data">
                             @csrf
 
+                            @can('user-access')
+                            <div class="form-group mb-3">
+                                <label for="user_id">Pengguna</label>
+                                <span class="text-danger">*</span>
+                                <select name="user_id" id="user_id" class="form-control select2" required>
+                                    <option value="">-- Pilih Pengguna --</option>
+                                    @foreach($users as $user)
+                                    <option value="{{ $user->id }}" {{ auth()->id() == $user->id ? 'selected' : '' }}>
+                                        {{ $user->name }}
+                                    </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @endcan
+
+
                             <div class="form-group mb-3">
                                 <label for="adjustment_date">Tanggal Adjustment</label>
                                 <input type="date" name="adjustment_date" id="adjustment_date" class="form-control" value="{{ old('adjustment_date', now()->toDateString()) }}" required>

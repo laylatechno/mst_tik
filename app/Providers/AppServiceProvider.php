@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\MenuGroup;
 use App\Models\Product;
 use App\Models\Profil;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -35,8 +36,24 @@ class AppServiceProvider extends ServiceProvider
 
         View::share('menus', $menus);
 
-        // Query produk dengan stok kurang dari reminder
-        $lowStockProducts = Product::whereColumn('stock', '<', 'reminder')->get();
+         // Pastikan ada user yang login
+    if (Auth::check()) {
+        $user = Auth::user();
+
+        // Jika user memiliki role user-access, ambil semua produk
+        if ($user->can('user-access')) {
+            $lowStockProducts = Product::whereColumn('stock', '<', 'reminder')->get();
+        } else {
+            // Jika bukan user-access, hanya ambil produk miliknya
+            $lowStockProducts = Product::where('user_id', $user->id)
+                ->whereColumn('stock', '<', 'reminder')
+                ->get();
+        }
+
         View::share('lowStockProducts', $lowStockProducts);
+    } else {
+        // Jika tidak ada user yang login, kosongkan variabel
+        View::share('lowStockProducts', collect());
+    }
     }
 }

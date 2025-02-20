@@ -14,6 +14,9 @@ public function profits()
 {
     return $this->hasMany(Profit::class, 'transaction_id');
 }
-
+public function user()
+{
+    return $this->belongsTo(User::class, 'user_id');
+}
 
 }

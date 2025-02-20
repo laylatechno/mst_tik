@@ -64,6 +64,9 @@
                                 <thead>
                                     <tr>
                                         <th width="5%">No</th>
+                                        @can('user-access')
+                                        <th>Nama User</th>  
+                                        @endcan
                                         <th>Nomor Adjustment</th>
                                         <th>Tanggal</th>
                                         <th>Keterangan</th>
@@ -75,6 +78,9 @@
                                     @foreach ($data_adjustment as $p)
                                     <tr>
                                         <td>{{ $loop->iteration }}</td>
+                                        @can('user-access')
+                                        <td>{{ $p->user->name ?? 'Tidak Diketahui' }}</td>  
+                                        @endcan
                                         <td>{{ $p->adjustment_number }}</td>
                                         <td>{{ $p->adjustment_date }}</td>
                                         <td>{{ $p->description ?: 'No Data' }}</td>
