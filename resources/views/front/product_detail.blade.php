@@ -181,7 +181,7 @@
             <div class="col-6 col-md-4">
               <div class="card product-card">
                 <div class="card-body">
-                 
+
                   <a class="d-block" href="{{ route('product.product_detail', $p->slug) }}">
                     <img class="image-thumbnail lazy-img"
                       src="https://placehold.co/300x200?text=Loading..."
@@ -189,7 +189,7 @@
                       data-original="/upload/products/{{ $p->image }}"
                       alt="{{ $p->name }}">
                   </a>
- 
+
                   </a>
                   <a class="store-badge" href="{{ url('produk?category=' . $p->category->slug) }}">
                     {{ $p->category->name ?? 'Tanpa Kategori' }}
@@ -207,9 +207,10 @@
                     @endif
                   </p>
 
-                  <a href="">
-                    <p class="custom-badge">{{ $p->user->user }} </p>
+                  <a href="{{ route('store.store_detail', $p->user->user) }}">
+                    <p class="custom-badge">{{ $p->user->user }}</p>
                   </a>
+
 
                   <span class="product-note">
                     {{ $p->note }}
@@ -233,28 +234,28 @@
       </div>
 
       <div class="container py-2">
-          <div class="card">
-            <div class="card-body about-content-wrap dir-rtl">
-              <p class="mb-2">Bagikan agar orang lain tahu banyak tentang toko ini.</p>
-              <!-- AddToAny BEGIN -->
-              <div class="a2a_kit a2a_kit_size_32 a2a_default_style">
-                <a class="a2a_dd" href="https://www.addtoany.com/share"></a>
-                <a class="a2a_button_facebook"></a>
-                <a class="a2a_button_whatsapp"></a>
-                <a class="a2a_button_telegram"></a>
-                <a class="a2a_button_x"></a>
-                <a class="a2a_button_copy_link"></a>
-              </div>
-              <script defer src="https://static.addtoany.com/menu/page.js"></script>
-              <!-- AddToAny END -->
-
-
-
+        <div class="card">
+          <div class="card-body about-content-wrap dir-rtl">
+            <p class="mb-2">Bagikan agar orang lain tahu banyak tentang toko ini.</p>
+            <!-- AddToAny BEGIN -->
+            <div class="a2a_kit a2a_kit_size_32 a2a_default_style">
+              <a class="a2a_dd" href="https://www.addtoany.com/share"></a>
+              <a class="a2a_button_facebook"></a>
+              <a class="a2a_button_whatsapp"></a>
+              <a class="a2a_button_telegram"></a>
+              <a class="a2a_button_x"></a>
+              <a class="a2a_button_copy_link"></a>
             </div>
+            <script defer src="https://static.addtoany.com/menu/page.js"></script>
+            <!-- AddToAny END -->
+
+
+
           </div>
         </div>
+      </div>
 
-       
+
     </div>
   </div>
 </div>

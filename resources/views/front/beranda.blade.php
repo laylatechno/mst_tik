@@ -18,15 +18,15 @@
 @section('content')
 
 
-  <!-- PWA Install Alert -->
-  <div class="toast pwa-install-alert shadow bg-white" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000" data-bs-autohide="true">
+<!-- PWA Install Alert -->
+<div class="toast pwa-install-alert shadow bg-white" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000" data-bs-autohide="true">
     <div class="toast-body">
-      <div class="content d-flex align-items-center mb-2"><img src="{{ asset('template/front') }}/img/icons/icon-72x72.png" alt="">
-        <h6 class="mb-0">Tambahkan Ke Halaman Utama</h6>
-        <button class="btn-close ms-auto" type="button" data-bs-dismiss="toast" aria-label="Close"></button>
-      </div><span class="mb-0 d-block">Anda bisa<strong class="mx-1">Menambahkan Website Ke Halaman Depan.</strong> Dan Enjoy Menggunakan Seperti Aplikasi.</span>
+        <div class="content d-flex align-items-center mb-2"><img src="{{ asset('template/front') }}/img/icons/icon-72x72.png" alt="">
+            <h6 class="mb-0">Tambahkan Ke Halaman Utama</h6>
+            <button class="btn-close ms-auto" type="button" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div><span class="mb-0 d-block">Anda bisa<strong class="mx-1">Menambahkan Website Ke Halaman Depan.</strong> Dan Enjoy Menggunakan Seperti Aplikasi.</span>
     </div>
-  </div>
+</div>
 
 
 <div class="page-content-wrapper">
@@ -159,8 +159,8 @@
                                 @endif
                             </p>
 
-                            <a href="">
-                                <p class="custom-badge">{{ $p->user->user }} </p>
+                            <a href="{{ route('store.store_detail', $p->user->user) }}">
+                                <p class="custom-badge">{{ $p->user->user }}</p>
                             </a>
 
                             <span class="product-note">
@@ -299,6 +299,7 @@
                     <div class="card product-card">
                         <div class="card-body">
 
+
                             <a class="d-block" href="{{ route('product.product_detail', $p->slug) }}">
                                 <img class="image-thumbnail lazy-img"
                                     src="https://placehold.co/300x200?text=Loading..."
@@ -306,7 +307,12 @@
                                     data-original="/upload/products/{{ $p->image }}"
                                     alt="{{ $p->name }}">
                             </a>
+
+
+                            </a>
+                            <a class="store-badge" href="/">{{ $p->category->name ?? 'Tanpa Kategori' }}</a>
                             <a class="product-title" href="/">{{ $p->name }}</a>
+
 
                             <p class="sale-price-new">
                                 Rp {{ number_format($p->cost_price, 0, ',', '.') }}
@@ -315,14 +321,18 @@
                                 @endif
                             </p>
 
-                            <p class="custom-badge">
-                                {{ $p->category->name ?? 'Tanpa Kategori' }}
-                            </p>
+                            <a href="{{ route('store.store_detail', $p->user->user) }}">
+                                <p class="custom-badge">{{ $p->user->user }}</p>
+                            </a>
 
                             <span class="product-note">
                                 {{ $p->note }}
                             </span>
-                            <br><br>
+                            <br>
+
+
+
+                            <br>
                             <form class="add-to-cart-form" data-product-id="{{ $p->id }}">
                                 @csrf
                                 <button class="btn btn-primary btn-sm" type="button"><i class="ti ti-shopping-cart"></i></button>
@@ -350,6 +360,7 @@
                     <div class="card product-card">
                         <div class="card-body">
 
+
                             <a class="d-block" href="{{ route('product.product_detail', $p->slug) }}">
                                 <img class="image-thumbnail lazy-img"
                                     src="https://placehold.co/300x200?text=Loading..."
@@ -357,7 +368,12 @@
                                     data-original="/upload/products/{{ $p->image }}"
                                     alt="{{ $p->name }}">
                             </a>
+
+
+                            </a>
+                            <a class="store-badge" href="/">{{ $p->category->name ?? 'Tanpa Kategori' }}</a>
                             <a class="product-title" href="/">{{ $p->name }}</a>
+
 
                             <p class="sale-price-new">
                                 Rp {{ number_format($p->cost_price, 0, ',', '.') }}
@@ -366,14 +382,18 @@
                                 @endif
                             </p>
 
-                            <p class="custom-badge">
-                                {{ $p->category->name ?? 'Tanpa Kategori' }}
-                            </p>
+                            <a href="{{ route('store.store_detail', $p->user->user) }}">
+                                <p class="custom-badge">{{ $p->user->user }}</p>
+                            </a>
 
                             <span class="product-note">
                                 {{ $p->note }}
                             </span>
-                            <br><br>
+                            <br>
+
+
+
+                            <br>
                             <form class="add-to-cart-form" data-product-id="{{ $p->id }}">
                                 @csrf
                                 <button class="btn btn-primary btn-sm" type="button"><i class="ti ti-shopping-cart"></i></button>
@@ -401,6 +421,7 @@
                     <div class="card product-card">
                         <div class="card-body">
 
+
                             <a class="d-block" href="{{ route('product.product_detail', $p->slug) }}">
                                 <img class="image-thumbnail lazy-img"
                                     src="https://placehold.co/300x200?text=Loading..."
@@ -408,7 +429,12 @@
                                     data-original="/upload/products/{{ $p->image }}"
                                     alt="{{ $p->name }}">
                             </a>
+
+
+                            </a>
+                            <a class="store-badge" href="/">{{ $p->category->name ?? 'Tanpa Kategori' }}</a>
                             <a class="product-title" href="/">{{ $p->name }}</a>
+
 
                             <p class="sale-price-new">
                                 Rp {{ number_format($p->cost_price, 0, ',', '.') }}
@@ -417,14 +443,18 @@
                                 @endif
                             </p>
 
-                            <p class="custom-badge">
-                                {{ $p->category->name ?? 'Tanpa Kategori' }}
-                            </p>
+                            <a href="{{ route('store.store_detail', $p->user->user) }}">
+                                <p class="custom-badge">{{ $p->user->user }}</p>
+                            </a>
 
                             <span class="product-note">
                                 {{ $p->note }}
                             </span>
-                            <br><br>
+                            <br>
+
+
+
+                            <br>
                             <form class="add-to-cart-form" data-product-id="{{ $p->id }}">
                                 @csrf
                                 <button class="btn btn-primary btn-sm" type="button"><i class="ti ti-shopping-cart"></i></button>
@@ -452,6 +482,7 @@
                     <div class="card product-card">
                         <div class="card-body">
 
+
                             <a class="d-block" href="{{ route('product.product_detail', $p->slug) }}">
                                 <img class="image-thumbnail lazy-img"
                                     src="https://placehold.co/300x200?text=Loading..."
@@ -459,7 +490,12 @@
                                     data-original="/upload/products/{{ $p->image }}"
                                     alt="{{ $p->name }}">
                             </a>
+
+
+                            </a>
+                            <a class="store-badge" href="/">{{ $p->category->name ?? 'Tanpa Kategori' }}</a>
                             <a class="product-title" href="/">{{ $p->name }}</a>
+
 
                             <p class="sale-price-new">
                                 Rp {{ number_format($p->cost_price, 0, ',', '.') }}
@@ -468,14 +504,18 @@
                                 @endif
                             </p>
 
-                            <p class="custom-badge">
-                                {{ $p->category->name ?? 'Tanpa Kategori' }}
-                            </p>
+                            <a href="{{ route('store.store_detail', $p->user->user) }}">
+                                <p class="custom-badge">{{ $p->user->user }}</p>
+                            </a>
 
                             <span class="product-note">
                                 {{ $p->note }}
                             </span>
-                            <br><br>
+                            <br>
+
+
+
+                            <br>
                             <form class="add-to-cart-form" data-product-id="{{ $p->id }}">
                                 @csrf
                                 <button class="btn btn-primary btn-sm" type="button"><i class="ti ti-shopping-cart"></i></button>

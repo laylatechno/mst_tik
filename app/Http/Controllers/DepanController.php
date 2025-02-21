@@ -281,8 +281,7 @@ class DepanController extends Controller
         // Ambil data store berdasarkan user
         $data_stores = User::with('links')->where('user', $user)->firstOrFail();
 
-        // Ambil produk berdasarkan user_id yang sesuai dan paginasi 2 produk per halaman
-        $data_products = Product::where('user_id', $data_stores->id)->paginate(2);
+        $data_products = Product::where('user_id', $data_stores->id)->paginate(10);
 
         // Hitung total produk
         $total_products = Product::where('user_id', $data_stores->id)->count();
