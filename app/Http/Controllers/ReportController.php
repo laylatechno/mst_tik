@@ -17,6 +17,7 @@ use App\Models\Customer;
 use App\Models\OrderItem;
 use App\Models\Profit;
 use App\Models\Supplier;
+use App\Models\User;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
@@ -34,10 +35,6 @@ class ReportController extends Controller
         $this->middleware('permission:topproductreport-list', ['only' => ['top_product_report']]);
     }
 
-
-
-
-
     // Laporan Pembelian
     public function purchase_report(Request $request)
     {
@@ -46,50 +43,59 @@ class ReportController extends Controller
 
         $startDate = $request->get('start_date', now()->format('Y-m-d'));
         $endDate = $request->get('end_date', now()->format('Y-m-d'));
-
         $status = $request->get('status');
         $supplierIds = $request->get('supplier_id', []);
         $typePayment = $request->get('type_payment');
         $cashIds = $request->get('cash_id', []);
 
-        $data_purchases = Purchase::with(['supplier', 'user'])
+        // Jika user punya permission 'user-access', gunakan filter dari request
+        if (auth()->user()->can('user-access')) {
+            $userId = $request->get('user_id');
+        } else {
+            // Jika tidak, otomatis hanya tampilkan transaksi milik user yang login
+            $userId = auth()->id();
+        }
+
+        // Query dasar dengan relasi
+        $data_purchases = Purchase::with(['supplier', 'user', 'cash'])
             ->whereBetween('purchase_date', [$startDate, $endDate]);
 
-        // Filter berdasarkan status
+        // Filter berdasarkan user_id (jika ada)
+        if (!empty($userId)) {
+            $data_purchases->where('user_id', $userId);
+        }
+
+        // Filter lainnya
         if (!empty($status)) {
             $data_purchases->where('status', $status);
         }
-
-        // Filter berdasarkan supplier_id (jika ada)
         if (!empty($supplierIds)) {
             $data_purchases->whereIn('supplier_id', $supplierIds);
         }
-
-        // Filter berdasarkan metode pembayaran
         if (!empty($typePayment)) {
             $data_purchases->where('type_payment', $typePayment);
         }
-
-        // Filter berdasarkan cash_id (jika ada)
         if (!empty($cashIds)) {
             $data_purchases->whereIn('cash_id', $cashIds);
         }
 
-        $data_purchases = $data_purchases->orderBy('id', 'desc')->get();
+        $data_purchases = $data_purchases->get();
 
-        $data_products = Product::all();
-        $suppliers = Supplier::all();
-        $cashes = Cash::all(); // Pastikan Anda mengimpor model Cash
+        // Ambil data untuk filter
+        $suppliers = Supplier::orderBy('name')->get();
+        $cashes = Cash::orderBy('name')->get();
+        $users = User::orderBy('name')->get();
 
         return view('report.purchase_report.index', compact(
+            'title',
+            'subtitle',
             'data_purchases',
-            'data_products',
             'suppliers',
             'cashes',
-            'title',
-            'subtitle'
+            'users'
         ));
     }
+
 
     // Update export methods to include new filters
     public function exportExcelPurchase(Request $request)
@@ -735,7 +741,7 @@ class ReportController extends Controller
         $endDate = $request->end_date ?? now()->endOfMonth()->format('Y-m-d');
         $status = $request->status;
         $categoryId = $request->category;
-    
+
         $topProduct = OrderItem::with('product.category')
             ->whereHas('order', function ($query) use ($startDate, $endDate, $status) {
                 $query->whereBetween('order_date', [$startDate, $endDate]);
@@ -752,23 +758,23 @@ class ReportController extends Controller
             ->groupBy('product_id')
             ->orderByDesc('total_quantity')
             ->get();
-    
+
         // Menambahkan data ke dalam laporan Excel
         return Excel::download(new TopProductReportExport($topProduct), 'Laporan_Produk_Terlaris.xlsx');
     }
-    
+
 
     public function exportPdfTopProduct(Request $request)
     {
         $title = "Laporan Produk Terlaris";
         $subtitle = "Menu Laporan Produk Terlaris";
-    
+
         // Ambil tanggal awal dan akhir dari request, jika tidak ada gunakan awal dan akhir bulan
         $startDate = $request->start_date ?? now()->startOfMonth()->format('Y-m-d');
         $endDate = $request->end_date ?? now()->endOfMonth()->format('Y-m-d');
         $status = $request->status; // Status filter dari order
         $categoryId = $request->category; // ID kategori filter
-    
+
         // Query untuk mendapatkan produk terlaris
         $topProduct = OrderItem::with('product.category') // Relasi dengan produk dan kategori
             ->whereHas('order', function ($query) use ($startDate, $endDate, $status) {
@@ -792,7 +798,7 @@ class ReportController extends Controller
             ->groupBy('product_id') // Kelompokkan berdasarkan produk
             ->orderByDesc('total_quantity') // Urutkan berdasarkan quantity tertinggi
             ->get();
-    
+
         // Generate PDF
         $pdf = PDF::loadView('report.top_product_report.pdf', compact(
             'title',
@@ -801,23 +807,23 @@ class ReportController extends Controller
             'startDate',
             'endDate'
         ))->setPaper('a4', 'landscape');
-    
+
         // Unduh PDF
         return $pdf->download('Laporan_Produk_Terlaris.pdf');
     }
-    
+
 
     public function previewPdfTopProduct(Request $request)
     {
         $title = "Laporan Produk Terlaris";
         $subtitle = "Menu Laporan Produk Terlaris";
-    
+
         // Ambil tanggal awal dan akhir dari request, jika tidak ada gunakan awal dan akhir bulan
         $startDate = $request->start_date ?? now()->startOfMonth()->format('Y-m-d');
         $endDate = $request->end_date ?? now()->endOfMonth()->format('Y-m-d');
         $status = $request->status; // Status filter dari order
         $categoryId = $request->category; // ID kategori filter
-    
+
         // Ambil data order_items dengan join produk
         $topProduct = OrderItem::with('product.category')
             ->whereHas('order', function ($query) use ($startDate, $endDate, $status) {
@@ -839,7 +845,7 @@ class ReportController extends Controller
             ->groupBy('product_id') // Kelompokkan berdasarkan produk
             ->orderByDesc('total_quantity') // Urutkan berdasarkan quantity tertinggi
             ->get();
-    
+
         // Buat PDF
         $pdf = Pdf::loadView('report.top_product_report.pdf', compact(
             'title',
@@ -848,11 +854,11 @@ class ReportController extends Controller
             'startDate',
             'endDate'
         ))->setPaper('a4', 'landscape');
-    
+
         // Tampilkan PDF dalam browser
         return $pdf->stream('Laporan_Produk_Terlaris.pdf');
     }
-    
+
 
 
 

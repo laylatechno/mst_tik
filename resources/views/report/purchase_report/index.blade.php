@@ -56,6 +56,21 @@
                                     <form action="{{ route('report.purchase_reports') }}" method="GET" class="mb-4">
                                         <!-- Row untuk Inputan -->
                                         <div class="row">
+                                            @can('user-access')
+                                            <div class="form-group mb-3">
+                                                <label for="user_id">Pengguna</label>
+                                                <span class="text-danger">*</span>
+                                                <select name="user_id" id="user_id" class="form-control select2" required>
+                                                    <option value="">-- Pilih Pengguna --</option>
+                                                    @foreach($users as $user)
+                                                    <option value="{{ $user->id }}" {{ auth()->id() == $user->id ? 'selected' : '' }}>
+                                                        {{ $user->name }}
+                                                    </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            @endcan
+
                                             <!-- Kolom Tanggal Awal -->
                                             <div class="col-md-3 mt-3">
                                                 <label for="start_date" class="form-label">Tanggal Awal</label>
