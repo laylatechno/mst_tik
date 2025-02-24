@@ -48,21 +48,17 @@ class ReportController extends Controller
         $typePayment = $request->get('type_payment');
         $cashIds = $request->get('cash_id', []);
 
-        // Jika user punya permission 'user-access', gunakan filter dari request
-        if (auth()->user()->can('user-access')) {
-            $userId = $request->get('user_id');
-        } else {
-            // Jika tidak, otomatis hanya tampilkan transaksi milik user yang login
-            $userId = auth()->id();
-        }
-
         // Query dasar dengan relasi
         $data_purchases = Purchase::with(['supplier', 'user', 'cash'])
             ->whereBetween('purchase_date', [$startDate, $endDate]);
 
-        // Filter berdasarkan user_id (jika ada)
-        if (!empty($userId)) {
-            $data_purchases->where('user_id', $userId);
+        // Filter berdasarkan user_id
+        if (!auth()->user()->can('user-access')) {
+            // Jika user tidak punya permission 'user-access', hanya tampilkan transaksi miliknya sendiri
+            $data_purchases->where('user_id', auth()->id());
+        } elseif (!empty($request->get('user_id'))) {
+            // Jika user punya permission 'user-access', tetapi memilih user tertentu, gunakan filter dari request
+            $data_purchases->where('user_id', $request->get('user_id'));
         }
 
         // Filter lainnya
@@ -79,11 +75,30 @@ class ReportController extends Controller
             $data_purchases->whereIn('cash_id', $cashIds);
         }
 
-        $data_purchases = $data_purchases->get();
+        $data_purchases = $data_purchases->orderBy('id', 'desc')->get();
 
-        // Ambil data untuk filter
-        $suppliers = Supplier::orderBy('name')->get();
-        $cashes = Cash::orderBy('name')->get();
+        // Ambil data supplier berdasarkan akses user
+        if (auth()->user()->can('user-access')) {
+            // Jika user memiliki akses 'user-access', tampilkan semua supplier
+            $suppliers = Supplier::orderBy('name')->get();
+        } else {
+            // Jika tidak, hanya tampilkan supplier yang punya transaksi dengan user yang login
+            $suppliers = Supplier::whereHas('purchases', function ($query) {
+                $query->where('user_id', auth()->id());
+            })->orderBy('name')->get();
+        }
+
+        // Ambil data cash berdasarkan akses user
+        if (auth()->user()->can('user-access')) {
+            // Jika user memiliki akses 'user-access', tampilkan semua cash
+            $cashes = Cash::orderBy('name')->get();
+        } else {
+            // Jika tidak, hanya tampilkan cash yang punya transaksi dengan user yang login
+            $cashes = Cash::whereHas('purchases', function ($query) {
+                $query->where('user_id', auth()->id());
+            })->orderBy('name')->get();
+        }
+
         $users = User::orderBy('name')->get();
 
         return view('report.purchase_report.index', compact(
@@ -95,6 +110,7 @@ class ReportController extends Controller
             'users'
         ));
     }
+
 
 
     // Update export methods to include new filters
@@ -213,50 +229,72 @@ class ReportController extends Controller
 
         $startDate = $request->get('start_date', now()->format('Y-m-d'));
         $endDate = $request->get('end_date', now()->format('Y-m-d'));
-
         $status = $request->get('status');
         $customerIds = $request->get('customer_id', []);
         $typePayment = $request->get('type_payment');
         $cashIds = $request->get('cash_id', []);
 
-        $data_orders = Order::with(['customer', 'user'])
+        // Query dasar dengan relasi
+        $data_orders = Order::with(['customer', 'user', 'cash'])
             ->whereBetween('order_date', [$startDate, $endDate]);
 
-        // Filter berdasarkan status
+        // Filter berdasarkan user_id
+        if (!auth()->user()->can('user-access')) {
+            // Jika user tidak punya permission 'user-access', hanya tampilkan transaksi miliknya sendiri
+            $data_orders->where('user_id', auth()->id());
+        } elseif (!empty($request->get('user_id'))) {
+            // Jika user punya permission 'user-access' dan memilih user tertentu
+            $data_orders->where('user_id', $request->get('user_id'));
+        }
+
+        // Filter lainnya
         if (!empty($status)) {
             $data_orders->where('status', $status);
         }
-
-        // Filter berdasarkan customer_id (jika ada)
         if (!empty($customerIds)) {
             $data_orders->whereIn('customer_id', $customerIds);
         }
-
-        // Filter berdasarkan metode pembayaran
         if (!empty($typePayment)) {
             $data_orders->where('type_payment', $typePayment);
         }
-
-        // Filter berdasarkan cash_id (jika ada)
         if (!empty($cashIds)) {
             $data_orders->whereIn('cash_id', $cashIds);
         }
 
         $data_orders = $data_orders->orderBy('id', 'desc')->get();
-
         $data_products = Product::all();
-        $customers = Customer::all();
-        $cashes = Cash::all(); // Pastikan Anda mengimpor model Cash
+
+        // Ambil data customer berdasarkan akses user
+        if (auth()->user()->can('user-access')) {
+            $customers = Customer::orderBy('name')->get();
+        } else {
+            $customers = Customer::whereHas('orders', function ($query) {
+                $query->where('user_id', auth()->id());
+            })->orderBy('name')->get();
+        }
+
+        // Ambil data cash berdasarkan akses user
+        if (auth()->user()->can('user-access')) {
+            $cashes = Cash::orderBy('name')->get();
+        } else {
+            $cashes = Cash::whereHas('orders', function ($query) {
+                $query->where('user_id', auth()->id());
+            })->orderBy('name')->get();
+        }
+
+        $users = User::orderBy('name')->get();
 
         return view('report.order_report.index', compact(
+            'title',
+            'subtitle',
             'data_orders',
             'data_products',
             'customers',
             'cashes',
-            'title',
-            'subtitle'
+            'users'
         ));
     }
+
 
     public function exportExcelOrder(Request $request)
     {
@@ -377,7 +415,6 @@ class ReportController extends Controller
 
 
 
-    // Laporan Produk
     public function product_report(Request $request)
     {
         $title = "Laporan Penjualan";
@@ -389,9 +426,18 @@ class ReportController extends Controller
         $status = $request->get('status');
         $customerIds = $request->get('customer_id', []);
         $productIds = $request->get('product_id', []);
+        $userIds = $request->get('user_id', []);
 
+        // Query dasar dengan relasi
         $data_orders = Order::with(['customer', 'user', 'orderItems.product'])
             ->whereBetween('order_date', [$startDate, $endDate]);
+
+        // Filter berdasarkan user_id jika user tidak memiliki permission 'user-access'
+        if (!auth()->user()->can('user-access')) {
+            $data_orders->where('user_id', auth()->id());
+        } elseif (!empty($userIds)) {
+            $data_orders->whereIn('user_id', (array) $userIds);
+        }
 
         // Filter berdasarkan status, jika ada
         if (!empty($status)) {
@@ -400,33 +446,54 @@ class ReportController extends Controller
 
         // Filter berdasarkan customer_id, jika ada
         if (!empty($customerIds)) {
-            $data_orders->whereIn('customer_id', $customerIds);
+            $data_orders->whereIn('customer_id', (array) $customerIds);
         }
 
         // Filter berdasarkan product_id, jika ada
         if (!empty($productIds)) {
             $data_orders->whereHas('orderItems', function ($query) use ($productIds) {
-                $query->whereIn('product_id', $productIds);
+                $query->whereIn('product_id', (array) $productIds);
             })->with(['orderItems' => function ($query) use ($productIds) {
-                $query->whereIn('product_id', $productIds);
+                $query->whereIn('product_id', (array) $productIds);
             }]);
         }
 
         // Ambil data order yang sudah difilter
         $data_orders = $data_orders->orderBy('id', 'desc')->get();
 
-        // Mengambil semua produk dan pelanggan
-        $data_products = Product::all();
-        $customers = Customer::all();
+        // Mengambil daftar produk berdasarkan hak akses
+        $data_products = Product::query()
+            ->when(!auth()->user()->can('user-access'), function ($query) {
+                $query->whereHas('orderItems.order', function ($q) {
+                    $q->where('user_id', auth()->id());
+                });
+            })
+            ->orderBy('name')
+            ->get();
+
+        // Menyesuaikan daftar pelanggan berdasarkan akses user
+        $customers = Customer::query()
+            ->when(!auth()->user()->can('user-access'), function ($query) {
+                $query->whereHas('orders', function ($q) {
+                    $q->where('user_id', auth()->id());
+                });
+            })
+            ->orderBy('name')
+            ->get();
+
+        // Mengambil daftar pengguna jika user memiliki akses
+        $users = auth()->user()->can('user-access') ? User::orderBy('name')->get() : collect([]);
 
         return view('report.product_report.index', compact(
             'data_orders',
             'data_products',
             'customers',
+            'users',
             'title',
             'subtitle'
         ));
     }
+
 
     private function getFilteredOrders(Request $request)
     {
@@ -528,8 +595,10 @@ class ReportController extends Controller
         $title = "Laporan Laba Rugi";
         $subtitle = "Menu Laporan Laba Rugi";
 
-        // Ambil semua data profit_loss dan filter berdasarkan tanggal serta kategori transaksi
         $profitLoss = Profit::with(['cash', 'transactionCategory', 'order', 'purchase'])
+            ->when(!auth()->user()->can('user-access'), function ($query) {
+                $query->where('user_id', auth()->id());
+            })
             ->when($request->start_date, function ($query) use ($request) {
                 $query->where('date', '>=', $request->start_date);
             })
@@ -539,15 +608,20 @@ class ReportController extends Controller
             ->when($request->cash_id, function ($query) use ($request) {
                 $query->where('cash_id', $request->cash_id);
             })
-            // Filter berdasarkan kategori transaksi
+            // Filter kategori transaksi tetap berlaku untuk semua pengguna
             ->when($request->category, function ($query) use ($request) {
                 $query->where('category', $request->category);
             })
             ->orderBy('date', 'asc') // Menyortir berdasarkan tanggal
             ->get();
 
-        // Mengambil semua data kas
-        $cashes = Cash::all();
+        if (auth()->user()->can('user-access')) {
+            $cashes = Cash::orderBy('name')->get();
+        } else {
+            $cashes = Cash::whereHas('orders', function ($query) {
+                $query->where('user_id', auth()->id());
+            })->orderBy('name')->get();
+        }
 
         // Kirim variabel ke tampilan
         return view('report.profit_report.index', compact(
@@ -599,23 +673,21 @@ class ReportController extends Controller
     public function exportPdfProfit(Request $request)
     {
         // Ambil semua data profit_loss dan filter berdasarkan tanggal serta kategori transaksi
+        // Ambil semua data profit_loss dengan filter berdasarkan user_id
         $profitLoss = Profit::with(['cash', 'transactionCategory', 'order', 'purchase'])
+            ->when(!auth()->user()->can('user-access'), function ($query) {
+                $query->where('user_id', auth()->id());
+            })
             ->when($request->start_date, function ($query) use ($request) {
                 $query->where('date', '>=', $request->start_date);
             })
             ->when($request->end_date, function ($query) use ($request) {
                 $query->where('date', '<=', $request->end_date);
             })
-            // Pastikan cash_id adalah array, meskipun hanya satu nilai yang dipilih
             ->when($request->cash_id, function ($query) use ($request) {
-                // Pastikan cash_id dalam bentuk array
-                $cashIds = is_array($request->cash_id) ? $request->cash_id : [$request->cash_id];
-                $query->whereIn('cash_id', $cashIds);
+                $query->where('cash_id', $request->cash_id);
             })
-            ->when($request->category, function ($query) use ($request) {
-                $query->where('category', $request->category);
-            })
-            ->orderBy('date', 'asc')
+            ->orderBy('date', 'asc') // Menyortir berdasarkan tanggal
             ->get();
 
         // Menyiapkan data untuk dikirim ke view

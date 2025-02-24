@@ -60,8 +60,8 @@
                 <td>{{ $p->user->name }}</td>
                 <td>Rp {{ number_format($p->total_cost, 0, ',', '.') }}</td>
                 <td>{{ $p->status }}</td>
-                <td>{{ $p->cash->name ?? 'No Data' }}</td>
                 <td>{{ $p->type_payment }}</td>
+                <td>{{ $p->cash->name ?? 'No Data' }}</td>
             </tr>
             @endforeach
         </tbody>

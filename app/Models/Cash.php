@@ -19,4 +19,15 @@ public function user()
     return $this->belongsTo(User::class, 'user_id');
 }
 
+public function purchases()
+{
+    return $this->hasMany(Purchase::class, 'cash_id');
+}
+
+public function orders()
+{
+    return $this->hasMany(Order::class, 'cash_id');
+}
+
+
 }
