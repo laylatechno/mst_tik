@@ -93,7 +93,7 @@
                                         <th>No Pembelian</th>
                                         <th>Tanggal Pembelian</th>
                                         <th>Supplier</th>
-                                        <th>Pengguna</th>
+                                        {{-- <th>Pengguna</th> --}}
                                         <th>Total</th>
                                         <th>Status</th>
                                         <th>Gambar</th>
@@ -116,7 +116,7 @@
 
                                         <td>{{ $p->supplier->name ?? 'No Data' }}</td>
 
-                                        <td>{{ $p->user->name }}</td>
+                                        {{-- <td>{{ $p->user->name }}</td> --}}
                                         <td>Rp {{ number_format($p->total_cost, 0, ',', '.') }}</td>
 
                                         <!-- Status dengan Badge -->

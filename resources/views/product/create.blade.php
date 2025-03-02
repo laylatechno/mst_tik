@@ -224,6 +224,10 @@
                                         <label for="description">Deskripsi</label>
                                         <textarea class="form-control" name="description" id="description">{{ old('description') }}</textarea>
                                     </div>
+                                     <div class="form-group mb-3">
+                                        <label for="note">Note Ringkas</label>
+                                        <textarea class="form-control" name="note" id="note">{{ old('note') }}</textarea>
+                                    </div>
                                     <div class="form-group mb-3">
                                         <label title="Status Aktif berpengaruh terhadap tampilnya produk pada Penjualan/menu Kasir/POS">
                                             Status Aktif <i class="fa fa-info-circle"></i>
@@ -464,10 +468,10 @@
 
 <script src="{{ asset('template/back') }}/dist/libs/ckeditor/ckeditor.js"></script>
 <script src="{{ asset('template/back') }}/dist/libs/ckeditor/samples/js/sample.js"></script>
-<script>
+{{-- <script>
     //default
     initSample();
-</script>
+</script> --}}
 <script data-sample="1">
     CKEDITOR.replace("description", {
         height: 150,

@@ -67,32 +67,39 @@
         width: 100%;
     }
 
-    .product-item {
-        width: 100%;
-        text-align: center;
-        cursor: pointer;
-        border: 1px solid #ddd;
-        padding: 10px;
-        border-radius: 5px;
-        transition: transform 0.2s;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        background: #fff;
-    }
+  .product-item {
+            width: 100%;
+            text-align: center;
+            cursor: pointer;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            transition: transform 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: #fff;
+            box-sizing: border-box;
+            /* Memastikan padding dan border termasuk dalam lebar */
+            overflow: hidden;
+            /* Memastikan konten tidak keluar dari container */
+        }
+
+        .product-item img {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 3px;
+            max-width: 100%;
+            /* Memastikan gambar tidak melebihi lebar parent */
+        }
 
     .product-item:hover {
         transform: scale(1.05);
         border-color: #aaa;
     }
 
-    .product-item img {
-        width: 100%;
-        height: 100px;
-        object-fit: cover;
-        border-radius: 3px;
-    }
-
+ 
     .product-item p {
         font-size: 14px;
         margin-top: 10px;
@@ -324,8 +331,8 @@
                                 <div class="col-md-6 mb-3">
                                     <div class="form-group">
                                         <label for="cash_id">Kas Pembayaran</label>
-                                        <select name="cash_id" id="cash_id" class="form-control">
-                                            <option value="">--Pilih Cash--</option>
+                                        <select name="cash_id" id="cash_id" class="form-control" required >
+                                            {{-- <option value="">--Pilih Cash--</option> --}}
                                             @foreach($data_cashes as $cash)
                                             <option value="{{ $cash->id }}"
                                                 {{ old('cash_id', $order->cash_id) == $cash->id ? 'selected' : '' }}
@@ -404,9 +411,8 @@
                                         <h5 style="color: red; font-size:30px;" class="badge badge-danger">Rp.
                                         <span id="total_cost">{{ number_format(old('total_cost', $order->total_cost ?? 0), 0, ',', '.') }}</span> 
                                         </h5>
-                                        <input type="hidden" name="total_cost" id="total_cost_input" class="form-control total_cost"
-                                            value="{{ old('total_cost', $order->total_cost ?? 0) }}">
-                                        <input type="" name="total_cost_before" id="total_cost_before_input" class="form-control total_cost_before"
+                                        <input type="hidden" name="total_cost" id="total_cost_input" class="form-control total_cost" value="{{ old('total_cost', $order->total_cost ?? 0) }}">
+                                        <input type="hidden" name="total_cost_before" id="total_cost_before_input" class="form-control total_cost_before"
                                             value="{{ old('total_cost_before', $order->total_cost_before ?? 0) }}">
                                         <hr>
                                         <h1 style="color: red" id="info_payment"></h1>

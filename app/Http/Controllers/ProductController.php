@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use App\Services\ImageService;
+use Illuminate\Support\Facades\Gate;
 
 use Picqer\Barcode\BarcodeGeneratorHTML;
 
@@ -185,6 +186,8 @@ class ProductController extends Controller
 
 
 
+   
+
     public function store(Request $request): RedirectResponse
     {
         // Validasi data produk utama
@@ -197,7 +200,6 @@ class ProductController extends Controller
             'stock' => 'nullable|integer',
             'reminder' => 'nullable|integer',
             'description' => 'nullable|string',
-            // Validasi untuk kategori dan harga konsumen
             'customer_category_id.*' => 'nullable|exists:customer_categories,id',
             'customer_price.*' => 'nullable',
             'image' => 'image|mimes:jpeg,png,jpg,gif,webp|max:4048',
@@ -209,20 +211,13 @@ class ProductController extends Controller
             'unit_id.required' => 'Satuan produk wajib dipilih.',
             'unit_id.exists' => 'Satuan tidak valid.',
             'purchase_price.required' => 'Harga beli produk wajib diisi.',
-            'purchase_price.required' => 'Harga jual produk wajib diisi.',
+            'cost_price.required' => 'Harga jual produk wajib diisi.',
             'customer_category_id.*.exists' => 'Kategori konsumen tidak valid.',
             'image.image' => 'Gambar harus dalam format jpeg, jpg, atau png',
             'image.mimes' => 'Format gambar harus jpeg, jpg, atau png',
             'image.max' => 'Ukuran gambar tidak boleh lebih dari 4 MB',
         ]);
 
-        // Validasi khusus untuk duplikasi kategori konsumen
-        $customerCategoryIds = $request->input('customer_category_id', []);
-        if (count($customerCategoryIds) !== count(array_unique($customerCategoryIds))) {
-            $validator->errors()->add('customer_category_id', 'Terdapat duplikasi kategori konsumen.');
-        }
-
-        // Jika validasi gagal
         if ($validator->fails()) {
             return redirect()->back()
                 ->withErrors($validator)
@@ -236,11 +231,19 @@ class ProductController extends Controller
             $data['cost_price'] = str_replace(',', '', $data['cost_price']);
         }
 
-        // Hilangkan data 'customer_category_id' dan 'customer_price' dari array sebelum menyimpan produk
-        unset($data['customer_category_id']);
-        unset($data['customer_price']);
+        // Pengkondisian untuk user_id
+        if (Gate::allows('user-access')) {
+            // Jika memiliki akses user-access, gunakan inputan dari form
+            $data['user_id'] = $request->input('user_id');
+        } else {
+            // Jika tidak memiliki akses, gunakan ID user yang sedang login
+            $data['user_id'] = Auth::id();
+        }
 
-        // Upload dan konversi gambar menggunakan service
+        // Hilangkan data yang tidak perlu sebelum menyimpan
+        unset($data['customer_category_id'], $data['customer_price']);
+
+        // Upload gambar jika ada
         if ($request->hasFile('image')) {
             $data['image'] = $this->imageService->handleImageUpload(
                 $request->file('image'),
@@ -249,16 +252,15 @@ class ProductController extends Controller
         } else {
             $data['image'] = '';
         }
- 
-        // Menyimpan data produk ke database
+
+        // Simpan produk ke database
         $product = Product::create($data);
 
-        // Menyimpan harga konsumen tambahan jika ada
+        // Simpan harga konsumen jika ada
         if ($request->has('customer_category_id')) {
             foreach ($request->customer_category_id as $index => $categoryId) {
                 $customerPrice = str_replace(',', '', $request->customer_price[$index] ?? null);
                 if ($categoryId && $customerPrice) {
-                    // Simpan harga untuk kategori pelanggan di tabel product_prices
                     $product->productPrices()->create([
                         'customer_category_id' => $categoryId,
                         'price' => $customerPrice,
@@ -267,15 +269,13 @@ class ProductController extends Controller
             }
         }
 
+        // Simpan log histori
         $loggedInUserId = Auth::id();
-
-        // Simpan log histori untuk operasi Create dengan user_id yang sedang login
         $this->simpanLogHistori('Create', 'Produk', $product->id, $loggedInUserId, null, json_encode($product));
 
-        // Redirect ke halaman produk dengan pesan sukses
-        return redirect()->route('products.index')
-            ->with('success', 'Produk berhasil dibuat.');
+        return redirect()->route('products.index')->with('success', 'Produk berhasil dibuat.');
     }
+
 
 
 
@@ -403,6 +403,15 @@ class ProductController extends Controller
         // Hilangkan data 'customer_category_id' dan 'customer_price' dari array sebelum menyimpan produk
         unset($data['customer_category_id']);
         unset($data['customer_price']);
+
+
+        if (Gate::allows('user-access')) {
+            // Jika memiliki akses, gunakan user_id dari input form
+            $data['user_id'] = $request->input('user_id');
+        } else {
+            // Jika tidak memiliki akses, gunakan ID user yang sedang login
+            $data['user_id'] = Auth::id();
+        }
 
         // Ambil produk yang akan diupdate
         $product = Product::find($id);

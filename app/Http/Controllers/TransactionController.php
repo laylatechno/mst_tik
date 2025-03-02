@@ -221,6 +221,7 @@ class TransactionController extends Controller
      
              // Simpan ke tabel profit_loss
              $profitLoss = new Profit();
+             $profitLoss->user_id = $userIdToSave;
              $profitLoss->cash_id = $transaction->cash_id;
              $profitLoss->transaction_id = $transaction->id;
              $profitLoss->date = $transaction->date;

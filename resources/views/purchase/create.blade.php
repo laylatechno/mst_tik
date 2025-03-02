@@ -236,7 +236,7 @@
                                 <div class="col-md-6 mb-3">
                                     <div class="form-group">
                                         <label for="">Kas Pembayaran </label>
-                                        <select name="cash_id" id="cash_id" class="form-control">
+                                        <select name="cash_id" id="cash_id" class="form-control" required>
                                             <option value="">--Pilih Cash--</option>
                                             @foreach($data_cashes as $cash)
                                             <option value="{{ $cash->id }}" data-amount="{{ $cash->amount }} ">

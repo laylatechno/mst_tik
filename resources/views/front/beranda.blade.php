@@ -31,6 +31,8 @@
 
 <div class="page-content-wrapper">
 
+    
+
 
     <!-- Hero Wrapper -->
     <div class="hero-wrapper">
@@ -137,7 +139,7 @@
                                     src="https://placehold.co/300x200?text=Loading..."
                                     data-src="/upload/products/{{ $p->image }}"
                                     data-original="/upload/products/{{ $p->image }}"
-                                    alt="{{ $p->name }}">
+                                    alt="{{ $p->name }}" title="{{ $p->name }}">
                             </a>
 
 
@@ -146,7 +148,7 @@
                                 {{ $p->category->name ?? 'Tanpa Kategori' }}
                             </a>
 
-                            <a class="product-title" href="{{ route('product.product_detail', $p->slug) }}">
+                            <a class="product-title" href="{{ route('product.product_detail', $p->slug) }}" alt="{{ $p->name }}" title="{{ $p->name }}">
                                 {{ $p->name }}
                             </a>
 
@@ -287,7 +289,7 @@
 
 
 
-    <div class="top-products-area py-3">
+    {{-- <div class="top-products-area py-3">
         <div class="container">
             <div class="section-heading d-flex align-items-center justify-content-between dir-rtl">
                 <h6>Produk Promo</h6><a class="btn btn-sm btn-light" href="/produk">Lihat Semua<i class="ms-1 ti ti-arrow-right"></i></a>
@@ -530,7 +532,7 @@
         </div>
     </div>
 
-
+ --}}
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {

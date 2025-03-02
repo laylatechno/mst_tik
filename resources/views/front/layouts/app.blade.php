@@ -242,7 +242,7 @@
           </a>
         </li>
 
-        <li><a href="/blog"><i class="ti ti-news"></i>Blog</a></li>
+        {{-- <li><a href="/blog"><i class="ti ti-news"></i>Blog</a></li> --}}
         <li>
           @auth
           <a href="{{ route('home') }}"><i class="ti ti-crown"></i>Dashboard</a>
