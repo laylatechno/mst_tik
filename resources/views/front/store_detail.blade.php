@@ -111,6 +111,16 @@
                         <div class="card">
                             <div class="card-body about-content-wrap dir-rtl">
 
+                                <img src="/upload/users/{{ $data_stores->banner }}"
+                                    alt="/upload/users/{{ $data_stores->banner }}">
+
+
+                            </div>
+                        </div>
+
+                        <div class="card mt-2">
+                            <div class="card-body about-content-wrap dir-rtl">
+
                                 @if (!empty($data_stores->embed_youtube))
                                     <div class="video-container">
                                         <iframe class="embed-responsive-item"
@@ -193,11 +203,11 @@
                                             </a>
                                             <!-- Offer Countdown Timer: Please use event time this format: YYYY/MM/DD hh:mm:ss -->
                                             <!-- <ul class="offer-countdown-timer d-flex align-items-center shadow-sm" data-countdown="2024/12/31 23:59:59">
-                                        <li><span class="days">0</span>d</li>
-                                        <li><span class="hours">0</span>h</li>
-                                        <li><span class="minutes">0</span>m</li>
-                                        <li><span class="seconds">0</span>s</li>
-                                    </ul> -->
+                                            <li><span class="days">0</span>d</li>
+                                            <li><span class="hours">0</span>h</li>
+                                            <li><span class="minutes">0</span>m</li>
+                                            <li><span class="seconds">0</span>s</li>
+                                        </ul> -->
                                             </a>
                                             <a class="store-badge"
                                                 href="{{ url('produk?category=' . $p->category->slug) }}">
