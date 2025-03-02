@@ -335,7 +335,7 @@
                                                             <span class="fs-2 d-block text-body-secondary">Pengaturan Profil</span>
                                                         </div>
                                                     </a>
-                                                    <a href="{{ asset('template/back') }}/../main/app-notes.html"
+                                                    {{-- <a href="{{ asset('template/back') }}/../main/app-notes.html"
                                                         class="py-8 px-7 d-flex align-items-center">
                                                         <span
                                                             class="d-flex align-items-center justify-content-center text-bg-light rounded-1 p-6">
@@ -347,7 +347,7 @@
                                                             <span class="fs-2 d-block text-body-secondary">To-do and
                                                                 Daily Tasks</span>
                                                         </div>
-                                                    </a>
+                                                    </a> --}}
                                                 </div>
                                                 <div class="d-grid py-4 px-7 pt-8">
                                                     <button class="btn btn-outline-primary" tabindex="0" type="button"
