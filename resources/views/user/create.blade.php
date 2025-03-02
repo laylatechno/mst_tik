@@ -237,7 +237,7 @@
                                         </div>
                                         <div class="col-md-12 mb-3">
                                             <label for="embed_youtube" class="form-label"><strong>Embed Youtube:</strong></label>
-                                            <textarea name="embed_youtube" id="embed_youtube" class="form-control" placeholder="Maps">{{ old('embed_youtube', $user->embed_youtube ?? '') }}</textarea>
+                                            <textarea name="embed_youtube" id="embed_youtube" class="form-control" placeholder="Youtube">{{ old('embed_youtube', $user->embed_youtube ?? '') }}</textarea>
                                         </div>
 
 
