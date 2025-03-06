@@ -22,7 +22,7 @@ class UsersController extends Controller
     protected $imageService;
     function __construct(ImageService $imageService)
     {
-        $this->middleware('permission:user-list|user-create|user-edit|user-delete', ['only' => ['index', 'store']]);
+        $this->middleware('permission:user-list', ['only' => ['index']]);
         $this->middleware('permission:user-create', ['only' => ['create', 'store']]);
         $this->middleware('permission:user-edit', ['only' => ['edit', 'update']]);
         $this->middleware('permission:user-delete', ['only' => ['destroy']]);
@@ -46,9 +46,21 @@ class UsersController extends Controller
     {
         $title = "Halaman User";
         $subtitle = "Menu User";
-        $data_user = User::with('roles')->get();
+        $user = auth()->user(); // Ambil user yang sedang login
+
+        // Query data user
+        $query = User::with('roles');
+
+        // Jika user tidak memiliki permission 'user-access', hanya tampilkan dirinya sendiri
+        if (!$user->can('user-access')) {
+            $query->where('id', $user->id);
+        }
+
+        $data_user = $query->get();
+
         return view('user.index', compact('data_user', 'title', 'subtitle'));
     }
+
 
     public function manageLinks(User $user)
     {
