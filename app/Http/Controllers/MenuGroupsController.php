@@ -20,7 +20,7 @@ class MenuGroupsController extends Controller
      */
     function __construct()
     {
-        $this->middleware('permission:menugroup-list|menugroup-create|menugroup-edit|menugroup-delete', ['only' => ['index', 'show']]);
+        $this->middleware('permission:menugroup-list', ['only' => ['index', 'show']]);
         $this->middleware('permission:menugroup-create', ['only' => ['create', 'store']]);
         $this->middleware('permission:menugroup-edit', ['only' => ['edit', 'update']]);
         $this->middleware('permission:menugroup-delete', ['only' => ['destroy']]);

@@ -29,7 +29,7 @@ class StockOpnameController extends Controller
     protected $imageService;
     function __construct(ImageService $imageService)
     {
-        $this->middleware('permission:stockopname-list|stockopname-create|stockopname-edit|stockopname-delete', ['only' => ['index', 'show']]);
+        $this->middleware('permission:stockopname-list', ['only' => ['index', 'show']]);
         $this->middleware('permission:stockopname-create', ['only' => ['create', 'store']]);
         $this->middleware('permission:stockopname-edit', ['only' => ['edit', 'update']]);
         $this->middleware('permission:stockopname-delete', ['only' => ['destroy']]);

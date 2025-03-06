@@ -11,7 +11,7 @@ class RouteController extends Controller
 {
     function __construct()
     {
-        $this->middleware('permission:route-list|route-create|route-edit|route-delete', ['only' => ['index', 'store']]);
+        $this->middleware('permission:route-list', ['only' => ['index', 'store']]);
         $this->middleware('permission:route-create', ['only' => ['create', 'store', 'generateRoutes']]);
         $this->middleware('permission:route-edit', ['only' => ['edit', 'update']]);
         $this->middleware('permission:route-delete', ['only' => ['destroy']]);

@@ -22,7 +22,7 @@ class GalleryController extends Controller
     protected $imageService;
     function __construct(ImageService $imageService)
     {
-        $this->middleware('permission:gallery-list|gallery-create|gallery-edit|gallery-delete', ['only' => ['index', 'show']]);
+        $this->middleware('permission:gallery-list', ['only' => ['index', 'show']]);
         $this->middleware('permission:gallery-create', ['only' => ['create', 'store']]);
         $this->middleware('permission:gallery-edit', ['only' => ['edit', 'update']]);
         $this->middleware('permission:gallery-delete', ['only' => ['destroy']]);

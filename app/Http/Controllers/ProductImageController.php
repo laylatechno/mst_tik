@@ -16,7 +16,7 @@ class ProductImageController extends Controller
     protected $imageService;
     function __construct(ImageService $imageService)
     {
-        $this->middleware('permission:productimages-list|productimages-create|productimages-edit|productimages-delete', ['only' => ['index', 'show']]);
+        $this->middleware('permission:productimages-list', ['only' => ['index', 'show']]);
         $this->middleware('permission:productimages-create', ['only' => ['create', 'store']]);
         $this->middleware('permission:productimages-edit', ['only' => ['edit', 'update']]);
         $this->middleware('permission:productimages-delete', ['only' => ['destroy']]);

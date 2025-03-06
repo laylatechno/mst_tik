@@ -26,7 +26,7 @@ class AdjustmentController extends Controller
     protected $imageService;
     function __construct(ImageService $imageService)
     {
-        $this->middleware('permission:adjustment-list|adjustment-create|adjustment-edit|adjustment-delete', ['only' => ['index', 'show']]);
+        $this->middleware('permission:adjustment-list', ['only' => ['index', 'show']]);
         $this->middleware('permission:adjustment-create', ['only' => ['create', 'store']]);
         $this->middleware('permission:adjustment-edit', ['only' => ['edit', 'update']]);
         $this->middleware('permission:adjustment-delete', ['only' => ['destroy']]);

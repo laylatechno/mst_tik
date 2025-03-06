@@ -19,7 +19,7 @@ class CashController extends Controller
      */
     function __construct()
     {
-        $this->middleware('permission:cash-list|cash-create|cash-edit|cash-delete', ['only' => ['index', 'show']]);
+        $this->middleware('permission:cash-list', ['only' => ['index', 'show']]);
         $this->middleware('permission:cash-create', ['only' => ['create', 'store']]);
         $this->middleware('permission:cash-edit', ['only' => ['edit', 'update']]);
         $this->middleware('permission:cash-delete', ['only' => ['destroy']]);

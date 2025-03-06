@@ -21,7 +21,7 @@ class PurchaseController extends Controller
     protected $imageService;
     function __construct(ImageService $imageService)
     {
-        $this->middleware('permission:purchase-list|purchase-create|purchase-edit|purchase-delete', ['only' => ['index', 'show']]);
+        $this->middleware('permission:purchase-list', ['only' => ['index', 'show']]);
         $this->middleware('permission:purchase-create', ['only' => ['create', 'store']]);
         $this->middleware('permission:purchase-edit', ['only' => ['edit', 'update']]);
         $this->middleware('permission:purchase-delete', ['only' => ['destroy']]);

@@ -26,7 +26,7 @@ class BackupController extends Controller
      */
     function __construct()
     {
-        $this->middleware('permission:backupdatabase-list|backupdatabase-create|backupdatabase-edit|backupdatabase-delete', ['only' => ['index', 'show']]);
+        $this->middleware('permission:backupdatabase-list', ['only' => ['index', 'show']]);
         $this->middleware('permission:backupdatabase-create', ['only' => ['create', 'store', 'manualBackup']]);
         $this->middleware('permission:backupdatabase-edit', ['only' => ['edit', 'update']]);
         $this->middleware('permission:backupdatabase-delete', ['only' => ['destroy']]);

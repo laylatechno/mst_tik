@@ -22,7 +22,7 @@ class ServiceController extends Controller
     protected $imageService;
     function __construct(ImageService $imageService)
     {
-        $this->middleware('permission:service-list|service-create|service-edit|service-delete', ['only' => ['index', 'show']]);
+        $this->middleware('permission:service-list', ['only' => ['index', 'show']]);
         $this->middleware('permission:service-create', ['only' => ['create', 'store']]);
         $this->middleware('permission:service-edit', ['only' => ['edit', 'update']]);
         $this->middleware('permission:service-delete', ['only' => ['destroy']]);

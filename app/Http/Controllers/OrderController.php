@@ -23,7 +23,7 @@ class OrderController extends Controller
     protected $imageService;
     function __construct(ImageService $imageService)
     {
-        $this->middleware('permission:order-list|order-create|order-edit|order-delete', ['only' => ['index', 'show']]);
+        $this->middleware('permission:order-list', ['only' => ['index', 'show']]);
         $this->middleware('permission:order-create', ['only' => ['create', 'store']]);
         $this->middleware('permission:order-edit', ['only' => ['edit', 'update']]);
         $this->middleware('permission:order-delete', ['only' => ['destroy']]);

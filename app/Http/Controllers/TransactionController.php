@@ -27,7 +27,7 @@ class TransactionController extends Controller
     protected $imageService;
     function __construct(ImageService $imageService)
     {
-        $this->middleware('permission:transaction-list|transaction-create|transaction-edit|transaction-delete', ['only' => ['index', 'show']]);
+        $this->middleware('permission:transaction-list', ['only' => ['index', 'show']]);
         $this->middleware('permission:transaction-create', ['only' => ['create', 'store']]);
         $this->middleware('permission:transaction-edit', ['only' => ['edit', 'update']]);
         $this->middleware('permission:transaction-delete', ['only' => ['destroy']]);

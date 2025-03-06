@@ -22,7 +22,7 @@ class TeamController extends Controller
     protected $imageService;
     function __construct(ImageService $imageService)
     {
-        $this->middleware('permission:team-list|team-create|team-edit|team-delete', ['only' => ['index', 'show']]);
+        $this->middleware('permission:team-list', ['only' => ['index', 'show']]);
         $this->middleware('permission:team-create', ['only' => ['create', 'store']]);
         $this->middleware('permission:team-edit', ['only' => ['edit', 'update']]);
         $this->middleware('permission:team-delete', ['only' => ['destroy']]);

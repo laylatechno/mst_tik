@@ -23,7 +23,7 @@ class TestimonyController extends Controller
   
     function __construct(ImageService $imageService)
     {
-        $this->middleware('permission:testimony-list|testimony-create|testimony-edit|testimony-delete', ['only' => ['index', 'show']]);
+        $this->middleware('permission:testimony-list', ['only' => ['index', 'show']]);
         $this->middleware('permission:testimony-create', ['only' => ['create', 'store']]);
         $this->middleware('permission:testimony-edit', ['only' => ['edit', 'update']]);
         $this->middleware('permission:testimony-delete', ['only' => ['destroy']]);

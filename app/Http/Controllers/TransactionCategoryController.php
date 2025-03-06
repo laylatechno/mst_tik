@@ -18,7 +18,7 @@ class TransactionCategoryController extends Controller
      */
     function __construct()
     {
-        $this->middleware('permission:transactioncategory-list|transactioncategory-create|transactioncategory-edit|transactioncategory-delete', ['only' => ['index', 'show']]);
+        $this->middleware('permission:transactioncategory-list', ['only' => ['index', 'show']]);
         $this->middleware('permission:transactioncategory-create', ['only' => ['create', 'store']]);
         $this->middleware('permission:transactioncategory-edit', ['only' => ['edit', 'update']]);
         $this->middleware('permission:transactioncategory-delete', ['only' => ['destroy']]);

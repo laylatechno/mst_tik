@@ -21,7 +21,7 @@ class MenuItemsController extends Controller
      */
     function __construct()
     {
-        $this->middleware('permission:menuitem-list|menuitem-create|menuitem-edit|menuitem-delete', ['only' => ['index', 'show']]);
+        $this->middleware('permission:menuitem-list', ['only' => ['index', 'show']]);
         $this->middleware('permission:menuitem-create', ['only' => ['create', 'store']]);
         $this->middleware('permission:menuitem-edit', ['only' => ['edit', 'update']]);
         $this->middleware('permission:menuitem-delete', ['only' => ['destroy']]);

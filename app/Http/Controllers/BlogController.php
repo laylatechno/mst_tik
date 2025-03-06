@@ -22,7 +22,7 @@ class BlogController extends Controller
     protected $imageService;
     function __construct(ImageService $imageService)
     {
-        $this->middleware('permission:blog-list|blog-create|blog-edit|blog-delete', ['only' => ['index', 'show']]);
+        $this->middleware('permission:blog-list', ['only' => ['index', 'show']]);
         $this->middleware('permission:blog-create', ['only' => ['create', 'store']]);
         $this->middleware('permission:blog-edit', ['only' => ['edit', 'update']]);
         $this->middleware('permission:blog-delete', ['only' => ['destroy']]);

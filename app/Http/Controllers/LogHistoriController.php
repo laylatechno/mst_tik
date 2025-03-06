@@ -18,7 +18,7 @@ class LogHistoriController extends Controller
 
     function __construct()
     {
-        $this->middleware('permission:loghistori-list|loghistori-create|loghistori-edit|loghistori-delete', ['only' => ['index', 'store','clear']]);
+        $this->middleware('permission:loghistori-list', ['only' => ['index', 'store','clear']]);
         $this->middleware('permission:loghistori-create', ['only' => ['create', 'store']]);
         $this->middleware('permission:loghistori-edit', ['only' => ['edit', 'update']]);
         $this->middleware('permission:loghistori-delete', ['only' => ['destroy']]);

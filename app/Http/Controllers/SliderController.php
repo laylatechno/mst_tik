@@ -22,7 +22,7 @@ class SliderController extends Controller
     protected $imageService;
     function __construct(ImageService $imageService)
     {
-        $this->middleware('permission:slider-list|slider-create|slider-edit|slider-delete', ['only' => ['index', 'show']]);
+        $this->middleware('permission:slider-list', ['only' => ['index', 'show']]);
         $this->middleware('permission:slider-create', ['only' => ['create', 'store']]);
         $this->middleware('permission:slider-edit', ['only' => ['edit', 'update']]);
         $this->middleware('permission:slider-delete', ['only' => ['destroy']]);
