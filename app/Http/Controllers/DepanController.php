@@ -190,7 +190,7 @@ class DepanController extends Controller
                 return $query;
             })
             ->inRandomOrder() // Tambahkan ini agar urutan acak setiap reload
-            ->paginate(20);
+            ->paginate(27);
 
 
 
