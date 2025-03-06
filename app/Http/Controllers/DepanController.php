@@ -55,6 +55,7 @@ class DepanController extends Controller
 
         $data_products = Product::with('category:id,name,slug')
             ->select('id', 'name', 'image', 'cost_price', 'price_before_discount', 'description', 'category_id', 'note', 'user_id', 'slug')
+            ->inRandomOrder()
             ->take(12) // Batasi hanya 12 produk
             ->get();
         $data_blogs = Blog::with('blog_category:id,name,slug')
@@ -281,7 +282,7 @@ class DepanController extends Controller
         // Ambil data store berdasarkan user
         $data_stores = User::with('links')->where('user', $user)->firstOrFail();
 
-        $data_products = Product::where('user_id', $data_stores->id)->paginate(10);
+        $data_products = Product::where('user_id', $data_stores->id)->paginate(12);
 
         // Hitung total produk
         $total_products = Product::where('user_id', $data_stores->id)->count();
