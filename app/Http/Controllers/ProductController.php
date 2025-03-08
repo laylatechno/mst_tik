@@ -19,6 +19,7 @@ use App\Services\ImageService;
 use Illuminate\Support\Facades\Gate;
 
 use Picqer\Barcode\BarcodeGeneratorHTML;
+use Yajra\DataTables\Facades\DataTables;
 
 class ProductController extends Controller
 {
@@ -56,32 +57,86 @@ class ProductController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request): View
+  
+    
+    public function index(Request $request)
     {
         $title = "Halaman Produk";
         $subtitle = "Menu Produk";
-        $user = auth()->user(); // Ambil data user yang sedang login
-    
-        // Ambil data hanya yang diperlukan untuk dropdown dan tabel
+        $user = auth()->user();
+
+        // Jika permintaan datang dari AJAX (DataTables)
+        if ($request->ajax()) {
+            $query = Product::with(['category:id,name', 'unit:id,name', 'user:id,name'])
+                ->select('id', 'name', 'code_product', 'barcode', 'purchase_price', 'cost_price', 'stock', 'image', 'category_id', 'unit_id', 'status_active', 'user_id');
+
+            // Jika user tidak memiliki permission 'data-users-select2', hanya tampilkan produknya sendiri
+            if (!$user->can('data-users-select2')) {
+                $query->where('user_id', $user->id);
+            }
+
+            return DataTables::of($query)
+                ->addIndexColumn()
+                ->addColumn('user_name', function ($product) {
+                    return $product->user->name ?? 'Tidak Diketahui';
+                })
+                ->addColumn('status_active', function ($product) {
+                    return '<span class="badge ' . ($product->status_active == 'active' ? 'bg-success' : 'bg-danger') . '">' . ucfirst($product->status_active) . '</span>';
+                })
+                ->addColumn('purchase_price', function ($product) {
+                    return 'Rp ' . number_format($product->purchase_price, 0, ',', '.');
+                })
+                ->addColumn('cost_price', function ($product) {
+                    return 'Rp ' . number_format($product->cost_price, 0, ',', '.');
+                })
+                ->addColumn('barcode', function ($product) {
+                    return !empty($product->barcode)
+                        ? \App\Helpers\BarcodeHelper::generateBarcode($product->barcode)
+                        : '<span>No Data</span>';
+                })
+                ->addColumn('image', function ($product) {
+                    return '<a href="/upload/products/' . $product->image . '" target="_blank">
+                            <img style="max-width:50px; max-height:50px" src="/upload/products/' . $product->image . '" alt="">
+                        </a>';
+                })
+                ->addColumn('actions', function ($product) {
+                    $btn = '<a class="btn btn-warning btn-sm" href="' . route('products.show', $product->id) . '">
+                            <i class="fa fa-eye"></i> Show
+                        </a>';
+
+                    if (auth()->user()->can('product-edit')) {
+                        $btn .= ' <a class="btn btn-primary btn-sm" href="' . route('products.edit', $product->id) . '">
+                                <i class="fa fa-edit"></i> Edit
+                              </a>
+                              <a class="btn btn-secondary btn-sm" href="' . route('products.images.index', $product->id) . '">
+                                <i class="fa fa-images"></i> Images
+                              </a>';
+                    }
+
+                    if (auth()->user()->can('product-delete')) {
+                        $btn .= ' <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete(' . $product->id . ')">
+                                <i class="fa fa-trash"></i> Delete
+                              </button>
+                              <form id="delete-form-' . $product->id . '" method="POST" action="' . route('products.destroy', $product->id) . '" style="display:none;">
+                                ' . csrf_field() . '
+                                ' . method_field("DELETE") . '
+                              </form>';
+                    }
+
+                    return $btn;
+                })
+                ->rawColumns(['status_active', 'barcode', 'image', 'actions'])
+                ->make(true);
+        }
+
+        // Data untuk dropdown
         $data_units = Unit::select('id', 'name')->get();
         $data_categories = Category::select('id', 'name')->get();
         $data_customer_categories = CustomerCategory::select('id', 'name')->get();
-    
-        // Optimasi query produk dengan eager loading
-        $query = Product::with(['category:id,name', 'unit:id,name', 'user:id,name']) // Tambahkan relasi user
-            ->select('id', 'name', 'code_product', 'barcode', 'description', 'purchase_price', 'cost_price', 'stock', 'image', 'category_id', 'unit_id', 'status_active', 'status_display', 'user_id');
-    
-        // Jika user tidak memiliki permission 'data-users-select2', hanya tampilkan produknya sendiri
-        if (!$user->can('data-users-select2')) {
-            $query->where('user_id', $user->id);
-        }
-    
-        $data_products = $query->get();
-    
-        // Kirim data ke view
-        return view('product.index', compact('data_products', 'data_units', 'data_categories', 'data_customer_categories', 'title', 'subtitle'));
+
+        return view('product.index', compact('data_units', 'data_categories', 'data_customer_categories', 'title', 'subtitle'));
     }
-    
+
 
 
 

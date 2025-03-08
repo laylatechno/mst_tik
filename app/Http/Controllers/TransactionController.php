@@ -16,6 +16,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Yajra\DataTables\Facades\DataTables;
 
 class TransactionController extends Controller
 {
@@ -53,27 +54,80 @@ class TransactionController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request): View
+    public function index(Request $request)
     {
         $title = "Halaman Transaksi";
         $subtitle = "Menu Transaksi";
+        $user = auth()->user();
 
-        // Ambil data untuk dropdown select
-        $data_transaction_categories = TransactionCategory::all(); // Ambil semua stimuli
-        $data_cash = Cash::all(); // Ambil semua produk
-        $user = auth()->user(); // Ambil user yang sedang login 
+        if ($request->ajax()) {
+            if ($user->can('user-access')) {
+                $query = Transaction::with(['user:id,name', 'category:id,name,parent_type']);
+            } else {
+                $query = Transaction::where('user_id', $user->id)
+                    ->with(['user:id,name', 'category:id,name,parent_type']);
+            }
 
-        if ($user->can('user-access')) {
-            $data_transactions = Transaction::with('user')->get();
-        } else {
-            // Jika tidak, hanya tampilkan supplier dengan user_id yang sesuai dengan user yang login
-            $data_transactions = Transaction::where('user_id', $user->id)->with('user')->get();
+            return DataTables::of($query)
+                ->addIndexColumn()
+                ->addColumn('user_name', function ($transaction) {
+                    return $transaction->user->name ?? 'Tidak Diketahui';
+                })
+                ->addColumn('date', function ($transaction) {
+                    return \Carbon\Carbon::parse($transaction->date)->locale('id')->isoFormat('dddd, D MMMM YYYY');
+                })
+                ->addColumn('amount', function ($transaction) {
+                    return 'Rp ' . number_format($transaction->amount, 0, ',', '.');
+                })
+                ->addColumn('category', function ($transaction) {
+                    if ($transaction->category) {
+                        $badgeClass = match ($transaction->category->parent_type) {
+                            'kurang' => 'bg-danger',
+                            'tambah' => 'bg-success',
+                            default => 'bg-primary',
+                        };
+                        return '<span class="badge ' . $badgeClass . '">' . $transaction->category->name . '</span>';
+                    }
+                    return '<span class="badge bg-secondary">No Category</span>';
+                })
+                ->addColumn('image', function ($transaction) {
+                    if (!empty($transaction->image)) {
+                        return '<a href="/upload/transactions/' . $transaction->image . '" target="_blank">
+                        <img src="/upload/transactions/' . $transaction->image . '" style="max-width:50px; max-height:50px;">
+                    </a>';
+                    }
+                    return '<span>No Image</span>';
+                })
+                ->addColumn('actions', function ($transaction) {
+                    $btn = '<a class="btn btn-warning btn-sm" href="' . route('transactions.show', $transaction->id) . '">
+                        <i class="fa fa-eye"></i> Show
+                    </a>';
+
+                    if (auth()->user()->can('transaction-edit')) {
+                        $btn .= ' <a class="btn btn-primary btn-sm" href="' . route('transactions.edit', $transaction->id) . '">
+                            <i class="fa fa-edit"></i> Edit
+                          </a>';
+                    }
+
+                    if (auth()->user()->can('transaction-delete')) {
+                        $btn .= ' <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete(' . $transaction->id . ')">
+                            <i class="fa fa-trash"></i> Delete
+                          </button>
+                          <form id="delete-form-' . $transaction->id . '" method="POST" action="' . route('transactions.destroy', $transaction->id) . '" style="display:none;">
+                              ' . csrf_field() . '
+                              ' . method_field("DELETE") . '
+                          </form>';
+                    }
+
+                    return $btn;
+                })
+                ->rawColumns(['category', 'image', 'actions']) // Render HTML di kolom badge, gambar, dan tombol
+                ->make(true);
         }
 
-
-        // Kirim semua data ke view
-        return view('transaction.index', compact('data_transaction_categories', 'data_cash', 'data_transactions', 'title', 'subtitle'));
+        return view('transaction.index', compact('title', 'subtitle'));
     }
+
 
 
 

@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Services\ImageService;
+use Yajra\DataTables\Facades\DataTables;
 
 class PurchaseController extends Controller
 {
@@ -42,30 +43,89 @@ class PurchaseController extends Controller
     }
 
 
-    public function index()
+    
+
+
+    public function index(Request $request)
     {
         $title = "Halaman Pembelian";
         $subtitle = "Menu Pembelian";
-
-        // Eager loading supplier dan user
         $user = auth()->user(); // Ambil user yang sedang login
 
-        if ($user->can('user-access')) {
-            // Jika user memiliki izin, tampilkan semua data pembelian
-            $data_purchases = Purchase::with(['supplier', 'user'])->orderBy('id', 'desc')->get();
-        } else {
-            // Jika tidak, hanya tampilkan data pembelian yang dibuat oleh user tersebut
-            $data_purchases = Purchase::where('user_id', $user->id)
-                ->with(['supplier', 'user'])
-                ->orderBy('id', 'desc')
-                ->get();
+        if ($request->ajax()) {
+            if ($user->can('user-access')) {
+                $query = Purchase::with(['supplier:id,name', 'user:id,name']);
+            } else {
+                $query = Purchase::where('user_id', $user->id)
+                    ->with(['supplier:id,name', 'user:id,name']);
+            }
+
+            return DataTables::of($query)
+                ->addIndexColumn()
+                ->addColumn('user_name', function ($purchase) {
+                    return $purchase->user->name ?? 'Tidak Diketahui';
+                })
+                ->addColumn('purchase_date', function ($purchase) {
+                    return \Carbon\Carbon::parse($purchase->purchase_date)->locale('id')->isoFormat('dddd, D MMMM YYYY');
+                })
+                ->addColumn('supplier_name', function ($purchase) {
+                    return $purchase->supplier->name ?? 'No Data';
+                })
+                ->addColumn('total_cost', function ($purchase) {
+                    return 'Rp ' . number_format($purchase->total_cost, 0, ',', '.');
+                })
+                ->addColumn('status', function ($purchase) {
+                    $status_badge = [
+                        'Lunas' => 'bg-success',
+                        'Pending' => 'bg-warning',
+                        'Pesanan Pembelian' => 'bg-primary',
+                        'Belum Lunas' => 'bg-danger'
+                    ];
+                    $badge_class = $status_badge[$purchase->status] ?? 'bg-secondary';
+                    return '<span class="badge ' . $badge_class . '">' . ucfirst($purchase->status) . '</span>';
+                })
+                ->addColumn('image', function ($purchase) {
+                    if (!empty($purchase->image)) {
+                        return '<a href="/upload/purchases/' . $purchase->image . '" target="_blank">
+                        <img src="/upload/purchases/' . $purchase->image . '" style="max-width:50px; max-height:50px;">
+                    </a>';
+                    }
+                    return '<span>No Image</span>';
+                })
+                ->addColumn('actions', function ($purchase) {
+                    $btn = '<a class="btn btn-warning btn-sm" href="' . route('purchases.show', $purchase->id) . '">
+                            <i class="fa fa-eye"></i> Show
+                        </a>';
+
+                    if (auth()->user()->can('purchase-edit') && $purchase->status !== 'Lunas') {
+                        $btn .= ' <a class="btn btn-primary btn-sm" href="' . route('purchases.edit', $purchase->id) . '">
+                                <i class="fa fa-edit"></i> Edit
+                              </a>';
+                    }
+
+                    if (auth()->user()->can('purchase-delete')) {
+                        $btn .= ' <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete(' . $purchase->id . ')">
+                                <i class="fa fa-trash"></i> Delete
+                              </button>
+                              <form id="delete-form-' . $purchase->id . '" method="POST" action="' . route('purchases.destroy', $purchase->id) . '" style="display:none;">
+                                  ' . csrf_field() . '
+                                  ' . method_field("DELETE") . '
+                              </form>';
+                    }
+
+                    $btn .= ' <a class="btn btn-info btn-sm" target="_blank" href="' . route('purchases.print_invoice', $purchase->id) . '">
+                            <i class="fa fa-print"></i> Print Invoice
+                          </a>';
+
+                    return $btn;
+                })
+                ->rawColumns(['status', 'image', 'actions']) // Render kolom sebagai HTML
+                ->make(true);
         }
 
-        $data_products = Product::all();
-
-        // Kirim semua data ke view
-        return view('purchase.index', compact('data_purchases', 'data_products', 'title', 'subtitle'));
+        return view('purchase.index', compact('title', 'subtitle'));
     }
+
 
     public function printInvoice($id)
     {

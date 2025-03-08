@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Yajra\DataTables\Facades\DataTables;
 
 class CustomerController extends Controller
 {
@@ -45,22 +46,51 @@ class CustomerController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request): View
+    public function index(Request $request)
     {
         $title = "Halaman Pelanggan";
         $subtitle = "Menu Pelanggan";
-        $user = auth()->user(); // Ambil user yang sedang login 
+        $user = auth()->user();
 
-        
-        if ($user->can('user-access')) {
-            $data_customers = Customer::with('user')->get();
-        } else {
-            // Jika tidak, hanya tampilkan supplier dengan user_id yang sesuai dengan user yang login
-            $data_customers = Customer::where('user_id', $user->id)->with('user')->get();
+        if ($request->ajax()) {
+            if ($user->can('user-access')) {
+                $query = Customer::with(['user', 'category']);
+            } else {
+                $query = Customer::where('user_id', $user->id)->with(['user', 'category']);
+            }
+
+            return DataTables::of($query)
+                ->addIndexColumn()
+                ->addColumn('user_name', function ($customer) {
+                    return $customer->user->name ?? 'Tidak Diketahui';
+                })
+                ->addColumn('category_name', function ($customer) {
+                    return $customer->category->name ?? '-';
+                })
+               
+                ->addColumn('actions', function ($customer) {
+                    $btn = '<a class="btn btn-warning btn-sm" href="' . route('customers.show', $customer->id) . '"><i class="fa fa-eye"></i> Show</a>';
+
+                    if (auth()->user()->can('customer-edit')) {
+                        $btn .= ' <a class="btn btn-primary btn-sm" href="' . route('customers.edit', $customer->id) . '"><i class="fa fa-edit"></i> Edit</a>';
+                    }
+
+                    if (auth()->user()->can('customer-delete')) {
+                        $btn .= ' <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete(' . $customer->id . ')"><i class="fa fa-trash"></i> Delete</button>
+                    <form id="delete-form-' . $customer->id . '" method="POST" action="' . route('customers.destroy', $customer->id) . '" style="display:none;">
+                        ' . csrf_field() . '
+                        ' . method_field("DELETE") . '
+                    </form>';
+                    }
+
+                    return $btn;
+                })
+                ->rawColumns(['actions'])
+                ->make(true);
         }
-        return view('customer.index', compact('data_customers', 'title', 'subtitle'));
-    }
 
+        return view('customer.index', compact('title', 'subtitle'));
+    }
 
     /**
      * Show the form for creating a new resource.

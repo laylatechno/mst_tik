@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Services\ImageService;
+use Yajra\DataTables\Facades\DataTables;
 
 
 class OrderController extends Controller
@@ -44,31 +45,89 @@ class OrderController extends Controller
     }
 
 
-    public function index()
+    public function index(Request $request)
     {
         $title = "Halaman Penjualan";
         $subtitle = "Menu Penjualan";
-
-        // Eager loading customer dan user
         $user = auth()->user(); // Ambil user yang sedang login
 
-        if ($user->can('user-access')) {
-            // Jika user memiliki izin, tampilkan semua data order
-            $data_orders = Order::with(['customer', 'user'])->orderBy('id', 'desc')->get();
-        } else {
-            // Jika tidak, hanya tampilkan data order yang dibuat oleh user tersebut
-            $data_orders = Order::where('user_id', $user->id)
-                ->with(['customer', 'user'])
-                ->orderBy('id', 'desc')
-                ->get();
+        if ($request->ajax()) {
+            if ($user->can('user-access')) {
+                $query = Order::with(['customer:id,name', 'user:id,name']);
+            } else {
+                $query = Order::where('user_id', $user->id)
+                    ->with(['customer:id,name', 'user:id,name']);
+            }
+
+            return DataTables::of($query)
+                ->addIndexColumn()
+                ->addColumn('user_name', function ($order) {
+                    return $order->user->name ?? 'Tidak Diketahui';
+                })
+                ->addColumn('order_date', function ($order) {
+                    return \Carbon\Carbon::parse($order->order_date)->locale('id')->isoFormat('dddd, D MMMM YYYY');
+                })
+                ->addColumn('customer_name', function ($order) {
+                    return $order->customer->name ?? 'No Data';
+                })
+                ->addColumn('total_cost', function ($order) {
+                    return 'Rp ' . number_format($order->total_cost, 0, ',', '.');
+                })
+                ->addColumn('status', function ($order) {
+                    $status_badge = [
+                        'Lunas' => 'bg-success',
+                        'Pending' => 'bg-warning',
+                        'Pesanan Penjualan' => 'bg-primary',
+                        'Belum Lunas' => 'bg-danger'
+                    ];
+                    $badge_class = $status_badge[$order->status] ?? 'bg-secondary';
+                    return '<span class="badge ' . $badge_class . '">' . ucfirst($order->status) . '</span>';
+                })
+                ->addColumn('image', function ($order) {
+                    if (!empty($order->image)) {
+                        return '<a href="/upload/orders/' . $order->image . '" target="_blank">
+                    <img src="/upload/orders/' . $order->image . '" style="max-width:50px; max-height:50px;">
+                </a>';
+                    }
+                    return '<span>No Image</span>';
+                })
+                ->addColumn('actions', function ($order) {
+                    $btn = '<a class="btn btn-warning btn-sm" href="' . route('orders.show', $order->id) . '">
+                        <i class="fa fa-eye"></i> Show
+                    </a>';
+
+                    if (auth()->user()->can('order-edit') && $order->status !== 'Lunas') {
+                        $btn .= ' <a class="btn btn-primary btn-sm" href="' . route('orders.edit', $order->id) . '">
+                            <i class="fa fa-edit"></i> Edit
+                          </a>';
+                    }
+
+                    if (auth()->user()->can('order-delete')) {
+                        $btn .= ' <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete(' . $order->id . ')">
+                            <i class="fa fa-trash"></i> Delete
+                          </button>
+                          <form id="delete-form-' . $order->id . '" method="POST" action="' . route('orders.destroy', $order->id) . '" style="display:none;">
+                              ' . csrf_field() . '
+                              ' . method_field("DELETE") . '
+                          </form>';
+                    }
+
+                    $btn .= ' <a class="btn btn-info btn-sm" target="_blank" href="' . route('orders.print_invoice', $order->id) . '">
+                        <i class="fa fa-file"></i> Print Invoice
+                      </a>
+                      <a class="btn btn-danger btn-sm" target="_blank" href="' . route('orders.print_struk', $order->id) . '">
+                        <i class="fa fa-print"></i> Print Struk
+                      </a>';
+
+                    return $btn;
+                })
+                ->rawColumns(['status', 'image', 'actions']) // Render kolom sebagai HTML
+                ->make(true);
         }
 
-
-        $data_products = Product::all();
-
-        // Kirim semua data ke view
-        return view('order.index', compact('data_orders', 'data_products', 'title', 'subtitle'));
+        return view('order.index', compact('title', 'subtitle'));
     }
+
 
     public function printInvoice($id)
     {
