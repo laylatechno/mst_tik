@@ -64,4 +64,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Product::class, 'user_id');
     }
+
+    public function visitors()
+    {
+        return $this->hasMany(Visitor::class, 'user_id');
+    }
 }

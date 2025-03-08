@@ -35,6 +35,7 @@ use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\TutorialController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\UsersController;
+use App\Http\Controllers\VisitorController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Middleware\HtmlMinifier;
 use Illuminate\Support\Facades\Route;
@@ -133,6 +134,9 @@ Route::middleware([HtmlMinifier::class])->group(function () {
         Route::get('/log-histori/delete-all', [LogHistoriController::class, 'deleteAll'])->name('log-histori.delete-all');
         Route::get('/logs', [LogHistoriController::class, 'show'])->name('logs.show');
         Route::post('/logs/clear', [LogHistoriController::class, 'clear'])->name('logs.clear');
+
+        Route::delete('/visitor/delete', [VisitorController::class, 'delete'])->name('visitor.delete');
+        Route::resource('visitor', VisitorController::class);
 
 
         Route::resource('roles', RolesController::class);

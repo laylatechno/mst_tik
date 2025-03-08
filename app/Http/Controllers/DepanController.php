@@ -59,7 +59,7 @@ class DepanController extends Controller
             ->take(12) // Batasi hanya 12 produk
             ->get();
         $data_blogs = Blog::with('blog_category:id,name,slug')
-            ->select('id', 'title', 'image', 'writer', 'resume', 'description', 'posting_date', 'slug','blog_category_id')
+            ->select('id', 'title', 'image', 'writer', 'resume', 'description', 'posting_date', 'slug', 'blog_category_id')
             ->take(4) // Batasi hanya 12 produk
             ->get();
 
@@ -130,6 +130,8 @@ class DepanController extends Controller
         $visitor->device = $agent->device();
         $visitor->platform = $agent->platform();
         $visitor->browser = $agent->browser();
+        $visitor->page_type = 'home'; // Tandai sebagai kunjungan ke halaman utama
+        $visitor->user_id = null; // Kosong karena bukan toko spesifik
         $visitor->save();
 
         return view('front.beranda', compact(
@@ -235,10 +237,10 @@ class DepanController extends Controller
         $profil = Profil::first();
         $title = "Halaman Toko " . ($profil ? $profil->nama_profil : 'Nama Profil');
         $subtitle = "Menu Toko";
-    
+
         // Ambil hanya user dengan status 'active' dan id != 1
         $query = User::where('status', 'active')->where('id', '!=', 1);
-    
+
         // Filter pencarian berdasarkan beberapa kolom
         if ($request->has('search') && !empty($request->search)) {
             $query->where(function ($q) use ($request) {
@@ -249,7 +251,7 @@ class DepanController extends Controller
                     ->orWhere('about', 'like', '%' . $request->search . '%');
             });
         }
-    
+
         // Sorting berdasarkan waktu pembuatan
         if ($request->has('sort')) {
             if ($request->sort == 'terlama') {
@@ -260,21 +262,21 @@ class DepanController extends Controller
         } else {
             $query->orderBy('created_at', 'desc'); // Default: terbaru dulu
         }
-    
+
         $data_stores = $query->paginate(10);
-    
+
         return view('front.store', compact(
             'data_stores',
             'title',
             'subtitle'
         ));
     }
-    
 
 
 
 
-    public function store_detail($user)
+
+    public function store_detail($user, Request $request)
     {
         $title = "Halaman Toko Detail";
         $subtitle = "Menu Toko Detail";
@@ -282,16 +284,38 @@ class DepanController extends Controller
         // Ambil data store berdasarkan user
         $data_stores = User::with('links')->where('user', $user)->firstOrFail();
 
+        // Mencatat Visitor untuk toko
+        $agent = new Agent();
+        $visitor = new Visitor();
+        $visitor->visit_time = now();
+        $visitor->ip_address = $request->ip();
+        $visitor->session_id = session()->getId();
+        $visitor->cookie_id = $request->cookie('laravel_session');
+        $visitor->user_agent = $request->header('User-Agent');
+        $visitor->device = $agent->device();
+        $visitor->platform = $agent->platform();
+        $visitor->browser = $agent->browser();
+        $visitor->page_type = 'store'; // Tandai sebagai kunjungan ke halaman toko
+        $visitor->user_id = $data_stores->id; // ID toko/user yang dikunjungi
+        $visitor->save();
+
         $data_products = Product::where('user_id', $data_stores->id)->paginate(12);
 
         // Hitung total produk
         $total_products = Product::where('user_id', $data_stores->id)->count();
+
+        // Hitung jumlah pengunjung unik untuk toko ini
+        $total_visitors = Visitor::where('user_id', $data_stores->id)
+            ->where('page_type', 'store')
+            ->distinct('ip_address')
+            ->count('ip_address');
 
         return view('front.store_detail', compact(
             'title',
             'data_stores',
             'data_products',
             'total_products',
+            'total_visitors', // Tambahkan ke view
             'subtitle'
         ));
     }
@@ -354,13 +378,13 @@ class DepanController extends Controller
     {
         // Ambil blog berdasarkan slug
         $blog = Blog::where('slug', $slug)->firstOrFail();
-    
+
         // Meningkatkan jumlah views
         $blog->increment('views');
-    
+
         $title = "Detail: " . $blog->title;
         $subtitle = "Blog Detail";
-    
+
         // Kirim data ke view
         return view('front.blog_detail', compact(
             'title',
@@ -390,7 +414,7 @@ class DepanController extends Controller
             'confirm-password' => 'required|same:password',
             'about' => 'nullable'
         ]);
-    
+
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
@@ -398,13 +422,13 @@ class DepanController extends Controller
                 'errors' => $validator->errors()
             ], 422);
         }
-    
+
         // Transformasi nomor WhatsApp
         $wa_number = $request->wa_number;
         if (substr($wa_number, 0, 1) === '0') {
             $wa_number = '62' . substr($wa_number, 1);
         }
-    
+
         // Buat user baru
         try {
             $user = new User();
@@ -417,9 +441,9 @@ class DepanController extends Controller
             $user->status = 'nonactive';
             $user->save();
 
-            
+
             $profil = Profil::where('id', 1)->first();
-    
+
             return response()->json([
                 'success' => true,
                 'message' => 'Pendaftaran member berhasil dilakukan, silahkan tunggu informasi selanjutnya melalui email atau nomor WhatsApp terdaftar member. Untuk pertanyaan lain bisa hubungi Nomor : ' . $profil->no_wa
@@ -431,5 +455,4 @@ class DepanController extends Controller
             ], 500);
         }
     }
-    
 }
