@@ -44,7 +44,7 @@
                     <div class="col-xl-5 col-xxl-4">
                         <div class="authentication-login min-vh-100 bg-body row justify-content-center align-items-center p-4">
                             <div class="col-sm-8 col-md-6 col-xl-9">
-                                <h2 class="mb-3 fs-7 fw-bolder">{{ __('Welcome to') }} Master Kit</h2>
+                                <h2 class="mb-3 fs-7 fw-bolder">{{ __('Welcome to') }} {{$profil->nama_profil}}</h2>
                                 <p class=" mb-9">{{ __('Please login with your account') }}</p>
                                 <!-- <div class="row">
                                     <div class="col-6 mb-2 mb-sm-0">

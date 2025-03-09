@@ -10,8 +10,9 @@ use App\Models\Supplier;
 use App\Models\Transaction;
 use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class HomeController extends Controller
 {
@@ -277,6 +278,56 @@ class HomeController extends Controller
             ->get();
 
 
+        // Dapatkan user yang sedang login
+        $user = Auth::user();
+
+        // Query untuk kunjungan halaman utama tetap sama
+        $homePageVisits = DB::table('visitors')
+            ->selectRaw('DATE(visit_time) as date, COUNT(*) as total')
+            ->where('page_type', 'home')
+            ->whereMonth('visit_time', $currentMonth)
+            ->whereYear('visit_time', $currentYear)
+            ->groupBy('date')
+            ->orderBy('date', 'ASC')
+            ->get();
+
+        // Cek apakah user memiliki permission 'user-access'
+        if ($user->can('user-access')) {
+            // Jika punya permission, tampilkan semua data
+            $userPageVisits = DB::table('visitors')
+                ->selectRaw('DATE(visit_time) as date, users.user as username, COUNT(*) as total')
+                ->join('users', 'visitors.user_id', '=', 'users.id')
+                ->where('visitors.page_type', '!=', 'home')
+                ->whereMonth('visitors.visit_time', $currentMonth)
+                ->whereYear('visitors.visit_time', $currentYear)
+                ->groupBy('date', 'users.user')
+                ->orderBy('date', 'ASC')
+                ->get();
+        } else {
+            // Jika tidak punya permission, hanya tampilkan data user yang sedang login
+            $userPageVisits = DB::table('visitors')
+                ->selectRaw('DATE(visit_time) as date, users.user as username, COUNT(*) as total')
+                ->join('users', 'visitors.user_id', '=', 'users.id')
+                ->where('visitors.page_type', '!=', 'home')
+                ->where('visitors.user_id', $user->id) // Tambahkan kondisi ini
+                ->whereMonth('visitors.visit_time', $currentMonth)
+                ->whereYear('visitors.visit_time', $currentYear)
+                ->groupBy('date', 'users.user')
+                ->orderBy('date', 'ASC')
+                ->get();
+        }
+
+        // Group user visits by date for chart display
+        $userVisitsByDate = $userPageVisits->groupBy('date')->map(function ($dateGroup) {
+            return $dateGroup->groupBy('username')->map(function ($userGroup) {
+                return $userGroup->sum('total');
+            });
+        })->toArray();
+
+        // Get unique usernames for chart labels
+        $uniqueUsers = $userPageVisits->pluck('username')->unique()->values()->toArray();
+
+
 
         return view('home', compact(
             'title',
@@ -303,7 +354,11 @@ class HomeController extends Controller
             'bestSellingProducts',
             'topSellingProducts',
             'topCustomers',
-            'monthlyCustomerData'
+            'monthlyCustomerData',
+            'homePageVisits',
+            'userPageVisits',
+            'userVisitsByDate',
+            'uniqueUsers'
         ));
     }
 }
