@@ -83,7 +83,7 @@
                                 @endcan
 
 
-                                <table id="scroll_hor" class="table border table-striped table-bordered display nowrap"
+                                <table id="visitor_table" class="table border table-striped table-bordered display nowrap"
                                     style="width: 100%">
                                     <thead>
                                         <tr>
@@ -96,34 +96,10 @@
                                             <th>Platform</th>
                                             <th>Device</th>
                                             <th>Browser</th>
-
                                         </tr>
                                     </thead>
-                                    <tbody>
-
-                                        @foreach ($data_visitor as $p)
-                                            <tr>
-                                                <td>{{ $loop->iteration }}</td>
-                                                <td>{{ $p->page_type }}</td>
-                                                <td>{{ $p->user ? $p->user->name : 'Home' }}</td>
-                                                <td>{{ $p->visit_time }}</td>
-                                                <td>{{ $p->ip_address }}</td>
-                                                <td>{{ $p->user_agent }}</td>
-                                                <td>{{ $p->platform }}</td>
-                                                <td>{{ $p->device }}</td>
-                                                <td>{{ $p->browser }}</td>
-
-
-                                            </tr>
-                                        @endforeach
-
-
-
-
-
-                                    </tbody>
-
                                 </table>
+
                             </div>
                         </div>
                     </div>
@@ -143,4 +119,54 @@
 
     <script src="{{ asset('template/back') }}/dist/libs/datatables.net/js/jquery.dataTables.min.js"></script>
     <script src="{{ asset('template/back') }}/dist/js/datatable/datatable-basic.init.js"></script>
+
+
+    <script>
+        $(document).ready(function() {
+            $('#visitor_table').DataTable({
+                processing: true, // Tampilkan indikator "loading"
+                serverSide: true, // Gunakan server-side processing
+                ajax: "{{ route('visitor.index') }}", // Ambil data dari route index visitor
+                columns: [{
+                        data: 'DT_RowIndex',
+                        name: 'DT_RowIndex',
+                        orderable: false,
+                        searchable: false
+                    },
+                    {
+                        data: 'page_type',
+                        name: 'page_type'
+                    },
+                    {
+                        data: 'user_name',
+                        name: 'user.name'
+                    },
+                    {
+                        data: 'visit_time',
+                        name: 'visit_time'
+                    },
+                    {
+                        data: 'ip_address',
+                        name: 'ip_address'
+                    },
+                    {
+                        data: 'user_agent',
+                        name: 'user_agent'
+                    },
+                    {
+                        data: 'platform',
+                        name: 'platform'
+                    },
+                    {
+                        data: 'device',
+                        name: 'device'
+                    },
+                    {
+                        data: 'browser',
+                        name: 'browser'
+                    }
+                ]
+            });
+        });
+    </script>
 @endpush
