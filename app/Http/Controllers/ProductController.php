@@ -70,8 +70,8 @@ class ProductController extends Controller
             $query = Product::with(['category:id,name', 'unit:id,name', 'user:id,name'])
                 ->select('id', 'name', 'code_product', 'barcode', 'purchase_price', 'cost_price', 'stock', 'image', 'category_id', 'unit_id', 'status_active', 'user_id');
 
-            // Jika user tidak memiliki permission 'data-users-select2', hanya tampilkan produknya sendiri
-            if (!$user->can('data-users-select2')) {
+            // Jika user tidak memiliki permission 'user-access', hanya tampilkan produknya sendiri
+            if (!$user->can('user-access')) {
                 $query->where('user_id', $user->id);
             }
 

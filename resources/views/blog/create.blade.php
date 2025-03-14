@@ -30,7 +30,7 @@
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a class="text-muted text-decoration-none" href="/">Beranda</a></li>
                             <li class="breadcrumb-item" aria-current="page">
-                                <a class="text-muted text-decoration-none" href="{{ route('blogs.index') }}">Halaman Armada</a>
+                                <a class="text-muted text-decoration-none" href="{{ route('blogs.index') }}">Halaman Blog</a>
                             </li>
                             <li class="breadcrumb-item" aria-current="page">{{ $subtitle }}</li>
                         </ol>

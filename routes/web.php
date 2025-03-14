@@ -1,4 +1,7 @@
 <?php
+use App\Http\Controllers\RoomController;
+use App\Http\Controllers\AssetController;
+use App\Http\Controllers\AssetCategoryController;
 
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\BlogCategoryController;
@@ -64,6 +67,9 @@ Route::middleware([HtmlMinifier::class])->group(function () {
 
     Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::group(['middleware' => ['auth']], function () {
+        Route::resource('rooms', RoomController::class);
+        Route::resource('assets', AssetController::class);
+        Route::resource('asset_categories', AssetCategoryController::class);
         Route::resource('blogs', BlogController::class);
         Route::resource('blog_categories', BlogCategoryController::class);
         Route::resource('services', ServiceController::class);

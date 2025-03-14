@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\LogHistori;
-use App\Models\Category;
+use App\Models\Room;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Services\ImageService;
 use Illuminate\Support\Facades\DB;
 
-class CategoryController extends Controller
+class RoomController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -21,10 +21,10 @@ class CategoryController extends Controller
     protected $imageService;
     function __construct(ImageService $imageService)
     {
-        $this->middleware('permission:category-list', ['only' => ['index', 'show']]);
-        $this->middleware('permission:category-create', ['only' => ['create', 'store']]);
-        $this->middleware('permission:category-edit', ['only' => ['edit', 'update']]);
-        $this->middleware('permission:category-delete', ['only' => ['destroy']]);
+        $this->middleware('permission:room-list', ['only' => ['index', 'show']]);
+        $this->middleware('permission:room-create', ['only' => ['create', 'store']]);
+        $this->middleware('permission:room-edit', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:room-delete', ['only' => ['destroy']]);
         $this->imageService = $imageService;
     }
 
@@ -49,15 +49,15 @@ class CategoryController extends Controller
      */
     public function index(Request $request): View
     {
-        $title = "Halaman Kategori Produk";
-        $subtitle = "Menu Kategori Produk";
-    
+        $title = "Halaman Ruangan";
+        $subtitle = "Menu Ruangan";
+
         // Mengambil semua kategori dan mengurutkan berdasarkan kolom 'position' secara ascending
-        $data_categories = Category::orderBy('position', 'asc')->get();
-    
-        return view('category.index', compact('data_categories', 'title', 'subtitle'));
+        $data_rooms = Room::all();
+
+        return view('room.index', compact('data_rooms', 'title', 'subtitle'));
     }
-    
+
 
 
     /**
@@ -67,9 +67,9 @@ class CategoryController extends Controller
      */
     public function create(): View
     {
-        $title = "Halaman Tambah Kategori Produk";
-        $subtitle = "Menu Tambah Kategori Produk";
-        return view('category.create', compact('title', 'subtitle'));
+        $title = "Halaman Tambah Ruangan";
+        $subtitle = "Menu Tambah Ruangan";
+        return view('room.create', compact('title', 'subtitle'));
     }
 
 
@@ -84,23 +84,25 @@ class CategoryController extends Controller
     {
         $request->validate([
             'name' => 'required',
+            'code' => 'required',
             'image' => 'nullable|image|mimes:jpeg,jpg,png|max:4096',
         ], [
             'name.required' => 'Nama wajib diisi.',
+            'code.required' => 'Kode wajib diisi.',
             'image.image' => 'Gambar harus dalam format jpeg, jpg, atau png',
             'image.mimes' => 'Format gambar harus jpeg, jpg, atau png',
             'image.max' => 'Ukuran gambar tidak boleh lebih dari 4 MB',
         ]);
-    
+
         try {
             $input = $request->all();
-    
+
             // Upload dan konversi gambar menggunakan service
             if ($request->hasFile('image')) {
                 try {
                     $input['image'] = $this->imageService->handleImageUpload(
                         $request->file('image'),
-                        'upload/product_categories'
+                        'upload/rooms'
                     );
                 } catch (\Exception $e) {
                     return redirect()->back()
@@ -110,24 +112,23 @@ class CategoryController extends Controller
             } else {
                 $input['image'] = '';
             }
-    
+
             // Simpan data kategori
-            $category = Category::create($input);
-    
+            $room = Room::create($input);
+
             // Simpan log histori
             $loggedInUserId = Auth::id();
             $this->simpanLogHistori(
-                'Create', 
-                'Kategori Produk', 
-                $category->id, 
-                $loggedInUserId, 
-                null, 
-                json_encode($category)
+                'Create',
+                'Ruangan',
+                $room->id,
+                $loggedInUserId,
+                null,
+                json_encode($room)
             );
-    
-            return redirect()->route('categories.index')
-                ->with('success', 'Kategori Produk berhasil dibuat.');
-    
+
+            return redirect()->route('rooms.index')
+                ->with('success', 'Ruangan berhasil dibuat.');
         } catch (\Exception $e) {
             return redirect()->back()
                 ->withInput()
@@ -141,31 +142,31 @@ class CategoryController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Category  $category
+     * @param  \App\Room  $room
      * @return \Illuminate\Http\Response
      */
     public function show($id): View
 
     {
-        $title = "Halaman Lihat Kategori Produk";
-        $subtitle = "Menu Lihat Kategori Produk";
-        $data_categories = Category::find($id);
-        return view('category.show', compact('data_categories', 'title', 'subtitle'));
+        $title = "Halaman Lihat Ruangan";
+        $subtitle = "Menu Lihat Ruangan";
+        $data_rooms = Room::find($id);
+        return view('room.show', compact('data_rooms', 'title', 'subtitle'));
     }
 
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Category  $category
+     * @param  \App\Room  $room
      * @return \Illuminate\Http\Response
      */
     public function edit($id): View
     {
-        $title = "Halaman Edit Kategori Produk";
-        $subtitle = "Menu Edit Kategori Produk";
-        $data_categories = Category::findOrFail($id);  
+        $title = "Halaman Edit Ruangan";
+        $subtitle = "Menu Edit Ruangan";
+        $data_rooms = Room::findOrFail($id);
 
-        return view('category.edit', compact('data_categories', 'title', 'subtitle'));
+        return view('room.edit', compact('data_rooms', 'title', 'subtitle'));
     }
 
 
@@ -174,16 +175,18 @@ class CategoryController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Category  $category
+     * @param  \App\Models\Room  $room
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Category $category): RedirectResponse
+    public function update(Request $request, Room $room): RedirectResponse
     {
         $request->validate([
             'name' => 'required',
+            'code' => 'required',
             'image' => 'nullable|image|mimes:jpeg,jpg,png|max:4096',
         ], [
             'name.required' => 'Nama wajib diisi.',
+            'code.required' => 'Kode wajib diisi.',
             'image.image' => 'Gambar harus dalam format jpeg, jpg, atau png',
             'image.mimes' => 'Format gambar harus jpeg, jpg, atau png',
             'image.max' => 'Ukuran gambar tidak boleh lebih dari 4 MB',
@@ -192,37 +195,37 @@ class CategoryController extends Controller
         try {
             DB::beginTransaction();
 
-            $oldData = $category->toArray();
+            $oldData = $room->toArray();
             $input = $request->all();
 
             // Upload dan konversi gambar menggunakan service
             if ($request->hasFile('image')) {
                 $input['image'] = $this->imageService->handleImageUpload(
                     $request->file('image'),
-                    'upload/product_categories',
-                    $category->image // Pass old image for deletion
+                    'upload/rooms',
+                    $room->image // Pass old image for deletion
                 );
             } else {
-                $input['image'] = $category->image; // Gunakan gambar yang sudah ada
+                $input['image'] = $room->image; // Gunakan gambar yang sudah ada
             }
 
-            // Update data category
-            $category->update($input);
+            // Update data room
+            $room->update($input);
 
             // Simpan log histori setelah semua proses berhasil
             $loggedInUserId = Auth::id();
             $this->simpanLogHistori(
                 'Update',
                 'Room',
-                $category->id,
+                $room->id,
                 $loggedInUserId,
                 json_encode($oldData),
-                json_encode($category->toArray())
+                json_encode($room->toArray())
             );
 
             DB::commit();
 
-            return redirect()->route('categories.index')->with('success', 'Data berhasil diperbarui');
+            return redirect()->route('rooms.index')->with('success', 'Data berhasil diperbarui');
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()
@@ -236,17 +239,17 @@ class CategoryController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Category  $category
+     * @param  \App\Room  $room
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)
     {
-        $category = Category::find($id);
-        $category->delete();
-        $loggedInCategoryId = Auth::id();
-        // Simpan log histori untuk operasi Delete dengan category_id yang sedang login dan informasi data yang dihapus
-        $this->simpanLogHistori('Delete', 'Kategori Produk', $id, $loggedInCategoryId, json_encode($category), null);
+        $room = Room::find($id);
+        $room->delete();
+        $loggedInRoomId = Auth::id();
+        // Simpan log histori untuk operasi Delete dengan room_id yang sedang login dan informasi data yang dihapus
+        $this->simpanLogHistori('Delete', 'Ruangan', $id, $loggedInRoomId, json_encode($room), null);
         // Redirect kembali dengan pesan sukses
-        return redirect()->route('categories.index')->with('success', 'Kategori Produk berhasil dihapus');
+        return redirect()->route('rooms.index')->with('success', 'Ruangan berhasil dihapus');
     }
 }
