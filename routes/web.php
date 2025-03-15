@@ -1,4 +1,6 @@
 <?php
+
+use App\Http\Controllers\AssetMutationController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\AssetController;
 use App\Http\Controllers\AssetCategoryController;
@@ -63,10 +65,11 @@ Route::middleware([HtmlMinifier::class])->group(function () {
     Route::get('/blog/{slug}', [DepanController::class, 'blog_detail'])->name('blog.blog_detail');
     Route::get('/daftar', [DepanController::class, 'register'])->name('register');
     Route::post('/proses_daftar', [DepanController::class, 'register_action']);
- 
+
 
     Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::group(['middleware' => ['auth']], function () {
+        Route::resource('asset_mutations', AssetMutationController::class);
         Route::resource('rooms', RoomController::class);
         Route::resource('assets', AssetController::class);
         Route::resource('asset_categories', AssetCategoryController::class);
@@ -167,7 +170,6 @@ Route::middleware([HtmlMinifier::class])->group(function () {
     });
 
     Route::get('/{user}', [DepanController::class, 'store_detail'])
-    ->where('user', '[a-zA-Z0-9-_]+')
-    ->name('store.store_detail');
-
+        ->where('user', '[a-zA-Z0-9-_]+')
+        ->name('store.store_detail');
 });
