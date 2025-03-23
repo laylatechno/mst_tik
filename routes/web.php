@@ -1,10 +1,10 @@
 <?php
 
+use App\Http\Controllers\LetterController;
 use App\Http\Controllers\AssetMutationController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\AssetController;
 use App\Http\Controllers\AssetCategoryController;
-
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\BlogCategoryController;
 use App\Http\Controllers\ServiceController;
@@ -49,14 +49,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware([HtmlMinifier::class])->group(function () {
     Auth::routes();
-
     Route::get('/', [DepanController::class, 'index'])->name('beranda');
     Route::get('/produk', [DepanController::class, 'product'])->name('product');
-
     Route::get('/product/{slug}', [DepanController::class, 'product_detail'])->name('product.product_detail');
     Route::get('/toko', [DepanController::class, 'store'])->name('store');
-
-
     Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
     Route::get('/cart/delete/{id}', [CartController::class, 'delete'])->name('cart.delete');
@@ -65,10 +61,9 @@ Route::middleware([HtmlMinifier::class])->group(function () {
     Route::get('/blog/{slug}', [DepanController::class, 'blog_detail'])->name('blog.blog_detail');
     Route::get('/daftar', [DepanController::class, 'register'])->name('register');
     Route::post('/proses_daftar', [DepanController::class, 'register_action']);
-
-
     Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::group(['middleware' => ['auth']], function () {
+        Route::resource('letters', LetterController::class);
         Route::resource('asset_mutations', AssetMutationController::class);
         Route::resource('rooms', RoomController::class);
         Route::resource('assets', AssetController::class);
