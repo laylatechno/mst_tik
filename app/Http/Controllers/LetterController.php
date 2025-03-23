@@ -283,43 +283,39 @@ class LetterController extends Controller
      */
     public function destroy($id)
     {
+        // Mulai transaksi database
+        \DB::beginTransaction();
+
         // Cari letter berdasarkan ID
         $letter = Letter::findOrFail($id);
 
-
         try {
-
-
-            // Hapus file gambar jika ada
-            if (!empty($letter->image)) {
-                $imagePath = public_path('upload/letters/' . $letter->image);
-                if (file_exists($imagePath)) {
-                    @unlink($imagePath); // Menghapus file gambar
+            // Hapus file attachment jika ada
+            if (!empty($letter->attachment)) {
+                $filePath = public_path('upload/letters/' . $letter->attachment);
+                if (file_exists($filePath)) {
+                    @unlink($filePath); // Menghapus file
                 }
             }
 
-
-
-            // Hapus letter dari tabel letters
+            // Hapus record letter dari tabel letters
             $letter->delete();
 
             // Mendapatkan ID pengguna yang sedang login
-            $loggedInUserId = Auth::id();
+            $loggedInUserId = \Auth::id();
 
             // Simpan log histori untuk operasi Delete
             $this->simpanLogHistori('Delete', 'Letter', $id, $loggedInUserId, json_encode($letter), null);
 
-            // Commit letter
-            DB::commit();
+            // Commit transaksi
+            \DB::commit();
 
-            // Redirect kembali dengan pesan sukses
             return redirect()->route('letters.index')->with('success', 'Surat berhasil dihapus');
         } catch (\Exception $e) {
-            // Rollback letter jika terjadi error
-            DB::rollBack();
+            // Rollback transaksi jika terjadi error
+            \DB::rollBack();
 
-            // Kembalikan pesan error
-            return redirect()->route('letters.index')->with('error', 'Gagal menghapus letter: ' . $e->getMessage());
+            return redirect()->route('letters.index')->with('error', 'Gagal menghapus surat: ' . $e->getMessage());
         }
     }
 }
