@@ -11,6 +11,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Services\ImageService;
+use Yajra\DataTables\Facades\DataTables;
 
 class BlogController extends Controller
 {
@@ -48,17 +49,49 @@ class BlogController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request): View
+    public function index(Request $request)
     {
         $title = "Halaman Blog";
         $subtitle = "Menu Blog";
 
-        // Ambil data untuk dropdown select
-        $data_blogs = Blog::all();
+        if ($request->ajax()) {
+            $query = Blog::select('id', 'posting_date', 'title', 'writer', 'resume', 'position', 'image');
 
+            return DataTables::of($query)
+                ->addIndexColumn()
+                ->addColumn('image', function ($blog) {
+                    return '<a href="/upload/blogs/' . $blog->image . '" target="_blank">
+                            <img style="max-width:50px; max-height:50px" src="/upload/blogs/' . $blog->image . '" alt="">
+                        </a>';
+                })
+                ->addColumn('actions', function ($blog) {
+                    $btn = '<a class="btn btn-warning btn-sm" href="' . route('blogs.show', $blog->id) . '">
+                        <i class="fa fa-eye"></i> Show
+                    </a>';
 
-        // Kirim semua data ke view
-        return view('blog.index', compact('data_blogs', 'title', 'subtitle'));
+                    if (auth()->user()->can('blog-edit')) {
+                        $btn .= ' <a class="btn btn-primary btn-sm" href="' . route('blogs.edit', $blog->id) . '">
+                            <i class="fa fa-edit"></i> Edit
+                          </a>';
+                    }
+
+                    if (auth()->user()->can('blog-delete')) {
+                        $btn .= ' <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete(' . $blog->id . ')">
+                            <i class="fa fa-trash"></i> Delete
+                          </button>
+                          <form id="delete-form-' . $blog->id . '" method="POST" action="' . route('blogs.destroy', $blog->id) . '" style="display:none;">
+                            ' . csrf_field() . '
+                            ' . method_field("DELETE") . '
+                          </form>';
+                    }
+
+                    return $btn;
+                })
+                ->rawColumns(['image', 'actions'])
+                ->make(true);
+        }
+
+        return view('blog.index', compact('title', 'subtitle'));
     }
 
 

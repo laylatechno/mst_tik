@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Yajra\DataTables\Facades\DataTables;
 
 class BlogCategoryController extends Controller
 {
@@ -43,12 +44,47 @@ class BlogCategoryController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request): View
+    public function index(Request $request)
     {
         $title = "Halaman Kategori Blog";
         $subtitle = "Menu Kategori Blog";
-        $data_blogcategories = BlogCategory::all();
-        return view('blog_category.index', compact('data_blogcategories', 'title', 'subtitle'));
+
+        if ($request->ajax()) {
+            $query = BlogCategory::select('id', 'name', 'description', 'position');
+
+            return DataTables::of($query)
+                ->addIndexColumn()
+                ->addColumn('description', function ($category) {
+                    return $category->description ?: 'No Data';
+                })
+                ->addColumn('actions', function ($category) {
+                    $btn = '<a class="btn btn-warning btn-sm" href="' . route('blog_categories.show', $category->id) . '">
+                            <i class="fa fa-eye"></i> Show
+                        </a>';
+
+                    if (auth()->user()->can('blogcategory-edit')) {
+                        $btn .= ' <a class="btn btn-primary btn-sm" href="' . route('blog_categories.edit', $category->id) . '">
+                                <i class="fa fa-edit"></i> Edit
+                              </a>';
+                    }
+
+                    if (auth()->user()->can('blogcategory-delete')) {
+                        $btn .= ' <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete(' . $category->id . ')">
+                                <i class="fa fa-trash"></i> Delete
+                              </button>
+                              <form id="delete-form-' . $category->id . '" method="POST" action="' . route('blog_categories.destroy', $category->id) . '" style="display:none;">
+                                ' . csrf_field() . '
+                                ' . method_field("DELETE") . '
+                              </form>';
+                    }
+
+                    return $btn;
+                })
+                ->rawColumns(['actions'])
+                ->make(true);
+        }
+
+        return view('blog_category.index', compact('title', 'subtitle'));
     }
 
 

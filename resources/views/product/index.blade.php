@@ -269,6 +269,7 @@
             $('#scroll_hor').DataTable({
                 processing: true,
                 serverSide: true,
+                scrollX: true, 
                 ajax: "{{ route('products.index') }}",
                 columns: [{
                         data: 'id',
