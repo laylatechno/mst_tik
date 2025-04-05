@@ -467,7 +467,7 @@
                                             <label for="type_payment">Jenis Pembayaran:</label>
                                             <select name="type_payment" id="type_payment" class="form-control">
                                                 <option value="">--Pilih Jenis Pembayaran--</option>
-                                                <option value="CASH">CASH</option>
+                                                <option value="CASH" selected>CASH</option>
                                                 <option value="TRANSFER">TRANSFER</option>
                                             </select>
                                         </div>
