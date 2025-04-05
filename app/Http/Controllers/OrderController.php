@@ -162,18 +162,28 @@ class OrderController extends Controller
         $subtitle = "Menu Tambah Penjualan";
 
 
-        $data_products = Product::where('stock', '>', 0)
-            ->where('status_active', 'active')
-            ->get();
+        // $data_products = Product::where('stock', '>', 0)
+        //     ->where('status_active', 'active')
+        //     ->get();
 
-        $data_customers = Customer::all();
+        
         $data_orders = Order::all();
         $user = auth()->user();
         if ($user->can('user-access')) {
+            $data_products = Product::where('status_active', 'active')->get();
+        } else {
+            $data_products = Product::where('status_active', 'active')
+                ->where('user_id', $user->id)
+                ->get();
+        }
+        if ($user->can('user-access')) {
+            $data_customers = Customer::all(); // Admin / user dengan akses khusus lihat semua
             $data_cashes = Cash::all();
         } else {
+            $data_customers = Customer::where('user_id', $user->id)->get(); // User biasa hanya lihat miliknya
             $data_cashes = Cash::where('user_id', $user->id)->get();
         }
+        
 
         // Mendapatkan kode pembelian terbaru dari database
         $latestOrder = Order::latest()->first();
