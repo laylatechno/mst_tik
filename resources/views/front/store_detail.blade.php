@@ -112,7 +112,7 @@
                             <div class="card-body about-content-wrap dir-rtl">
 
                                 <img src="/upload/users/{{ $data_stores->banner }}"
-                                    alt="/upload/users/{{ $data_stores->banner }}">
+                                    alt="{{ $data_stores->user }}">
 
 
                             </div>
